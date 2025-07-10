@@ -71,4 +71,5 @@ GitHub REST  POST /pulls/:number/comments
 
 ---
 
-**Status:** *Project skeleton in progress — Milestone 0 underway.*
+
+**Status:** *Milestone 0 complete; working on Milestone 1 (Tier 0/1 demo).*
