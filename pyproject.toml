@@ -1,0 +1,27 @@
+[project]
+name = "prreview"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Lucien Thomas", email = "lucienthomas00@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.2.1",
+    "gitpython>=3.1.44",
+    "hnswlib>=0.8.0",
+    "rich>=14.0.0",
+    "sqlitedict>=2.1.0",
+    "tokenizers>=0.21.2",
+    "torch>=2.7.1",
+    "tqdm>=4.67.1",
+    "transformers>=4.53.1",
+]
+
+[project.scripts]
+pr-review = "prreview:main"
+
+[build-system]
+requires = ["uv>=0.5.26,<0.6"]
+build-backend = "uv"
