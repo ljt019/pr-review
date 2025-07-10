@@ -1,8 +1,8 @@
 from prreview.review.reviewer import Reviewer
 
 REPO_PATH = "./.input_codebase"
-BASE_BRANCH = "main"
-HEAD_BRANCH = "dev"
+BASE_BRANCH = "dev"
+HEAD_BRANCH = "main"
 
 
 
