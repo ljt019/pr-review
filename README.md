@@ -2,7 +2,14 @@
 
 A minimal prototype for a pull request review bot.
 
-Running `uv run pr-review` will analyze the repository in `./.input_codebase`
-and print the git diff between `main` and `dev` followed by simple context
-windows around each modified hunk. The command also builds a metadata index in
-`.prreview.sqlite` inside the target repository for use in later milestones.
+Running `uv run pr-review` will analyze the repository passed on the command
+line and print the diff between two branches along with surrounding context and
+semantic neighbours.
+
+```bash
+uv run pr-review -- --repo-path path/to/repo --base-branch main --head-branch dev
+```
+
+The first run builds a small SQLite metadata DB (`.prreview.sqlite`) plus a
+vector store (`.prreview.hnsw` + `.prreview.vec.sqlite`) inside the target
+repository.

@@ -72,4 +72,4 @@ GitHub REST  POST /pulls/:number/comments
 ---
 
 
-**Status:** *Milestone 0 complete; working on Milestone 1 (Tier 0/1 demo).*
+**Status:** *Milestone 2 complete; preparing for Milestone 3 (LLM integration).*
