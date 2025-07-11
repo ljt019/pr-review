@@ -6,14 +6,14 @@ import json
 from prreview.review.diff_analyzer import diff_hunks
 from prreview.review.context_selector import select_context
 from prreview.index.indexer import Indexer
-from prreview.llm.qwen import Qwen3Model
+from prreview.llm import OpenRouterModel
 
 
 class Reviewer:
     def __init__(self):
         # Database path will be created inside the target repository
         self.db_path: Path | None = None
-        self.llm = Qwen3Model()
+        self.llm = OpenRouterModel()
 
     def run(self, repo_path: str, base_branch: str, head_branch: str):
 
