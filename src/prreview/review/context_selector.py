@@ -30,10 +30,14 @@ def select_context(db_path: Path, hunks: List[Tuple[Path, int, int]], repo_path:
         if not path.exists():
             continue
 
-        lines = path.read_text(errors="replace").splitlines(keepends=True)
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines(keepends=True)
         lo = max(0, start - 1 - CTX_LINES)
         hi = min(len(lines), end + CTX_LINES)
         text = "".join(lines[lo:hi])
+        
+        # Fix common character substitutions that might occur due to encoding issues
+        #text = text.replace('ä', '{').replace('å', '}').replace('Ä', '[').replace('Å', ']').replace('Ö', '::')
+        
         key = (str(file_path), lo + 1, hi)
         if key not in seen:
             chunks.append(Chunk(*key, text))
@@ -48,8 +52,12 @@ def select_context(db_path: Path, hunks: List[Tuple[Path, int, int]], repo_path:
             m_path = repo_path / meta[0] if repo_path else Path(meta[0])
             if not m_path.exists():
                 continue
-            m_lines = m_path.read_text(errors="replace").splitlines(keepends=True)
+            m_lines = m_path.read_text(encoding="utf-8", errors="replace").splitlines(keepends=True)
             m_text = "".join(m_lines[meta[1] - 1: meta[2]])
+            
+            # Fix common character substitutions that might occur due to encoding issues
+            m_text = m_text.replace('ä', '{').replace('å', '}').replace('Ä', '[').replace('Å', ']').replace('Ö', '::')
+            
             m_key = (meta[0], meta[1], meta[2])
             if m_key not in seen:
                 chunks.append(Chunk(meta[0], meta[1], meta[2], m_text))

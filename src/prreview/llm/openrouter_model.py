@@ -74,6 +74,9 @@ class OpenRouterModel:
 
     def _extract_json_from_response(self, text: str) -> str:
         """Extract JSON payload from text that may include <think> tags."""
+        # Fix common character substitutions that might occur
+        text = text.replace('ä', '{').replace('å', '}').replace('Ä', '[').replace('Å', ']').replace('Ö', '::')
+        
         cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
         json_match = re.search(r"\{.*\}", cleaned, re.DOTALL)
         return json_match.group(0) if json_match else cleaned
@@ -154,6 +157,11 @@ class OpenRouterModel:
                 messages=messages,
                 temperature=0.7,
                 max_tokens=max_tokens,
+                extra_body={
+                    "provider": {
+                        "order": ["Groq"]
+                    }
+                }
             )
             text = resp.choices[0].message.content.strip()
             
