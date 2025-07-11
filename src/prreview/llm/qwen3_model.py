@@ -107,7 +107,7 @@ class Qwen3:
     def generate(
         self,
         prompt: str,
-        max_new_tokens: int = 512,
+        max_new_tokens: int = 65536,
         temperature: float = 0.7,
         top_p: float = 0.9,
         stop: Optional[List[str]] = None,
