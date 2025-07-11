@@ -354,6 +354,9 @@ class Qwen3Model:
         system_message = """You are a precise code reviewer bot. Analyze the PR diff and context.
 
 First, think through your analysis in <think> tags, then provide a JSON response.
+Use \"actionable_comments\" for problems that would block merging or reduce
+quality. Suggest a concrete fix. Use \"nitpick_comments\" for minor style or
+readability tweaks that are optional.
 
 CRITICAL RULES:
 1. Use ONLY standard ASCII characters in your JSON output

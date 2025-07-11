@@ -14,7 +14,10 @@ from prreview.review.context_selector import Chunk
 SYSTEM_MESSAGE = (
     "You are a precise code reviewer bot. Analyze the PR diff and context. "
     "First, think through your analysis in <think> tags, then provide a JSON"
-    " response. Output ASCII JSON only." 
+    " response. Output ASCII JSON only. "
+    "Use 'actionable_comments' for issues that must be fixed and include a"
+    " clear suggestion. Use 'nitpick_comments' for optional style or"
+    " readability tweaks."
 )
 
 
