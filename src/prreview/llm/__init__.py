@@ -1,3 +1,5 @@
-from .qwen import Qwen3Model
+"""LLM backend selection."""
 
-__all__ = ["Qwen3Model"]
+from .openrouter_model import OpenRouterModel
+
+__all__ = ["OpenRouterModel"]
