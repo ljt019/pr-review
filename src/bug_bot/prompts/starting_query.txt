@@ -1,2 +1,12 @@
-Analyze the codebase for bugs, security issues, and code quality problems. 
-Provide a comprehensive review following the structured process.
+I've received a codebase for review. Please perform a comprehensive code review focusing on:
+
+1. **Security vulnerabilities** - Check for SQL injection, XSS, authentication issues, exposed secrets, improper input validation
+2. **Code quality** - Identify code smells, anti-patterns, complexity issues, and maintainability concerns
+3. **Performance issues** - Look for inefficient algorithms, memory leaks, unnecessary operations
+4. **Error handling** - Review exception handling, edge cases, and error recovery mechanisms
+5. **Best practices** - Verify adherence to language-specific conventions and industry standards
+
+Start by analyzing the overall project structure and architecture, then dive into specific modules. Prioritize critical security issues and bugs that could cause system failures.
+
+Remember: Create a comprehensive todo list for your review and ensure ALL todos are marked as complete before providing your final JSON review.
+Please remember to provide your findings in the structured JSON format once your analysis is complete.

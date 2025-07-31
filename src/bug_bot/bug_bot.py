@@ -2,7 +2,7 @@ import json5
 from datetime import datetime
 from enum import Enum
 from dotenv import load_dotenv
-from bug_bot.tools import load_prompt
+from bug_bot.tools import load_prompt, run_in_container
 from bug_bot.metadata import enhance_bug_report
 from bug_bot.response_saver import save_response_with_summary
 from paths import PROJECT_ROOT
@@ -35,7 +35,7 @@ class BugBot:
             'model_server': 'https://openrouter.ai/api/v1',
             'api_key': os.getenv("OPEN_ROUTER_API_KEY"),
             'generate_cfg': {
-                'temperature': 0.1,
+                'max_input_tokens': 100000,
             }
         }
 
@@ -51,11 +51,11 @@ class BugBot:
         self.messages = []
         self.container = BotContainer(zipped_codebase)
 
-        try:
-            self.container.start()
-        except Exception as e:
-            print(f"Failed to initialize BugBot: {e}")
-            # Ensure cleanup can run even if initialization fails
+        # Start container; if it fails, raise so the caller knows the environment is broken
+        self.container.start()
+
+        # Wait until some files are present in /workspace to avoid race conditions
+        self._wait_for_workspace_ready()
 
     def __del__(self):
         self.container.stop()
@@ -125,6 +125,23 @@ class BugBot:
                 }
             }
     
+    def _wait_for_workspace_ready(self, timeout: int = 15):
+        """Block until the /workspace directory inside the container has at least one file.
+        Helps avoid a race where the container is started but the initial copy/unzip is still running.
+        """
+        from time import sleep, time as now
+        start = now()
+        while True:
+            count_cmd = 'find /workspace -maxdepth 2 -type f | head -1'
+            result = run_in_container(count_cmd)
+            if result and not result.startswith('Error:'):
+                # At least one file found
+                return
+            if now() - start > timeout:
+                print("Warning: workspace still empty after wait; continuing anyway")
+                return
+            sleep(0.5)
+
     def _get_analyzed_files(self):
         """Get list of files that were analyzed during the scan"""
         # For now, return empty list. Could be enhanced to track actual files accessed

@@ -34,14 +34,13 @@ class GlobTool(BaseTool):
             # Build an appropriate find command
             # Special-case patterns that mean "all files"
             if pattern in ["*", "**", "**/*"]:
-                find_cmd = f'find "{search_path}" -type f -printf "%T@ %p\\n" 2>/dev/null | sort -rn | head -50 | cut -d" " -f2-'
+                find_cmd = f'find "{search_path}" -type f 2>/dev/null | head -50'
             else:
                 # General pattern: use -path so that wildcards match full path components
                 # Replace any leading "**/" with "*/" because find's wildcard traverses directories by default
                 normalized_pattern = pattern.replace("**/", "*/").replace("**", "*")
                 find_cmd = (
-                    f'find "{search_path}" -type f -path "*{normalized_pattern}*" '
-                    f'-printf "%T@ %p\\n" 2>/dev/null | sort -rn | head -50 | cut -d" " -f2-'
+                    f'find "{search_path}" -type f -path "*{normalized_pattern}*" 2>/dev/null | head -50'
                 )
             
             result = run_in_container(find_cmd)
