@@ -1,11 +1,11 @@
 import json5
 from qwen_agent.tools.base import BaseTool, register_tool
 
-from bug_bot.tools import run_in_container
+from bug_bot.tools import run_in_container, load_tool_description
 
 @register_tool('bash')
 class BashTool(BaseTool):
-    description = 'Execute bash command'
+    description = load_tool_description('bash')
     parameters = [{
         'name': 'command',
         'type': 'string',

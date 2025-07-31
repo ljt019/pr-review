@@ -1,0 +1,12 @@
+Read your current todo list to track review progress. Use this frequently to ensure you complete all planned analysis phases.
+
+When to use:
+- After completing major analysis phases
+- Before generating the final review
+- Whenever unsure about remaining tasks
+- To verify all todos are complete before providing review
+
+Usage:
+- This tool takes no parameters
+- Returns list showing [x] for completed and [] for incomplete todos
+- You MUST have zero incomplete todos before providing your final JSON review

@@ -1,0 +1,40 @@
+Fast file pattern matching tool for finding files by name patterns. Use this when you need to locate files that match specific naming conventions or extensions across the codebase.
+
+## When to Use This Tool
+
+Use this tool when you need to:
+- Find files with specific extensions (e.g., all Python files, config files)
+- Locate files following naming patterns (e.g., test files, migration files)
+- Search for files in specific directories with pattern matching
+- Get a quick overview of file types in the codebase
+
+## When NOT to Use This Tool
+
+Don't use this tool when:
+- You know the exact file path (use read_file directly)
+- You need to search file contents (use grep instead)
+- You want to list all files in a directory (use list_dir instead)
+
+## Examples
+
+**Find all Python files:**
+```json
+{"pattern": "**/*.py"}
+```
+
+**Find test files:**
+```json
+{"pattern": "**/test_*.py"}
+```
+
+**Find config files in specific directory:**
+```json
+{"pattern": "*.json", "path": "config/"}
+```
+
+**Find JavaScript/TypeScript files:**
+```json
+{"pattern": "**/*.{js,ts}"}
+```
+
+Results are sorted by modification time (newest first) and limited to 50 files to keep output manageable.

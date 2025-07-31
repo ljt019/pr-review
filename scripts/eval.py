@@ -44,7 +44,7 @@ def main():
         print("Starting bug bot evaluation...")
         
         # Run the bot
-        bot = BugBot()
+        bot = BugBot(zipped_codebase_path)
         result = bot.run(save_response=True)
         
         # Parse the model response

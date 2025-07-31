@@ -1,10 +1,10 @@
 import json5
 from qwen_agent.tools.base import BaseTool, register_tool
-from bug_bot.tools import run_in_container
+from bug_bot.tools import run_in_container, load_tool_description
 
 @register_tool('grep')
 class GrepTool(BaseTool):
-    description = 'Fast ripgrep search tool'
+    description = load_tool_description('grep')
     parameters = [
         {
             'name': 'pattern',

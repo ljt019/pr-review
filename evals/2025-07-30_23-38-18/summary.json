@@ -1,0 +1,13 @@
+{
+  scan_id: "scan_1753936698",
+  timestamp: "2025-07-31T04:38:18.348642Z",
+  total_issues: 18,
+  critical_count: 6,
+  files_with_issues: 6,
+  confidence: 0.95,
+  top_categories: [
+    "security",
+    "resource_management",
+    "reliability",
+  ],
+}

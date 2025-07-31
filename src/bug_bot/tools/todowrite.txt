@@ -1,0 +1,104 @@
+Use this tool to create and manage a structured task list for your code review session. This helps you track progress, organize complex analyses, and demonstrate thoroughness to the user.
+
+## When to Use This Tool
+
+Use this tool proactively in these scenarios:
+
+1. Complex multi-area reviews - When you need to analyze security, performance, architecture, and code quality
+2. Systematic analysis - When reviewing requires examining multiple subsystems or layers
+3. Large codebases - When you need to ensure comprehensive coverage across many files
+4. Multiple bug categories - When looking for different types of issues (security, performance, logic errors)
+
+## When NOT to Use This Tool
+
+Skip using this tool when:
+1. The codebase is very small (under 10 files)
+2. The review focus is narrow and specific 
+3. The analysis can be completed in a single pass
+4. You're examining a single component or function
+
+## Examples of When to Use the Todo List
+
+<example>
+User: Review this e-commerce application for security vulnerabilities and code quality issues
+Assistant: I'll conduct a comprehensive review of your e-commerce application. Let me create a structured todo list to ensure thorough coverage of all critical areas.
+*Creates todo list with items like:*
+- "Analyze authentication and session management for security vulnerabilities"
+- "Review payment processing and PCI compliance"
+- "Examine input validation and SQL injection risks"
+- "Check API endpoints for authorization bypass issues"
+- "Review error handling and information disclosure"
+*Begins systematic analysis*
+
+<reasoning>
+The assistant used the todo list because:
+1. E-commerce applications have multiple critical security areas
+2. Systematic coverage is essential for security reviews
+3. The review spans multiple architectural layers
+4. This demonstrates thoroughness and professionalism to the user
+</reasoning>
+</example>
+
+<example>
+User: Find performance bottlenecks in our API backend
+Assistant: I'll analyze your API backend for performance issues. Let me organize this into key areas to ensure comprehensive coverage.
+*Creates todo list:*
+- "Analyze database queries for N+1 problems and missing indexes"
+- "Review caching implementation and cache hit rates"
+- "Check for inefficient algorithms and data structures"
+- "Examine API response payload sizes and serialization"
+- "Review concurrency handling and connection pooling"
+
+<reasoning>
+The assistant used the todo list because:
+1. Performance analysis requires examining multiple system aspects
+2. Different bottlenecks require different investigation techniques
+3. Structured approach ensures no performance aspect is overlooked
+4. Shows the user a professional, methodical approach
+</reasoning>
+</example>
+
+## Examples of When NOT to Use the Todo List
+
+<example>
+User: Is there a SQL injection vulnerability in this login function?
+Assistant: I'll examine the login function for SQL injection vulnerabilities.
+*Directly reads the relevant file and analyzes the code*
+
+<reasoning>
+The assistant did not use the todo list because this is a specific, focused request about a single function and vulnerability type.
+</reasoning>
+</example>
+
+<example>
+User: Review this utility file for code quality
+Assistant: I'll review your utility file for code quality issues.
+*Proceeds to read and analyze the file directly*
+
+<reasoning>
+The assistant did not use the todo list because this is a single file review that can be completed in one pass.
+</reasoning>
+</example>
+
+## Task Management
+
+1. **Creating todos**: Pass an array of strings for initial todo creation
+   ```json
+   {"todos": ["Analyze authentication system", "Review database security", "Check input validation"]}
+   ```
+
+2. **Updating status**: Pass an array of objects with content and status
+   ```json
+   {"todos": [
+     {"content": "Analyze authentication system", "status": "complete"},
+     {"content": "Review database security", "status": "incomplete"}
+   ]}
+   ```
+
+3. **Best practices**:
+   - Keep todos high-level and meaningful (5-10 maximum)
+   - Focus on analysis phases, not individual file operations
+   - Update status as you complete each phase
+   - Always check todos before final review
+
+When in doubt, use this tool. Being proactive with task management demonstrates attentiveness and ensures you deliver a comprehensive, well-organized review.

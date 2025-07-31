@@ -1,0 +1,18 @@
+Lists files and directories in a hierarchical tree structure. Automatically filters out common development directories (node_modules, .git, __pycache__, etc.) to focus on relevant code. Use this to understand project structure and navigate large codebases efficiently.
+
+## When to Use This Tool
+
+Use this tool when you need to:
+- Get an overview of project structure and organization
+- Understand how code is organized across directories
+- Find the main source directories before detailed analysis
+- Navigate unfamiliar codebases
+
+## When NOT to Use This Tool
+
+Don't use this tool when:
+- You need to find specific files by pattern (use glob instead)
+- You want to search file contents (use grep instead)
+- You know the exact file path you need (use read_file directly)
+
+Results are limited to 100 files and show a clean tree structure with irrelevant directories automatically filtered out.

@@ -1,0 +1,1 @@
+Fast ripgrep search tool for finding patterns in the codebase. Use this tool to search for specific text, function names, variables, or regex patterns across files. Supports filtering by file type and directory.

@@ -1,0 +1,31 @@
+Read file contents with line numbers and intelligent pagination. Essential for examining source code, configuration files, and documentation to understand implementation and find bugs.
+
+## When to Use This Tool
+
+Use this tool when you need to:
+- Examine source code files for bugs and security issues
+- Read configuration files, manifests, and documentation
+- Analyze specific sections of large files
+- Understand code implementation and logic flow
+
+## Features
+
+- **Line numbering**: Every line is numbered for easy reference
+- **Smart pagination**: Read large files in manageable chunks using offset/limit
+- **Binary file detection**: Automatically rejects binary files with helpful messages
+- **File suggestions**: When file not found, suggests similar filenames
+- **Line truncation**: Very long lines are truncated to keep output readable
+
+## Usage
+
+**Read entire file:**
+```json
+{"filePath": "src/app.py"}
+```
+
+**Read specific section:**
+```json
+{"filePath": "src/app.py", "offset": 50, "limit": 30}
+```
+
+Files are displayed with line numbers in format: `00001| content`. For large files, use offset/limit to read specific sections.

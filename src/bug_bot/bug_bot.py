@@ -2,7 +2,7 @@ import json5
 from datetime import datetime
 from enum import Enum
 from dotenv import load_dotenv
-from bug_bot.prompts import SYSTEM_INSTRUCTIONS, STARTING_QUERY
+from bug_bot.tools import load_prompt
 from bug_bot.metadata import enhance_bug_report
 from bug_bot.response_saver import save_response_with_summary
 from paths import PROJECT_ROOT
@@ -16,7 +16,7 @@ settings.MAX_LLM_CALL_PER_RUN = 500
 from qwen_agent.agents import Assistant
 
 # Import tools to register them
-from bug_bot.tools import list_dir, read_file, grep, todo 
+from bug_bot.tools import ls, cat, grep, glob, todo 
 
 load_dotenv()
 
@@ -39,8 +39,8 @@ class BugBot:
             }
         }
 
-        system_instruction = SYSTEM_INSTRUCTIONS
-        tools = ['list_dir', 'read_file', 'grep', 'task_manager']
+        system_instruction = load_prompt("system_prompt")
+        tools = ['ls', 'cat', 'grep', 'glob', 'todo_write', 'todo_read']
 
         self.agent = Assistant(
             llm=llm_cfg,
@@ -61,7 +61,7 @@ class BugBot:
         self.container.stop()
 
     def run(self, save_response=False):
-        self.messages.append({'role': 'user', 'content': STARTING_QUERY})
+        self.messages.append({'role': 'user', 'content': load_prompt("starting_query")})
         
         final_response = ""
         for response in self.agent.run(messages=self.messages):
@@ -112,7 +112,7 @@ class BugBot:
             
             return enhanced_response
             
-        except json5.JSONDecodeError:
+        except ValueError:
             # If LLM didn't return valid JSON, wrap it with minimal metadata
             return {
                 "summary": "Failed to parse LLM response",

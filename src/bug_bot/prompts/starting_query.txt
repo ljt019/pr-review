@@ -1,0 +1,2 @@
+Analyze the codebase for bugs, security issues, and code quality problems. 
+Provide a comprehensive review following the structured process.
