@@ -1,15 +1,81 @@
-# pr-review
+# Bug Detection Bot
 
-A minimal prototype for a pull request review bot.
+An automated bug detection system that analyzes codebases for security vulnerabilities, code quality issues, and potential bugs.
 
-Running `uv run pr-review` will analyze the repository passed on the command
-line and print the diff between two branches along with surrounding context and
-semantic neighbours.
+## Features
+
+- Automated code analysis for common security vulnerabilities
+- Support for multiple programming languages
+- Evaluation framework with ground truth comparison
+- Containerized deployment with Docker
+- Comprehensive reporting and metrics
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.11+
+- Docker (for containerized deployment)
+- uv package manager
+
+### Installation
 
 ```bash
-uv run pr-review -- --repo-path path/to/repo --base-branch main --head-branch dev
+# Clone the repository
+git clone <repository-url>
+cd bug-bot
+
+# Install dependencies
+uv sync
 ```
 
-The first run builds a small SQLite metadata DB (`.prreview.sqlite`) plus a
-vector store (`.prreview.hnsw` + `.prreview.vec.sqlite`) inside the target
-repository.
+### Usage
+
+```bash
+# Run bug detection analysis
+uv run src/main.py
+
+# Run evaluation against ground truth
+uv run scripts/eval.py
+
+# Run with Docker
+docker compose up
+```
+
+## Project Structure
+
+```
+├── src/                    # Main source code
+├── scripts/               # Utility scripts
+├── evals/                 # Evaluation framework
+├── claude_agents/         # Claude agent configurations
+├── bugs_ground_truth.json # Ground truth data for evaluation
+└── compose.yml           # Docker compose configuration
+```
+
+## Configuration
+
+Set up your environment variables in `.env`:
+
+```bash
+ANTHROPIC_API_KEY=your_api_key_here
+```
+
+## Evaluation
+
+The evaluation system compares detected bugs against ground truth data:
+
+```bash
+# Run full evaluation suite
+uv run scripts/eval.py
+
+# View evaluation results
+cat evaluation_results.json
+```
+
+## Contributing
+
+1. Follow existing code conventions
+2. Add tests for new functionality
+3. Update ground truth data when adding new bug types
+4. Run evaluations before submitting changes

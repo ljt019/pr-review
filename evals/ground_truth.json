@@ -1,0 +1,343 @@
+{
+  "metadata": {
+    "description": "Ground truth bugs for evaluating code review bot effectiveness",
+    "total_bugs": 29,
+    "severity_levels": [
+      "critical",
+      "major",
+      "minor"
+    ],
+    "categories": [
+      "security",
+      "performance",
+      "validation",
+      "reliability",
+      "dead_code",
+      "resource_management",
+      "error_handling",
+      "authorization"
+    ]
+  },
+  "bugs": [
+    {
+      "id": "sec_001",
+      "file": "src/server/routes.py",
+      "line": 16,
+      "severity": "major",
+      "category": "security",
+      "description": "Hardcoded Flask SECRET_KEY",
+      "code_snippet": "app.config[\"SECRET_KEY\"] = \"not_so_secret_change_me\"",
+      "recommendation": "Load secret key from environment or secrets manager"
+    },
+    {
+      "id": "err_001",
+      "file": "src/server/routes.py",
+      "line": 19,
+      "severity": "minor",
+      "category": "error_handling",
+      "description": "Middleware registered without robust exception handling/logging",
+      "code_snippet": "app.before_request(log_request_middleware)",
+      "recommendation": "Wrap middleware with try/except and structured logging"
+    },
+    {
+      "id": "perf_001",
+      "file": "src/server/routes.py",
+      "line": 28,
+      "severity": "major",
+      "category": "performance",
+      "description": "List endpoint has no pagination and may load large datasets",
+      "code_snippet": "items = db.get_all_items()",
+      "recommendation": "Implement pagination and limit/offset"
+    },
+    {
+      "id": "authz_001",
+      "file": "src/server/auth.py",
+      "line": 8,
+      "severity": "major",
+      "category": "authorization",
+      "description": "Authorization accepts any non-empty X-Auth header",
+      "code_snippet": "if not token:",
+      "recommendation": "Validate tokens properly (JWT, session, or API key verification)"
+    },
+    {
+      "id": "val_001",
+      "file": "src/server/routes.py",
+      "line": 37,
+      "severity": "minor",
+      "category": "validation",
+      "description": "Insufficient input validation; only checks email with weak regex",
+      "code_snippet": "if not name or not is_valid_email(email):",
+      "recommendation": "Validate required fields with stricter rules and schemas"
+    },
+    {
+      "id": "rel_001",
+      "file": "src/server/routes.py",
+      "line": 41,
+      "severity": "minor",
+      "category": "reliability",
+      "description": "No uniqueness check causing possible duplicates",
+      "code_snippet": "item_id = db.insert_item({\"name\": name, \"email\": email})",
+      "recommendation": "Add unique index and pre-insert check or handle conflicts"
+    },
+    {
+      "id": "err_002",
+      "file": "src/server/routes.py",
+      "line": 44,
+      "severity": "minor",
+      "category": "error_handling",
+      "description": "Email send not wrapped with error handling",
+      "code_snippet": "send_email(email, f\"Welcome {name}!\")",
+      "recommendation": "Wrap send in try/except with retries/backoff"
+    },
+    {
+      "id": "rel_002",
+      "file": "src/server/routes.py",
+      "line": 47,
+      "severity": "minor",
+      "category": "reliability",
+      "description": "Cache not invalidated after write causing stale reads",
+      "code_snippet": "cache.set(\"items_last_create\", time.time())",
+      "recommendation": "Invalidate or update related cache entries on write"
+    },
+    {
+      "id": "perf_002",
+      "file": "src/server/routes.py",
+      "line": 54,
+      "severity": "minor",
+      "category": "performance",
+      "description": "Cache stampede risk due to naive caching without locking",
+      "code_snippet": "cached = cache.get(f\"item:{item_id}\")",
+      "recommendation": "Introduce request coalescing or locks around fills"
+    },
+    {
+      "id": "authz_002",
+      "file": "src/server/routes.py",
+      "line": 66,
+      "severity": "major",
+      "category": "authorization",
+      "description": "Delete endpoint lacks ownership/role authorization checks",
+      "code_snippet": "ok = db.delete_item(item_id)",
+      "recommendation": "Enforce role/ownership checks before deletion"
+    },
+    {
+      "id": "sec_002",
+      "file": "src/server/routes.py",
+      "line": 73,
+      "severity": "major",
+      "category": "security",
+      "description": "Path traversal via user-controlled file path",
+      "code_snippet": "with open(path, \"r\", encoding=\"utf-8\") as fh:",
+      "recommendation": "Validate and restrict paths to an allowed directory"
+    },
+    {
+      "id": "res_001",
+      "file": "src/server/routes.py",
+      "line": 76,
+      "severity": "minor",
+      "category": "resource_management",
+      "description": "Reads entire file into memory without size checks",
+      "code_snippet": "data = fh.read()",
+      "recommendation": "Stream file with size limits"
+    },
+    {
+      "id": "perf_003",
+      "file": "src/server/routes.py",
+      "line": 96,
+      "severity": "major",
+      "category": "performance",
+      "description": "Quadratic loop for simple computation",
+      "code_snippet": "for i in range(n):\n            for j in range(i):\n                total += j",
+      "recommendation": "Use O(1) formula or linear algorithm"
+    },
+    {
+      "id": "sec_003",
+      "file": "src/server/routes.py",
+      "line": 102,
+      "severity": "critical",
+      "category": "security",
+      "description": "Unsafe eval of user input allows RCE",
+      "code_snippet": "eval(expr)",
+      "recommendation": "Remove eval or use a safe parser/whitelist"
+    },
+    {
+      "id": "sec_004",
+      "file": "src/server/middleware.py",
+      "line": 6,
+      "severity": "major",
+      "category": "security",
+      "description": "Logs full headers including Authorization",
+      "code_snippet": "dict(request.headers)",
+      "recommendation": "Avoid logging sensitive headers; use redaction"
+    },
+    {
+      "id": "sec_005",
+      "file": "src/utils/file_ops.py",
+      "line": 5,
+      "severity": "major",
+      "category": "security",
+      "description": "File read without path sanitization",
+      "code_snippet": "with open(path, \"r\", encoding=\"utf-8\") as f:",
+      "recommendation": "Sanitize and restrict paths; use allowlist"
+    },
+    {
+      "id": "sec_006",
+      "file": "src/utils/file_ops.py",
+      "line": 10,
+      "severity": "major",
+      "category": "security",
+      "description": "Predictable temp file path can be exploited",
+      "code_snippet": "tmp = \"/tmp/app_temp.txt\"",
+      "recommendation": "Use tempfile.NamedTemporaryFile or mkstemp"
+    },
+    {
+      "id": "rel_003",
+      "file": "src/utils/cache.py",
+      "line": 15,
+      "severity": "minor",
+      "category": "reliability",
+      "description": "Expired entries not removed leading to stale keys",
+      "code_snippet": "if expires_at and expires_at < time.time():\n            return None",
+      "recommendation": "Delete expired keys when detected"
+    },
+    {
+      "id": "rel_004",
+      "file": "src/utils/cache.py",
+      "line": 25,
+      "severity": "major",
+      "category": "reliability",
+      "description": "Writes without lock causing race conditions",
+      "code_snippet": "self._store[key] = (value, expires_at)",
+      "recommendation": "Use locking or thread-safe structures on writes"
+    },
+    {
+      "id": "perf_004",
+      "file": "src/utils/cache.py",
+      "line": 29,
+      "severity": "minor",
+      "category": "performance",
+      "description": "Inefficient clear without lock; potential races",
+      "code_snippet": "self._store = {}",
+      "recommendation": "Clear under lock or recreate the dict safely"
+    },
+    {
+      "id": "val_002",
+      "file": "src/utils/validators.py",
+      "line": 5,
+      "severity": "minor",
+      "category": "validation",
+      "description": "Overly permissive email regex",
+      "code_snippet": "EMAIL_RE = re.compile(r\".+@.+\\..+\")",
+      "recommendation": "Use stricter RFC-like regex or a validation library"
+    },
+    {
+      "id": "rel_005",
+      "file": "src/services/db.py",
+      "line": 8,
+      "severity": "major",
+      "category": "reliability",
+      "description": "Global SQLite connection shared across threads",
+      "code_snippet": "_conn = None",
+      "recommendation": "Use per-thread connections or a connection pool"
+    },
+    {
+      "id": "perf_005",
+      "file": "src/services/db.py",
+      "line": 28,
+      "severity": "minor",
+      "category": "performance",
+      "description": "Artificial sleep in per-row processing (N+1-like)",
+      "code_snippet": "time.sleep(0.001)",
+      "recommendation": "Remove sleeps and batch operations"
+    },
+    {
+      "id": "sec_007",
+      "file": "src/services/emailer.py",
+      "line": 4,
+      "severity": "major",
+      "category": "security",
+      "description": "Hardcoded SMTP host and no TLS",
+      "code_snippet": "SMTP_HOST = \"smtp.example.com\"",
+      "recommendation": "Configure via environment and enforce TLS"
+    },
+    {
+      "id": "res_002",
+      "file": "src/services/emailer.py",
+      "line": 8,
+      "severity": "minor",
+      "category": "resource_management",
+      "description": "No validation on email body size",
+      "code_snippet": "def send_email(to_addr: str, body: str):",
+      "recommendation": "Enforce maximum size and sanitize content"
+    },
+    {
+      "id": "err_003",
+      "file": "src/tasks/cleanup.py",
+      "line": 16,
+      "severity": "minor",
+      "category": "error_handling",
+      "description": "Swallowing exceptions hides cleanup failures",
+      "code_snippet": "except Exception:\n            pass",
+      "recommendation": "Log exceptions and consider partial retries"
+    },
+    {
+      "id": "sec_008",
+      "file": "src/tasks/cleanup.py",
+      "line": 6,
+      "severity": "major",
+      "category": "security",
+      "description": "Aggressive deletion of /tmp content",
+      "code_snippet": "shutil.rmtree(path)",
+      "recommendation": "Limit deletions to application-owned directories"
+    },
+    {
+      "id": "perf_006",
+      "file": "src/tasks/cleanup.py",
+      "line": 23,
+      "severity": "minor",
+      "category": "performance",
+      "description": "Log rotation copies entire file; no truncation or compression",
+      "code_snippet": "shutil.copy(log, f\"/tmp/app.{ts}.log\")",
+      "recommendation": "Use rename+truncate or compression with size limits"
+    },
+    {
+      "id": "rel_006",
+      "file": "src/tasks/metrics.py",
+      "line": 6,
+      "severity": "major",
+      "category": "reliability",
+      "description": "HTTP request without timeout can hang",
+      "code_snippet": "requests.post(url, json=payload)",
+      "recommendation": "Set reasonable timeouts and retries with backoff"
+    },
+    {
+      "id": "dead_001",
+      "file": "src/tasks/metrics.py",
+      "line": 12,
+      "severity": "minor",
+      "category": "dead_code",
+      "description": "Unused slow counter function",
+      "code_snippet": "def unused_slow_counter(n: int) -> int:",
+      "recommendation": "Remove dead code or write tests that use it"
+    },
+    {
+      "id": "dead_002",
+      "file": "src/legacy/old_module.py",
+      "line": 5,
+      "severity": "minor",
+      "category": "dead_code",
+      "description": "Unreachable branch inside legacy function",
+      "code_snippet": "if False:",
+      "recommendation": "Remove unreachable code or mark with pragma"
+    },
+    {
+      "id": "sec_009",
+      "file": "src/app.py",
+      "line": 7,
+      "severity": "minor",
+      "category": "security",
+      "description": "Debug=True exposes sensitive info in errors",
+      "code_snippet": "app.run(host=\"0.0.0.0\", port=5000, debug=True)",
+      "recommendation": "Do not enable debug in non-dev environments"
+    }
+  ]
+}

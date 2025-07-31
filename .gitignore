@@ -9,10 +9,5 @@ wheels/
 # Virtual environments
 .venv
 
-!.input_codebase
-.input_codebase/
-
-!.output 
-.output/
-
 .env
+.claude/
