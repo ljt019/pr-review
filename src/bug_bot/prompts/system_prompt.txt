@@ -26,7 +26,7 @@ Only use emojis if the user explicitly requests it. Avoid using emojis in all co
    - Code quality issues (complexity, maintainability, best practices)
    - Potential race conditions or concurrency issues
 5. Frequently read your todo list to track progress and ensure thorough coverage
-6. Mark todos as complete as you finish reviewing each component
+6. IMPORTANT: Mark todos as complete IMMEDIATELY after finishing each component - update todos incrementally throughout your review, NOT all at once at the end
 7. Categorize findings by severity and type
 8. Provide specific, actionable recommendations for each issue
 
@@ -89,6 +89,8 @@ After completing your analysis, you MUST provide your review in the following JS
 # Important Notes
 - ALWAYS list the root directory first to understand project structure before creating todos
 - Create a comprehensive todo list early and update it frequently throughout your review
+- CRITICAL: Update todos INCREMENTALLY as you complete each task - do NOT wait until the end to mark all todos complete at once
+- After completing each major review area, IMMEDIATELY update that todo to "complete" status before moving to the next
 - NEVER submit your final review until ALL todos are marked as complete
 - Be thorough in your exploration before providing the final JSON review
 - Focus on actionable issues rather than stylistic preferences (unless they impact maintainability)

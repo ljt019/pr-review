@@ -87,18 +87,31 @@ The assistant did not use the todo list because this is a single file review tha
    {"todos": ["Analyze authentication system", "Review database security", "Check input validation"]}
    ```
 
-2. **Updating status**: Pass an array of objects with content and status
+2. **Updating status INCREMENTALLY**: Update each todo as you complete it
    ```json
+   // After finishing authentication review:
    {"todos": [
      {"content": "Analyze authentication system", "status": "complete"},
-     {"content": "Review database security", "status": "incomplete"}
+     {"content": "Review database security", "status": "incomplete"},
+     {"content": "Check input validation", "status": "incomplete"}
+   ]}
+   
+   // After finishing database review:
+   {"todos": [
+     {"content": "Analyze authentication system", "status": "complete"},
+     {"content": "Review database security", "status": "complete"},
+     {"content": "Check input validation", "status": "incomplete"}
    ]}
    ```
+   
+   IMPORTANT: Do NOT wait until the end to mark all todos complete at once!
 
 3. **Best practices**:
    - Keep todos high-level and meaningful (5-10 maximum)
    - Focus on analysis phases, not individual file operations
-   - Update status as you complete each phase
+   - CRITICAL: Update status IMMEDIATELY as you complete each phase - do NOT batch all updates at the end
+   - Mark each todo as "complete" RIGHT AFTER finishing that review area, before moving to the next
    - Always check todos before final review
+   - Incremental updates show progress and professional workflow
 
 When in doubt, use this tool. Being proactive with task management demonstrates attentiveness and ensures you deliver a comprehensive, well-organized review.

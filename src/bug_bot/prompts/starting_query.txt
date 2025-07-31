@@ -8,5 +8,5 @@ I've received a codebase for review. Please perform a comprehensive code review 
 
 Start by analyzing the overall project structure and architecture, then dive into specific modules. Prioritize critical security issues and bugs that could cause system failures.
 
-Remember: Create a comprehensive todo list for your review and ensure ALL todos are marked as complete before providing your final JSON review.
+Remember: Create a comprehensive todo list for your review. IMPORTANT: Update each todo to "complete" status IMMEDIATELY after finishing that review area - do NOT wait until the end to mark all todos complete at once. Ensure ALL todos are marked as complete before providing your final JSON review.
 Please remember to provide your findings in the structured JSON format once your analysis is complete.
