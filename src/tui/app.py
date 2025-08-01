@@ -46,8 +46,8 @@ def load_css_path_list(path: str) -> list[str]:
     return css_path_list
 
 
-class BugBotTUI(App):
-    """Bug Bot TUI Application"""
+class SnifferTUI(App):
+    """Sniffer TUI Application"""
 
     CSS_PATH = load_css_path_list(str(get_tui_path("")))
 
@@ -73,7 +73,7 @@ class BugBotTUI(App):
 
 
 # CLI interface
-app = typer.Typer(help="Sniffer Code Review Agent")
+app = typer.Typer(help="Sniff Code Review Agent")
 
 
 @app.callback(invoke_without_command=True)
@@ -83,7 +83,7 @@ def main(
         None, "--version", "-v", help="Show version"
     ),
 ):
-    """Bug Bot TUI Application"""
+    """Sniffer"""
     if version:
         print("Bug Bot TUI v0.1.0")
         raise typer.Exit()
@@ -91,7 +91,7 @@ def main(
     # Run the TUI
     if ctx.invoked_subcommand is None:
         # Install screens
-        tui = BugBotTUI()
+        tui = SnifferTUI()
         tui.install_screen(APIKeyScreen(), name="api_key")
         tui.install_screen(ModelSelectScreen(), name="model_select")
         tui.install_screen(StartScreen(), name="main")
