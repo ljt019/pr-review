@@ -1,0 +1,28 @@
+.model_options {
+    background: transparent;
+    border: none;
+    margin: 1 0;
+    height: auto;
+    text-align: center;
+    
+    & > .option-list--option {
+        background: transparent;
+        border: none;
+        color: $text-muted;
+        padding: 0;
+        text-align: center;
+    }
+    
+    & > .option-list--option-highlighted {
+        background: transparent;
+        color: $foreground; 
+        border: none; 
+        text-align: center;
+    }
+
+    & > .option-list--option-hover {
+        background: transparent;
+        color: $text-muted;
+    }
+}
+

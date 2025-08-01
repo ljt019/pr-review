@@ -9,63 +9,6 @@ ASCIIArt {
     background: $background;
 }
 
-OptionList {
-    background: transparent;
-    border: none;
-    margin: 1 0;
-    height: auto;
-    
-    & > .option-list--option {
-        background: transparent;
-        border: none;
-        color: $text-muted;
-        padding: 0;
-    }
-    
-    & > .option-list--option-highlighted {
-        background: transparent;
-        color: $foreground;
-        border: none;
-    }
-}
-
-ModelSelectScreen OptionList {
-    text-align: center;
-    
-    & > .option-list--option {
-        text-align: center;
-    }
-    
-    & > .option-list--option-highlighted {
-        text-align: center;
-    }
-    
-    & > .option-list--option-hover {
-        background: transparent;
-        color: $text-muted;
-    }
-}
-
-ModelSelectScreen Container {
-    align: center middle;
-}
-
-ModelSelectScreen Center {
-    width: 100%;
-    height: 100%;
-}
-
-ModelSelectScreen Vertical {
-    width: auto;
-    height: 100%;
-    align: center middle;
-}
-
-ModelSelectScreen Label {
-    width: 100%;
-    text-align: center;
-}
-
 Input {
     margin: 1 0;
 }

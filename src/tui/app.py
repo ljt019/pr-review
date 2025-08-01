@@ -18,11 +18,36 @@ from .screens import APIKeyScreen, ModelSelectScreen, StartScreen
 # Load .env file
 load_dotenv()
 
+def load_css_path_list(path: str) -> list[str]:
+    """Load a list of CSS paths"""
+    css_path_list =[]
 
+    widgets_path = get_tui_path("widgets")
+    screens_path = get_tui_path("screens")
+    tui_path = get_tui_path("")
+
+    # search for all .tcss files in these three directories
+    for root, dirs, files in os.walk(widgets_path):
+        for file in files:
+            if file.endswith(".tcss"):
+                css_path_list.append(os.path.join(root, file))
+    
+    for root, dirs, files in os.walk(screens_path):
+        for file in files:
+            if file.endswith(".tcss"):
+                css_path_list.append(os.path.join(root, file))
+    
+    for root, dirs, files in os.walk(tui_path):
+        for file in files:
+            if file.endswith(".tcss"):
+                css_path_list.append(os.path.join(root, file))
+
+    return css_path_list    
+    
 class BugBotTUI(App):
     """Bug Bot TUI Application"""
     
-    CSS_PATH = str(get_tui_path("app.tcss"))
+    CSS_PATH = load_css_path_list(get_tui_path(""))
     
     BINDINGS = [
         Binding("ctrl+c", "quit", "Quit"),

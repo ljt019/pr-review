@@ -1,6 +1,8 @@
-.instruction_input {
+.instruction_text {
     background: transparent;
     color: $text-disabled;
     text-align: center;
     text-style: dim italic;
+    width: 100%;
 }
+

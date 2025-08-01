@@ -36,3 +36,8 @@ module-root = "src"
 [build-system]
 requires = ["uv_build>=0.7.20,<0.8"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "textual-dev>=1.7.0",
+]

@@ -32,6 +32,9 @@ TUI_DIR = SRC_DIR / "tui"
 WIDGETS_DIR = TUI_DIR / "widgets"
 SCREENS_DIR = TUI_DIR / "screens"
 
+# assets
+ASSETS_DIR = PROJECT_ROOT / "assets"
+
 ## UTILITY FUNCTIONS ## 
 
 def get_src_path(*parts: str) -> Path:
@@ -65,3 +68,7 @@ def get_widget_path(filename: str) -> Path:
 def get_screen_path(filename: str) -> Path:
     """Get full path to a screen file."""
     return SCREENS_DIR / filename
+
+def get_assets_path(filename: str) -> Path:
+    """Get full path to an asset file."""
+    return ASSETS_DIR / filename
