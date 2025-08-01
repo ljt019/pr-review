@@ -3,13 +3,15 @@ from dotenv import load_dotenv
 from bug_bot.bug_bot import BugBot
 from bug_bot.bug_bot import ModelOptions
 
+from paths import get_assets_path
+
 # Load environment variables from .env file
 load_dotenv()
 
 # Enable verbose container debug logs for every run
 os.environ["BUGBOT_DEBUG"] = "0"
 
-zipped_codebase_path = "C:\\Users\\lucie\\Desktop\\toy-webserver.zip"
+zipped_codebase_path = get_assets_path("toy-webserver.zip")
 
 def main():
     try:

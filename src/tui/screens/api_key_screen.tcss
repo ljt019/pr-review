@@ -1,0 +1,35 @@
+APIKeyScreen .input-container {
+    background: transparent;
+    border: none;
+    width: 100%;  /* Make container full width */
+    align: center middle;  /* Center children */
+}
+
+APIKeyScreen Container {
+    align: center middle;
+}
+
+APIKeyScreen Input {
+    width: 50;
+    margin: 0;  /* Remove input margins */
+    border: none;
+    background: transparent;
+}
+
+APIKeyScreen Label {
+    width: 100%;
+    text-align: center;
+    margin: 0;  /* Remove label margins */
+}
+
+.screen-vertical {
+    width: auto;
+    height: 100%;
+    align: center middle;
+    align-horizontal: center;  /* Center all children horizontally */
+}
+
+.screen-center {
+    width: 100%;
+    height: 100%;
+}

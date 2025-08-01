@@ -8,34 +8,24 @@ from textual.widgets import Input, Label
 from textual.binding import Binding
 from paths import get_screen_path
 from ..widgets.ascii_art import ASCIIArt
-
+from ..widgets.instruction_text import InstructionText
+from ..widgets.api_key_input import ApiKeyInput
 
 class APIKeyScreen(Screen):
     """Screen for API key input"""
-    
-    CSS_PATH = str(get_screen_path("api_key_screen.tcss"))
-    
+
     BINDINGS = [
         Binding("ctrl+c", "quit", "Quit", priority=True),
     ]
     
     def compose(self) -> ComposeResult:
         """Compose screen widgets centered both horizontally and vertically."""
-        # Follow the same pattern as ModelSelectScreen for consistency
         yield Container(
-            Center(
-                Vertical(
-                    ASCIIArt(),
-                    Horizontal(
-                        Input(password=True, placeholder="Enter your OpenRouter API key", id="api_key", classes="input_wrapper"),
-                        classes="input-wrapper"
-                    ),
-                    Label("Press Enter to continue", classes="instruction-text"),
-                    classes="input-container"
-                )
-            )
+            ASCIIArt(),
+            ApiKeyInput(),
+            InstructionText("Press Enter to continue"),
+            classes="input-container"
         )
-    
     
     def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle Enter key in input"""

@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 from pathlib import Path
 import sys
 
+from paths import get_assets_path
+
 # Add src to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
@@ -16,7 +18,7 @@ from evaluation.evaluator import BugDetectionEvaluator
 # Load environment variables from .env file
 load_dotenv()
 
-zipped_codebase_path = "C:\\Users\\lucie\\Desktop\\toy-webserver.zip"
+zipped_codebase_path = get_assets_path("toy-webserver.zip")
 
 def parse_model_response(response: str) -> dict:
     """Parse the model's JSON response"""

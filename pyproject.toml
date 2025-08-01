@@ -1,5 +1,5 @@
 [project]
-name = "bug-bot"
+name = "sniff"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -26,8 +26,7 @@ dependencies = [
 ]
 
 [project.scripts]
-#bug-bot = "bug_bot:main"
-sniffer = "tui.app:app"
+sniff = "tui.app:app"
 
 [tool.uv.build-backend]
 module-name = ["bug_bot", "tui"]

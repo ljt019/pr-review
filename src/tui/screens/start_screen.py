@@ -11,8 +11,6 @@ from paths import get_screen_path
 class StartScreen(Screen):
     """Main application screen"""
     
-    CSS_PATH = str(get_screen_path("start_screen.tcss"))
-    
     BINDINGS = [
         Binding("ctrl+c", "quit", "Quit", priority=True),
         Binding("b", "back_to_model_select", "Back to Model Select", priority=True),
