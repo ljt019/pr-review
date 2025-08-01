@@ -21,7 +21,7 @@ from bug_bot.tools import ls, cat, grep, glob, todo
 load_dotenv()
 
 class ModelOptions(Enum):
-    QWEN3_480B_A35B_CODER = "qwen/qwen3-coder:free"
+    QWEN3_480B_A35B_CODER = "qwen/qwen3-coder"
     QWEN3_235B_A22B_INSTRUCT = "qwen/qwen3-235b-a22b-2507"
     QWEN3_30B_A3B_INSTRUCT = "qwen/qwen3-30b-a3b-instruct-2507"
 
@@ -91,8 +91,20 @@ class BugBot:
     def _process_response(self, response_content):
         """Process LLM response and add metadata automatically"""
         try:
+            # Clean the response content - extract JSON from between {} if needed
+            response_content = response_content.strip()
+            
+            # Find the JSON part if it's embedded in other text
+            json_start = response_content.find('{')
+            json_end = response_content.rfind('}') + 1
+            
+            if json_start >= 0 and json_end > json_start:
+                json_content = response_content[json_start:json_end]
+            else:
+                json_content = response_content
+            
             # Try to parse the LLM response as JSON
-            llm_output = json5.loads(response_content)
+            llm_output = json5.loads(json_content)
             
             # Extract core components from LLM output
             summary = llm_output.get('summary', '')
@@ -112,8 +124,10 @@ class BugBot:
             
             return enhanced_response
             
-        except ValueError:
+        except Exception as e:
             # If LLM didn't return valid JSON, wrap it with minimal metadata
+            print(f"JSON parsing error: {e}")
+            print(f"Response content preview: {response_content[:500]}...")
             return {
                 "summary": "Failed to parse LLM response",
                 "bugs": [],

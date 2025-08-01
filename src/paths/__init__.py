@@ -27,10 +27,10 @@ EVALUATION_DIR = SRC_DIR / "evaluation"
 # paths
 PATHS_DIR = SRC_DIR / "paths"
 
-# server
-SERVER_DIR = SRC_DIR / "server"
-ROUTERS_DIR = SERVER_DIR / "routers"
-
+# tui
+TUI_DIR = SRC_DIR / "tui"
+WIDGETS_DIR = TUI_DIR / "widgets"
+SCREENS_DIR = TUI_DIR / "screens"
 
 ## UTILITY FUNCTIONS ## 
 
@@ -53,3 +53,15 @@ def get_docker_path(filename: str) -> Path:
 def get_eval_path(filename: str) -> Path:
     """Get full path to an evaluation file."""
     return EVALS_DIR / filename
+
+def get_tui_path(filename: str) -> Path:
+    """Get full path to a tui file."""
+    return TUI_DIR / filename
+
+def get_widget_path(filename: str) -> Path:
+    """Get full path to a widget file."""
+    return WIDGETS_DIR / filename
+
+def get_screen_path(filename: str) -> Path:
+    """Get full path to a screen file."""
+    return SCREENS_DIR / filename

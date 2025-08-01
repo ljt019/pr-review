@@ -1,0 +1,36 @@
+.input-container {
+    background: transparent;
+    border: none;
+    margin: 0;
+}
+
+OptionList {
+    background: transparent;
+    border: none;
+    margin: 1 0;
+    height: auto;
+    
+    & > .option-list--option {
+        background: transparent;
+        border: none;
+        color: $text-muted;
+        padding: 0;
+    }
+    
+    & > .option-list--option-highlighted {
+        background: transparent;
+        color: $foreground;
+        border: none;
+    }
+}
+
+Label {
+    background: transparent;
+}
+
+.instruction-text {
+    background: transparent;
+    color: $text-muted;
+    margin-top: 1;
+    text-align: center;
+}

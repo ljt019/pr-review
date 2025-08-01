@@ -15,13 +15,22 @@ dependencies = [
     "setuptools<81",
     "sentence-transformers>=2.2.0",
     "numpy>=1.24.0",
+    "typer==0.15.3",
+    "prompt_toolkit==3.0.51",
+    "rich==14.0.0",
+    "pygments==2.19.1",
+    "asciistuff>=1.3.3",
+    "ascii-magic>=2.3.0",
+    "pillow>=11.3.0",
+    "textual>=4.0.0",
 ]
 
 [project.scripts]
-bug-bot = "bug_bot:main"
+#bug-bot = "bug_bot:main"
+sniffer = "tui.app:app"
 
 [tool.uv.build-backend]
-module-name = ["bug_bot", "bug_bot_server"]
+module-name = ["bug_bot", "tui"]
 module-root = "src"
 
 [build-system]

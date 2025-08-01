@@ -1,0 +1,5 @@
+ASCIIArt {
+    height: auto;
+    text-align: center;
+    background: $background;
+}

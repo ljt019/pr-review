@@ -34,11 +34,11 @@ def run_in_container(command: str) -> str:
     full_command = f"cd /workspace && {command}"
 
     if _debug_enabled():
-        print(f"[DEBUG] docker exec {container_id} bash -c \"{full_command}\"")
+        print(f"[DEBUG] docker exec {container_id} sh -c \"{full_command}\"")
 
     try:
         result = subprocess.run(
-            ["docker", "exec", container_id, "bash", "-c", full_command],
+            ["docker", "exec", container_id, "sh", "-c", full_command],
             capture_output=True,
             text=True,
             timeout=60,

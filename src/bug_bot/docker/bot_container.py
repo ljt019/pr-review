@@ -17,20 +17,20 @@ class BotContainer:
                 "docker", "run", "-d", "--name", container_name,
                 "-v", f"{Path(self.zipped_codebase_path).resolve()}:/original_workspace:ro",
                 "--network", "none",
-                "bugbot-env:latest",
-                "bash", "-c", "mkdir -p /workspace && cp -r /original_workspace/* /workspace/ 2>/dev/null || true; sleep 3600"
+                "bugbot-env:air",
+                "sh", "-c", "mkdir -p /workspace && cp -r /original_workspace/* /workspace/ 2>/dev/null || true; sleep 3600"
             ]
             
             result = subprocess.run(docker_command, capture_output=True, text=True, timeout=10)
 
-            # Check if /original_workspace is the zip file itself or a directory containing it
+            # Check if /original_workspace is a directory or a file
             check_file_command = [
-                "docker", "exec", container_name, "file", "/original_workspace"
+                "docker", "exec", container_name, "test", "-d", "/original_workspace"
             ]
-            file_result = subprocess.run(check_file_command, capture_output=True, text=True, timeout=10)
+            is_directory = subprocess.run(check_file_command, capture_output=True, text=True, timeout=10)
             
-            # If /original_workspace is the zip file itself, use it directly
-            if "Zip archive" in file_result.stdout or "zip" in file_result.stdout.lower():
+            # If /original_workspace is NOT a directory, assume it's the zip file itself
+            if is_directory.returncode != 0:
                 zip_file_path = "/original_workspace"
             else:
                 # Otherwise, look for zip files in the directory
@@ -53,7 +53,7 @@ class BotContainer:
             if unzip_result.returncode == 0:
                 # Move contents from the extracted subdirectory to workspace root
                 move_command = [
-                    "docker", "exec", container_name, "bash", "-c", 
+                    "docker", "exec", container_name, "sh", "-c", 
                     "cd /tmp && find . -mindepth 2 -maxdepth 2 -exec mv {} /workspace/ \\; 2>/dev/null || " +
                     "(cd /tmp/* && cp -r . /workspace/) 2>/dev/null || true"
                 ]
@@ -82,15 +82,15 @@ class BotContainer:
     def _ensure_image(self):
         """Build the bot environment image if it doesn't exist."""
         try:
-            check_command = ["docker", "images", "-q", "bugbot-env:latest"]
+            check_command = ["docker", "images", "-q", "bugbot-env:air"]
             result = subprocess.run(check_command, capture_output=True, text=True)
 
             if not result.stdout.strip():
                 print("Building bot environment image...")
                 build_command = [
                     "docker", "build",
-                    "-f", "dockerfile.bot",
-                    "-t", "bugbot-env:latest",
+                    "-f", "bot.dockerfile",
+                    "-t", "bugbot-env:air",
                     "."
                 ]
                 build_result = subprocess.run(build_command, capture_output=True, text=True, timeout=300)
@@ -115,40 +115,3 @@ class BotContainer:
                 os.environ.pop("BUGBOT_CONTAINER_ID", None)
                 self.container_id = None
 
-### Bot Dockerfile Definition ### 
-
-base_image = "ubuntu:latest"
-
-packages = [
-    "curl",
-    "wget",
-    "git",
-    "file",
-    "tree",
-    "unzip",
-    "ripgrep",
-    "python3",
-    "python3-pip",
-    "nodejs",
-    "npm"
-]
-
-sleep_time = 3600
-
-docker_file = f"""
-FROM {base_image}
-
-# Install essential tools for code analysis
-RUN apt-get update && apt-get install -y \\
-    {' \\\n    '.join(packages)} \\
-    && rm -rf /var/lib/apt/lists/*
-
-# Create workspace directory
-RUN mkdir -p /workspace
-
-# Set working directory to workspace
-WORKDIR /workspace
-
-# Keep container running
-CMD ["sleep", "{sleep_time}"]
-"""
