@@ -3,54 +3,56 @@ Response saving functionality for bug detection results.
 Handles file organization, directory creation, and JSON serialization.
 """
 
-import json5
 from datetime import datetime
-from typing import Dict, Any, Optional
 from pathlib import Path
+from typing import Any, Dict, Optional
+
+import json5
+
 from paths import EVALS_DIR
 
 
 def save_response(
-    response_data: Dict[str, Any], 
+    response_data: Dict[str, Any],
     project_root: str,
-    model_name: str = "qwen/qwen3-30b-a3b-instruct-2507"
+    model_name: str = "qwen/qwen3-30b-a3b-instruct-2507",
 ) -> Optional[str]:
     """
     Save bug detection response to organized file structure.
-    
+
     Args:
         response_data: Enhanced response data with metadata
         project_root: Root directory of the project
         model_name: Name of the model used for analysis
-        
+
     Returns:
         File path where response was saved, or None if failed
     """
-    
+
     try:
         # Create evals directory structure with individual eval folder
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         eval_dir = EVALS_DIR / timestamp
         eval_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Create filename
         filename = "model-response.json"
         filepath = eval_dir / filename
-        
+
         # Add run metadata to the response
         if isinstance(response_data, dict):
             response_data["run_metadata"] = {
                 "timestamp": datetime.now().isoformat(),
                 "eval_id": timestamp,
-                "model": model_name
+                "model": model_name,
             }
-        
+
         # Save to file
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json5.dump(response_data, f, indent=2, ensure_ascii=False)
-        
+
         return str(filepath)
-        
+
     except Exception as e:
         print(f"Failed to save response: {e}")
         return None
@@ -59,66 +61,63 @@ def save_response(
 def create_eval_summary(response_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Create a summary of the evaluation for quick review.
-    
+
     Args:
         response_data: Enhanced response data with metadata
-        
+
     Returns:
         Summary dictionary with key metrics
     """
-    
-    metadata = response_data.get('metadata', {})
-    bugs = response_data.get('bugs', [])
-    
+
+    metadata = response_data.get("metadata", {})
+
     return {
-        "scan_id": metadata.get('scan_id', 'unknown'),
-        "timestamp": metadata.get('timestamp', ''),
-        "total_issues": metadata.get('total_bugs', 0) + metadata.get('total_nitpicks', 0),
-        "critical_count": metadata.get('critical_bugs', 0),
-        "files_with_issues": len(metadata.get('files_with_bugs', [])),
-        "confidence": metadata.get('confidence', 0.0),
-        "top_categories": list(metadata.get('category_breakdown', {}).keys())[:3]
+        "scan_id": metadata.get("scan_id", "unknown"),
+        "timestamp": metadata.get("timestamp", ""),
+        "total_issues": metadata.get("total_bugs", 0)
+        + metadata.get("total_nitpicks", 0),
+        "critical_count": metadata.get("critical_bugs", 0),
+        "files_with_issues": len(metadata.get("files_with_bugs", [])),
+        "confidence": metadata.get("confidence", 0.0),
+        "top_categories": list(metadata.get("category_breakdown", {}).keys())[:3],
     }
 
 
 def save_response_with_summary(
     response_data: Dict[str, Any],
-    project_root: str, 
-    model_name: str = "qwen/qwen3-30b-a3b-instruct-2507"
+    project_root: str,
+    model_name: str = "qwen/qwen3-30b-a3b-instruct-2507",
 ) -> Optional[Dict[str, str]]:
     """
     Save response and create summary file.
-    
+
     Args:
         response_data: Enhanced response data with metadata
-        project_root: Root directory of the project  
+        project_root: Root directory of the project
         model_name: Name of the model used for analysis
-        
+
     Returns:
         Dictionary with file paths, or None if failed
     """
-    
+
     # Save main response
     response_path = save_response(response_data, project_root, model_name)
     if not response_path:
         return None
-    
+
     try:
         # Create summary
         summary = create_eval_summary(response_data)
-        
+
         # Save summary file
         eval_dir = Path(response_path).parent
         summary_path = eval_dir / "summary.json"
-        
-        with open(summary_path, 'w', encoding='utf-8') as f:
+
+        with open(summary_path, "w", encoding="utf-8") as f:
             json5.dump(summary, f, indent=2, ensure_ascii=False)
-        
-        return {
-            "response": response_path,
-            "summary": str(summary_path)
-        }
-        
+
+        return {"response": response_path, "summary": str(summary_path)}
+
     except Exception as e:
         print(f"Failed to save summary: {e}")
         return {"response": response_path}
