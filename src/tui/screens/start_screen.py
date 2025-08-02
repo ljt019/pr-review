@@ -1,14 +1,13 @@
 """Main application screen for Bug Bot TUI"""
 
-import asyncio
 from pathlib import Path
 
 from textual import work
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Center, Container, Horizontal, VerticalScroll
+from textual.containers import Center, Container, VerticalScroll
 from textual.screen import Screen
-from textual.widgets import LoadingIndicator, Static
+from textual.widgets import Static
 
 from bug_bot.bug_bot import (
     BugBot,
@@ -94,11 +93,16 @@ class StartScreen(Screen):
                     if isinstance(message, ToolCallMessage):
                         # Add minimal tool indicator in the chat flow
                         # Use call_id if available, otherwise fall back to tool_name for backwards compatibility
-                        indicator_key = message.call_id or f"{message.tool_name}_{len(tool_indicators)}"
-                        
+                        indicator_key = (
+                            message.call_id
+                            or f"{message.tool_name}_{len(tool_indicators)}"
+                        )
+
                         # Only create if we haven't seen this call_id before
                         if indicator_key not in tool_indicators:
-                            tool_indicator = ToolIndicator(message.tool_name, message.arguments)
+                            tool_indicator = ToolIndicator(
+                                message.tool_name, message.arguments
+                            )
                             tool_indicators[indicator_key] = tool_indicator
                             self.app.call_from_thread(
                                 self.add_message_widget, tool_indicator
@@ -114,7 +118,7 @@ class StartScreen(Screen):
                                 if not tool_indicator.completed:
                                     matching_key = key
                                     break
-                        
+
                         if matching_key:
                             tool_indicator = tool_indicators[matching_key]
                             self.app.call_from_thread(tool_indicator.mark_completed)
