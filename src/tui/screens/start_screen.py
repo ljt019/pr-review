@@ -22,6 +22,8 @@ from bug_bot.bug_bot import (
 from paths import get_assets_path
 from tui.widgets.message_box import MessageBox, BotMessage
 from tui.widgets.tool_indicator import ToolIndicator
+from tui.widgets.bug_report_widgets import BugReportContainer, ReportPlaceholder
+from tui.utils.json_detector import json_detector
 
 
 class StartScreen(Screen):
@@ -80,6 +82,8 @@ class StartScreen(Screen):
             with BugBot(zipped_codebase=zipped_codebase, model_option=model_option) as bot:
                 current_streaming_widget = None
                 tool_indicators = {}  # Map tool_name to indicator for updating
+                report_placeholder = None
+                analysis_message_count = 0  # Track how many analysis messages we've created
                 
                 for message in bot.run_streaming():
                     if isinstance(message, ToolCallMessage):
@@ -97,6 +101,8 @@ class StartScreen(Screen):
                     elif isinstance(message, MessageStart):
                         # Start a new streaming analysis message
                         if message.message_type == "analysis":
+                            # Always create a NEW analysis message widget
+                            analysis_message_count += 1
                             analysis_msg = BotMessage(role="analysis", content="")
                             current_streaming_widget = MessageBox(analysis_msg)
                             current_streaming_widget.add_class("streaming")
@@ -105,18 +111,46 @@ class StartScreen(Screen):
                     elif isinstance(message, MessageToken):
                         # Append token to current streaming message
                         if current_streaming_widget:
-                            self.app.call_from_thread(
-                                current_streaming_widget.append_chunk,
-                                message.token
-                            )
+                            # First, check if JSON was already detected
+                            if current_streaming_widget.message.has_json_detected:
+                                # JSON already detected - don't append more tokens
+                                # Just continue collecting for final processing
+                                current_streaming_widget.message.content += message.token
+                            else:
+                                # Normal streaming - add token and check for JSON
+                                self.app.call_from_thread(
+                                    current_streaming_widget.append_chunk,
+                                    message.token
+                                )
+                                
+                                # Check if JSON was just detected
+                                if (current_streaming_widget.message.has_json_detected and 
+                                    not report_placeholder):
+                                    # JSON detected! Extract content and add placeholder
+                                    json_content = current_streaming_widget.extract_json_content()
+                                    report_placeholder = ReportPlaceholder()
+                                    self.app.call_from_thread(self.add_message_widget, report_placeholder)
                     
                     elif isinstance(message, MessageEnd):
-                        # Streaming complete
+                        # Streaming complete - handle final JSON processing
                         if current_streaming_widget:
                             self.app.call_from_thread(
                                 current_streaming_widget.remove_class,
-                                "streaming"
+                                "streaming"  
                             )
+                            
+                            # Check if we need to process JSON
+                            if current_streaming_widget.message.has_json_detected and report_placeholder:
+                                # JSON was detected during streaming, get the full content
+                                from tui.utils.json_detector import json_detector
+                                split = json_detector.split_content(current_streaming_widget.message.content)
+                                if split.has_json:
+                                    self.app.call_from_thread(
+                                        self.process_final_json,
+                                        split.json_content,
+                                        report_placeholder
+                                    )
+                            
                             current_streaming_widget = None
                     
         except Exception as e:
@@ -130,6 +164,42 @@ class StartScreen(Screen):
         
         # Always scroll to bottom to prevent layout shifts
         self.messages_container.scroll_end(animate=False)
+    
+    def process_final_json(self, json_content: str, placeholder_widget) -> None:
+        """Process the final JSON and replace placeholder with styled report."""
+        try:
+            # Parse the JSON
+            json_data = json_detector.parse_json(json_content)
+            
+            if json_data:
+                # Create the bug report container
+                report_container = BugReportContainer()
+                report_container.load_from_json(json_data)
+                
+                # Replace the placeholder with the actual report
+                if placeholder_widget:
+                    placeholder_widget.remove()
+                
+                # Add the styled report
+                self.messages_container.mount(report_container)
+                self.messages_container.scroll_end(animate=False)
+            else:
+                # JSON parsing failed - show error in placeholder
+                if placeholder_widget:
+                    placeholder_widget.remove()
+                
+                error_msg = BotMessage(role="analysis", content="❌ Error parsing bug report JSON")
+                error_widget = MessageBox(error_msg)
+                self.messages_container.mount(error_widget)
+                
+        except Exception as e:
+            # Something went wrong - show error
+            if placeholder_widget:
+                placeholder_widget.remove()
+            
+            error_msg = BotMessage(role="analysis", content=f"❌ Error processing bug report: {str(e)}")
+            error_widget = MessageBox(error_msg)
+            self.messages_container.mount(error_widget)
     
     def action_back_to_model_select(self) -> None:
         """Go back to model selection screen"""

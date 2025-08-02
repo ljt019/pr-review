@@ -159,6 +159,12 @@ class BugBot:
                     
                     if role == "assistant" and function_call:
                         # Tool call - complete message
+                        # End any current streaming message first
+                        if current_message_started:
+                            yield MessageEnd()
+                            current_message_started = False
+                            last_assistant_content = ""
+                        
                         fc_name = function_call.name if hasattr(function_call, 'name') else function_call.get('name')
                         fc_args = function_call.arguments if hasattr(function_call, 'arguments') else function_call.get('arguments')
                         yield ToolCallMessage(
