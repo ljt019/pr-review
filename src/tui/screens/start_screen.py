@@ -21,9 +21,8 @@ from bug_bot.bug_bot import (
 )
 from paths import get_assets_path
 from tui.utils.json_detector import json_detector
-from tui.widgets.bug_report_widgets import BugReportContainer, ReportPlaceholder
+from tui.widgets.bug_report_widgets import BugReportContainer
 from tui.widgets.message_box import BotMessage, MessageBox
-from tui.widgets.todo_message_widget import TodoMessageWidget
 from tui.widgets.tool_indicator import ToolIndicator
 
 
@@ -127,12 +126,20 @@ class StartScreen(Screen):
                             self.app.call_from_thread(tool_indicator.mark_completed)
 
                     elif isinstance(message, TodoStateMessage):
-                        # Show todo state as an inline message in the chat
+                        # Find the most recent todo_write or todo_read tool indicator
                         if message.todos:  # Only show if there are todos
-                            todo_widget = TodoMessageWidget(message.todos)
-                            self.app.call_from_thread(
-                                self.add_message_widget, todo_widget
-                            )
+                            # Look for the most recent todo tool
+                            for key in reversed(list(tool_indicators.keys())):
+                                tool_indicator = tool_indicators[key]
+                                if tool_indicator.tool_name in [
+                                    "todo_write",
+                                    "todo_read",
+                                ]:
+                                    # Update the tool indicator with todo data
+                                    self.app.call_from_thread(
+                                        tool_indicator.set_todo_data, message.todos
+                                    )
+                                    break
 
                     elif isinstance(message, MessageStart):
                         # Start a new streaming analysis message
@@ -167,14 +174,23 @@ class StartScreen(Screen):
                                     current_streaming_widget.message.has_json_detected
                                     and not report_placeholder
                                 ):
-                                    # JSON detected! Extract content and add placeholder
+                                    # JSON detected! Extract content and add generating message
                                     self.app.call_from_thread(
                                         current_streaming_widget.extract_json_content
                                     )
-                                    report_placeholder = ReportPlaceholder()
-                                    self.app.call_from_thread(
-                                        self.add_message_widget, report_placeholder
+                                    # Add "Generating bug report..." as a regular message
+                                    generating_msg = BotMessage(
+                                        role="analysis",
+                                        content="🔄 Generating bug report...\n*Analyzing findings and formatting results*",
                                     )
+                                    generating_widget = MessageBox(generating_msg)
+                                    generating_widget.add_class(
+                                        "inline-status"
+                                    )  # Reduce margin for inline status
+                                    self.app.call_from_thread(
+                                        self.add_message_widget, generating_widget
+                                    )
+                                    report_placeholder = generating_widget  # Keep reference for later removal
 
                     elif isinstance(message, MessageEnd):
                         # Streaming complete - handle final JSON processing

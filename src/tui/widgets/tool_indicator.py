@@ -1,6 +1,7 @@
 """Minimal tool call indicator widget."""
 
 import json
+from typing import Any, Dict, List, Optional
 
 from rich.text import Text
 from textual.widget import Widget
@@ -14,6 +15,7 @@ class ToolIndicator(Widget):
         self.tool_name = tool_name
         self.arguments = arguments
         self.completed = False
+        self.todo_data: Optional[List[Dict[str, Any]]] = None
         print(
             f"[DEBUG] ToolIndicator created: tool_name='{tool_name}', arguments='{arguments}'"
         )
@@ -23,6 +25,11 @@ class ToolIndicator(Widget):
         """Update the arguments and refresh the display."""
         self.arguments = arguments
         self.display_text = self._create_display_text()
+        self.refresh()
+
+    def set_todo_data(self, todos: List[Dict[str, Any]]) -> None:
+        """Set todo data for todo_read/todo_write tools."""
+        self.todo_data = todos
         self.refresh()
 
     def _create_display_text(self) -> str:
@@ -69,9 +76,9 @@ class ToolIndicator(Widget):
                         command = command[:27] + "..."
                     return f"run '{command}'" if command else "run"
                 elif self.tool_name == "todo_write":
-                    return f"{symbol} todo_write"
+                    return f"{symbol} writing todos"
                 elif self.tool_name == "todo_read":
-                    return f"{symbol} todo_read"
+                    return f"{symbol} reading todos"
         except json.JSONDecodeError:
             # JSON not complete yet, fall through to partial parsing
             pass
@@ -120,12 +127,43 @@ class ToolIndicator(Widget):
                         return f"{symbol} grep '{pattern}'"
 
         # Fallback to tool name with symbol
-        return f"{symbol} {self.tool_name}" if symbol else self.tool_name
+        if self.tool_name == "todo_write":
+            return f"{symbol} writing todos"
+        elif self.tool_name == "todo_read":
+            return f"{symbol} reading todos"
+        else:
+            return f"{symbol} {self.tool_name}" if symbol else self.tool_name
 
     def render(self) -> Text:
         """Render a compact tool indicator."""
         if self.completed:
-            return Text(self.display_text)
+            text = Text(self.display_text)
+
+            # If this is a todo tool and we have todo data, append it
+            if self.tool_name in ["todo_write", "todo_read"] and self.todo_data:
+                for i, todo in enumerate(self.todo_data):
+                    # First todo gets the tree branch
+                    if i == 0:
+                        text.append("\n  └ ")
+                    else:
+                        text.append("\n    ")
+
+                    # Add checkbox
+                    status = todo.get("status", "pending")
+                    if status == "completed":
+                        text.append("●")  # Filled circle for completed
+                    else:
+                        text.append("○")  # Empty circle for pending
+
+                    # Add todo content
+                    content = todo.get("content", "")
+                    # Truncate if too long
+                    max_length = 35
+                    if len(content) > max_length:
+                        content = content[: max_length - 3] + "..."
+                    text.append(f" {content}")
+
+            return text
         else:
             # Don't display anything while running
             return Text("")

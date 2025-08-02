@@ -36,7 +36,7 @@ class TodoMessageWidget(Widget):
 
             todo_content = todo.get("content", "")
             # Truncate todo content to fit on one line (max 80 chars)
-            max_length = 45
+            max_length = 35
             if len(todo_content) > max_length:
                 todo_content = todo_content[: max_length - 3] + "..."
             content.append(f"   {checkbox} {todo_content}\n", style=style)

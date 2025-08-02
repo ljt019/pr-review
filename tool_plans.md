@@ -1,8 +1,7 @@
-possible tools:
+✎ todo_write
+  └ ○ Analyze project 
+    ○ Review project security
 
-👁 cat
-⌕ glob
-⌕ grep
-👁 ls
-👁 readTodo
-✎ writeTodo
+⚯ todo_read
+  └ ○ Analyze project 
+    ○ Review project security

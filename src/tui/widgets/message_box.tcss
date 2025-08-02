@@ -19,3 +19,8 @@ MessageBox {
     background: transparent;
     border-title-color: $text;
 }
+
+/* Reduce margin for inline status messages */
+.analysis-message.inline-status {
+    margin: 0 0;
+}
