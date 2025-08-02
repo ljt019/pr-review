@@ -39,6 +39,7 @@ class ToolCallMessage:
     tool_name: str
     arguments: str
     reasoning: str | None = None
+    call_id: str | None = None  # Unique identifier for this tool call
 
 
 @dataclass  
@@ -66,8 +67,14 @@ class MessageEnd:
     pass
 
 
+@dataclass
+class TodoStateMessage:
+    """Message containing the current todo state from the bot."""
+    todos: list[dict]  # List of todo items with content, status, priority, id
+
+
 # Union type for all message types
-BotMessage = Union[ToolCallMessage, ToolResultMessage, MessageStart, MessageToken, MessageEnd]
+BotMessage = Union[ToolCallMessage, ToolResultMessage, MessageStart, MessageToken, MessageEnd, TodoStateMessage]
 
 
 class BugBot:
@@ -132,6 +139,29 @@ class BugBot:
             # Ensure we don't accumulate messages across runs
             self.messages = []
 
+    def _get_current_todo_state(self) -> list[dict]:
+        """Get the current todo state from the tools."""
+        try:
+            # Import here to avoid circular imports
+            from bug_bot.tools.todo import _todos
+            
+            # Convert internal format to UI format
+            ui_todos = []
+            for todo in _todos:
+                ui_todo = {
+                    "content": todo.get("content", ""),
+                    "status": "completed" if todo.get("status") == "complete" else 
+                             "pending" if todo.get("status") == "incomplete" else "pending",
+                    "priority": "medium",  # Default priority
+                    "id": todo.get("id", "")
+                }
+                ui_todos.append(ui_todo)
+            
+            return ui_todos
+        except Exception as e:
+            logger.warning(f"Failed to get todo state: {e}")
+            return []
+
     def run_streaming(self):
         """Run the agent and yield streaming message events.
         
@@ -144,48 +174,81 @@ class BugBot:
             last_yielded_count = 0
             last_assistant_content = ""
             current_message_started = False
+            yielded_tool_calls = set()  # Track yielded tool calls by message index
             
+            print("[DEBUG] Starting agent.run() streaming...")
             for responses in self.agent.run(messages=self.messages):
                 if not responses:
                     continue
                 
-                # Process new complete messages first (tool calls, tool results)
-                new_messages = responses[last_yielded_count:]
-                for msg in new_messages:
-                    role = msg.role if hasattr(msg, 'role') else msg.get('role')
-                    content = msg.content if hasattr(msg, 'content') else msg.get('content')
-                    function_call = msg.function_call if hasattr(msg, 'function_call') else msg.get('function_call')
-                    name = msg.name if hasattr(msg, 'name') else msg.get('name')
+                print(f"[DEBUG] Processing {len(responses)} total messages")
+                
+                # Check for tool calls in assistant messages
+                for i, msg in enumerate(responses):
+                    # Handle both Message objects and dicts
+                    role = getattr(msg, 'role', None) or msg.get('role')
+                    function_call = getattr(msg, 'function_call', None) or msg.get('function_call')
+                    content = getattr(msg, 'content', None) or msg.get('content')
                     
                     if role == "assistant" and function_call:
-                        # Tool call - complete message
-                        # End any current streaming message first
-                        if current_message_started:
-                            yield MessageEnd()
-                            current_message_started = False
-                            last_assistant_content = ""
+                        # Handle function_call being an object or dict
+                        fc_name = getattr(function_call, 'name', None) or function_call.get('name')
+                        fc_args = getattr(function_call, 'arguments', None) or function_call.get('arguments')
                         
-                        fc_name = function_call.name if hasattr(function_call, 'name') else function_call.get('name')
-                        fc_args = function_call.arguments if hasattr(function_call, 'arguments') else function_call.get('arguments')
-                        yield ToolCallMessage(
-                            tool_name=fc_name,
-                            arguments=fc_args,
-                            reasoning=content if content else None
+                        print(f"[DEBUG] Message {i}: Tool={fc_name}, Args='{fc_args}'")
+                        
+                        # Only yield if we haven't yielded this message position before and args look complete
+                        # Wait for complete JSON or very substantial partial content
+                        args_ready = fc_args and (
+                            fc_args.strip().endswith('}') or  # Complete JSON
+                            (len(fc_args) > 20 and (  # Substantial partial content
+                                ('"filePath":' in fc_args and '"' in fc_args[fc_args.find('"filePath":')+11:]) or  # filePath with value
+                                ('"directory":' in fc_args and '"' in fc_args[fc_args.find('"directory":')+12:]) or  # directory with value
+                                ('"pattern":' in fc_args and '"' in fc_args[fc_args.find('"pattern":')+10:]) or  # pattern with value
+                                ('"command":' in fc_args and '"' in fc_args[fc_args.find('"command":')+10:])  # command with value
+                            ))
                         )
+                        if i not in yielded_tool_calls and args_ready:
+                            # End any current streaming message first
+                            if current_message_started:
+                                yield MessageEnd()
+                                current_message_started = False
+                                last_assistant_content = ""
+                            
+                            print(f"[DEBUG] Yielding ToolCallMessage: {fc_name}({fc_args})")
+                            yield ToolCallMessage(
+                                tool_name=fc_name,
+                                arguments=fc_args,
+                                reasoning=content if content else None,
+                                call_id=f"{fc_name}_{i}"
+                            )
+                            yielded_tool_calls.add(i)
+
+                # Check for new function result messages
+                new_messages = responses[last_yielded_count:]
+                for msg in new_messages:
+                    role = getattr(msg, 'role', None) or msg.get('role')
+                    name = getattr(msg, 'name', None) or msg.get('name')
+                    content = getattr(msg, 'content', None) or msg.get('content')
                     
-                    elif role == "function":
-                        # Tool result - complete message
+                    if role == "function":
+                        print(f"[DEBUG] Function result: {name}")
                         yield ToolResultMessage(
                             tool_name=name or "unknown",
                             result=content or ""
                         )
+                        
+                        # Check if this was a todo tool call - emit state update
+                        if name and name.startswith("todo_"):
+                            todo_state = self._get_current_todo_state()
+                            yield TodoStateMessage(todos=todo_state)
                 
                 # Check if the last assistant message is growing (streaming content)
                 if responses:
                     last_msg = responses[-1]
-                    role = last_msg.role if hasattr(last_msg, 'role') else last_msg.get('role')
-                    content = last_msg.content if hasattr(last_msg, 'content') else last_msg.get('content')
-                    function_call = last_msg.function_call if hasattr(last_msg, 'function_call') else last_msg.get('function_call')
+                    role = getattr(last_msg, 'role', None) or last_msg.get('role')
+                    function_call = getattr(last_msg, 'function_call', None) or last_msg.get('function_call')
+                    content = getattr(last_msg, 'content', None) or last_msg.get('content')
                     
                     if (role == "assistant" and not function_call and content):
                         if not current_message_started:

@@ -8,6 +8,5 @@ ToolIndicator {
     text-align: left;
     min-height: 1;
     max-height: 1;
-    color: $text-disabled;
-    text-style: dim;
+    color: $text;
 }

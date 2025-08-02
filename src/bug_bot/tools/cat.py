@@ -76,10 +76,32 @@ class CatTool(BaseTool):
     ]
 
     def call(self, params: str, **kwargs) -> str:
+        print(f"[DEBUG] CatTool called with params: {params}")
         try:
-            parsed_params = json5.loads(params)
+            # Handle both JSON params and empty/malformed params
+            if not params or params.strip() == "":
+                print("[DEBUG] Empty params provided")
+                return "Error: filePath parameter is required"
+            
+            try:
+                parsed_params = json5.loads(params)
+                print(f"[DEBUG] Parsed params: {parsed_params}")
+            except Exception as parse_error:
+                print(f"[DEBUG] JSON parsing failed: {parse_error}")
+                # Try to handle params as direct string
+                file_path = params.strip().strip('"\'')
+                if file_path:
+                    print(f"[DEBUG] Using params as direct file path: '{file_path}'")
+                    parsed_params = {"filePath": file_path}
+                else:
+                    return "Error: Invalid parameters format"
+            
             file_path = parsed_params.get("filePath")
-            if not file_path:
+            print(f"[DEBUG] Extracted filePath: '{file_path}'")
+            
+            # Validate file path
+            if not file_path or file_path in ["", "null", "undefined"]:
+                print("[DEBUG] Error: filePath parameter is required or invalid")
                 return "Error: filePath parameter is required"
 
             offset = parsed_params.get("offset", 0)
@@ -157,6 +179,9 @@ class CatTool(BaseTool):
             return output
 
         except Exception as e:
+            print(f"[DEBUG] Exception in CatTool: {e}")
+            import traceback
+            traceback.print_exc()
             return f"Error: {str(e)}"
 
     def _is_binary_file(self, file_path: str) -> bool:

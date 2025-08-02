@@ -52,8 +52,20 @@ class LsTool(BaseTool):
 
     def call(self, params: str, **kwargs) -> str:
         try:
-            parsed_params = json5.loads(params)
-            directory = parsed_params.get("directory", ".")
+            # Handle both JSON params and empty/malformed params
+            if not params or params.strip() == "":
+                directory = "."
+            else:
+                try:
+                    parsed_params = json5.loads(params)
+                    directory = parsed_params.get("directory", ".")
+                except:
+                    # If JSON parsing fails, treat params as the directory path directly
+                    directory = params.strip().strip('"\'') or "."
+
+            # Validate and sanitize directory path
+            if not directory or directory in ["", "null", "undefined"]:
+                directory = "."
 
             # Use find to get all files recursively, excluding ignored patterns
             ignore_conditions = []
@@ -71,12 +83,17 @@ class LsTool(BaseTool):
             result = run_in_container(find_cmd)
 
             if result.startswith("Error:"):
-                return result
+                return f"Error listing directory '{directory}': {result}"
 
             files = [line.strip() for line in result.split("\n") if line.strip()]
 
             if not files:
-                return f"No files found in {directory} (or directory doesn't exist)"
+                # Try a simpler ls command to see if directory exists
+                simple_check = run_in_container(f'ls -la "{directory}" 2>/dev/null || echo "DIRECTORY_NOT_FOUND"')
+                if "DIRECTORY_NOT_FOUND" in simple_check:
+                    return f"Directory '{directory}' does not exist. Use '.' for current directory or provide a valid path."
+                else:
+                    return f"Directory '{directory}' exists but contains no files (all files may be filtered out by ignore patterns)"
 
             # Build directory tree structure
             tree_structure = self._build_tree_structure(files, directory)

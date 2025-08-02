@@ -1,0 +1,11 @@
+/* Todo Message Widget Styles - Minimal Design */
+
+TodoMessageWidget {
+    margin: 2 0;
+    padding: 1 2;
+    background: transparent;
+    border: none;
+    height: auto;
+    width: 100%;
+    color: $text;
+}
