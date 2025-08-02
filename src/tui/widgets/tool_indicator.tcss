@@ -9,3 +9,12 @@ ToolIndicator {
     min-height: 1;
     color: $text;
 }
+
+/* Reduce spacing for inline report generation */
+ToolIndicator.inline-report {
+    /*
+      -2 on the top removes BOTH blank lines the MessageBox leaves
+      (+1 our normal top margin)  -> total gap = 0
+    */
+    margin: -2 0 0 0;      /* top | right | bottom | left */
+}

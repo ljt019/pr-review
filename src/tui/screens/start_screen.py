@@ -178,15 +178,17 @@ class StartScreen(Screen):
                                     self.app.call_from_thread(
                                         current_streaming_widget.extract_json_content
                                     )
-                                    # Add "Generating bug report..." as a regular message
-                                    generating_msg = BotMessage(
-                                        role="analysis",
-                                        content="🔄 Generating bug report...\n*Analyzing findings and formatting results*",
+                                    # Add "Generating bug report..." as a tool indicator
+                                    generating_widget = ToolIndicator(
+                                        "generating_report"
                                     )
-                                    generating_widget = MessageBox(generating_msg)
+                                    generating_widget.display_text = (
+                                        "✎ Generating bug report..."
+                                    )
                                     generating_widget.add_class(
-                                        "inline-status"
-                                    )  # Reduce margin for inline status
+                                        "inline-report"
+                                    )  # Reduce spacing
+                                    generating_widget.mark_completed()  # Show immediately
                                     self.app.call_from_thread(
                                         self.add_message_widget, generating_widget
                                     )
@@ -231,6 +233,17 @@ class StartScreen(Screen):
 
     def add_message_widget(self, widget) -> None:
         """Add a message widget to the container and auto-scroll."""
+        # Debug: log what type of widget is being added
+        widget_type = type(widget).__name__
+        widget_classes = " ".join(widget.classes) if hasattr(widget, "classes") else ""
+        debug_msg = (
+            f"[DEBUG] Adding widget: {widget_type} (classes: {widget_classes})\n"
+        )
+
+        # Write to debug file
+        with open("widget_debug.log", "a") as f:
+            f.write(debug_msg)
+
         self.messages_container.mount(widget)
 
         # Always scroll to bottom to prevent layout shifts

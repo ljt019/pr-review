@@ -1,10 +1,15 @@
 /* Bug Report Widget Styles - Minimal Design */
 
 BugReportContainer {
-    margin: 0 0;
+    margin: -2 0 0 0;  /* Negative top margin to remove gap from previous MessageBox */
     padding: 0;
     background: transparent;
     border: none;
     height: auto;
     width: 100%;
+}
+
+/* Remove the H1 header's default top margin at the start of bug report */
+BugReportContainer MarkdownH1:first-child {
+    margin-top: 0;
 }
