@@ -16,9 +16,9 @@ class ToolIndicator(Widget):
     def render(self) -> Text:
         """Render a compact tool indicator."""
         if self.completed:
-            return Text(f"✅ {self.tool_name}", style="green")
+            return Text(f"[DONE] {self.tool_name}", style="dim")
         else:
-            return Text(f"⏳ {self.tool_name}", style="yellow")
+            return Text(f"[RUNNING] {self.tool_name}", style="dim")
     
     def mark_completed(self) -> None:
         """Mark the tool as completed."""

@@ -31,7 +31,7 @@ class MessageBox(Widget, can_focus=True):
     def on_mount(self) -> None:
         """Style the message based on its role."""
         self.add_class("analysis-message")
-        self.border_title = "💭 Analysis"
+        self.border_title = "Analysis"
     
     def render(self) -> RenderableType:
         """Render the message content."""

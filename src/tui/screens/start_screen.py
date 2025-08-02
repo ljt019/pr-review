@@ -5,7 +5,7 @@ from pathlib import Path
 
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Container, VerticalScroll, Horizontal
+from textual.containers import Container, VerticalScroll, Horizontal, Center
 from textual.screen import Screen
 from textual.widgets import Static, LoadingIndicator
 from textual import work
@@ -45,9 +45,12 @@ class StartScreen(Screen):
         model = self.selected_model or getattr(self.app, 'selected_model', 'Unknown')
         
         yield Container(
-            Static(f"🐛 Bug Bot Analysis - Model: {model}", classes="header"),
-            VerticalScroll(
-                id="messages-container"
+            Static(f"Bug Bot Analysis - Model: {model}", classes="header"),
+            Center(
+                VerticalScroll(
+                    id="messages-container"
+                ),
+                classes="messages-center"
             ),
             classes="main-container"
         )

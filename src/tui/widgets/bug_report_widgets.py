@@ -44,15 +44,15 @@ class BugWidget(Widget):
         content = Text()
         
         # Bug title with severity indicator
-        severity_icons = {
-            "critical": "🔴",
-            "high": "🟠", 
-            "medium": "🟡",
-            "low": "🔵"
+        severity_labels = {
+            "critical": "[CRITICAL]",
+            "high": "[HIGH]", 
+            "medium": "[MEDIUM]",
+            "low": "[LOW]"
         }
-        icon = severity_icons.get(self.bug.severity.lower(), "🟡")
+        label = severity_labels.get(self.bug.severity.lower(), "[MEDIUM]")
         
-        content.append(f"{icon} {self.bug.title}\n", style="bold")
+        content.append(f"{label} {self.bug.title}\n", style="bold")
         content.append(f"   {self.bug.file_path}", style="dim")
         
         if self.bug.line_number:
@@ -77,7 +77,7 @@ class NitpickWidget(Widget):
         """Render the nitpick with minimal styling."""
         content = Text()
         
-        content.append(f"✨ {self.nitpick.title}\n", style="bold")
+        content.append(f"[NITPICK] {self.nitpick.title}\n", style="bold")
         content.append(f"   {self.nitpick.file_path}", style="dim")
         
         if self.nitpick.line_number:
@@ -86,7 +86,7 @@ class NitpickWidget(Widget):
         content.append(f"\n   {self.nitpick.description}\n", style="")
         
         if self.nitpick.suggestion:
-            content.append(f"   💡 {self.nitpick.suggestion}\n", style="dim")
+            content.append(f"   Suggestion: {self.nitpick.suggestion}\n", style="dim")
         
         return content
 
@@ -103,15 +103,14 @@ class SummaryWidget(Widget):
         """Render the summary with minimal styling."""
         content = Text()
         
-        content.append("📋 Analysis Summary\n", style="bold")
+        content.append("Analysis Summary\n", style="bold")
         
         if self.summary:
             content.append(f"   {self.summary}\n\n", style="")
         
         # Add stats as simple text
         for key, value in self.stats.items():
-            icon = {"bugs": "🐛", "nitpicks": "✨", "files_analyzed": "📁"}.get(key, "📊")
-            content.append(f"   {icon} {key.replace('_', ' ').title()}: {value}\n", style="dim")
+            content.append(f"   {key.replace('_', ' ').title()}: {value}\n", style="dim")
         
         return content
 
@@ -183,7 +182,7 @@ class ReportPlaceholder(Widget):
     def render(self) -> RenderableType:
         """Render the generating message with minimal styling."""
         content = Text()
-        content.append("🔄 Generating bug report...\n", style="bold")
+        content.append("Generating bug report...\n", style="bold")
         content.append("   Analyzing findings and formatting results", style="dim")
         
         return content
