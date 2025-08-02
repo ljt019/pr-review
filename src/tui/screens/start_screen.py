@@ -12,7 +12,9 @@ from textual import work
 
 from bug_bot.bug_bot import (
     BugBot,
-    BugReportMessage,
+    MessageStart,
+    MessageToken,
+    MessageEnd,
     ModelOptions,
     ToolCallMessage,
     ToolResultMessage,
@@ -78,40 +80,46 @@ class StartScreen(Screen):
                 # Clear initial message and start streaming
                 self.app.call_from_thread(self.clear_output)
                 
-                all_messages = []
+                current_message_content = ""
+                current_message_type = None
+                
                 for message in bot.run_streaming():
-                    all_messages.append(message)
-                    
                     if isinstance(message, ToolCallMessage):
                         self.tool_count += 1
                         self.app.call_from_thread(
                             self.update_output,
                             f"🔧 [{self.tool_count}] {message.tool_name}"
                         )
-                    elif isinstance(message, BugReportMessage):
-                        # Only show meaningful content (skip very short fragments)
-                        if len(message.content.strip()) > 10:
+                    
+                    elif isinstance(message, MessageStart):
+                        # Start a new streaming message
+                        current_message_type = message.message_type
+                        current_message_content = ""
+                        if message.message_type == "analysis":
                             self.app.call_from_thread(
                                 self.update_output,
-                                f"💭 Analysis: {message.content[:100]}..." if len(message.content) > 100 else f"💭 {message.content}"
+                                "💭 Analysis: "
                             )
-                    # Skip tool results
-                
-                # After streaming ends, show the final report
-                if all_messages:
-                    # Collect all BugReportMessage content and combine it
-                    bug_report_parts = []
-                    for msg in all_messages:
-                        if isinstance(msg, BugReportMessage) and msg.content.strip():
-                            bug_report_parts.append(msg.content.strip())
                     
-                    if bug_report_parts:
-                        # Combine all parts into final report
-                        final_report = " ".join(bug_report_parts)
+                    elif isinstance(message, MessageToken):
+                        # Append token to current message
+                        current_message_content += message.token
                         self.app.call_from_thread(
-                            self.update_output,
-                            f"\n{'='*60}\n🐛 FINAL BUG REPORT\n{'='*60}\n\n{final_report}\n{'='*60}"
+                            self.append_to_last_line,
+                            message.token
                         )
+                    
+                    elif isinstance(message, MessageEnd):
+                        # Message complete - format as final report if it's long enough
+                        if current_message_type == "analysis" and len(current_message_content) > 100:
+                            self.app.call_from_thread(
+                                self.update_output,
+                                f"\n{'='*60}\n🐛 FINAL BUG REPORT\n{'='*60}\n\n{current_message_content}\n{'='*60}"
+                            )
+                        current_message_type = None
+                        current_message_content = ""
+                    
+                    # Skip tool results
                     
         except Exception as e:
             self.app.call_from_thread(
@@ -123,6 +131,39 @@ class StartScreen(Screen):
         """Update the output container with new text"""
         current = self.output_container.renderable
         self.output_container.update(f"{current}\n{text}")
+        
+        # Auto-scroll to bottom
+        scroll_container = self.query_one("#scroll-container", VerticalScroll)
+        scroll_container.scroll_end()
+    
+    def append_to_last_line(self, text: str) -> None:
+        """Append text to the last line in the output"""
+        current = self.output_container.renderable
+        lines = str(current).split('\n')
+        
+        if lines:
+            lines[-1] += text
+        else:
+            lines = [text]
+        
+        self.output_container.update('\n'.join(lines))
+        
+        # Auto-scroll to bottom
+        scroll_container = self.query_one("#scroll-container", VerticalScroll)
+        scroll_container.scroll_end()
+    
+    def replace_last_analysis(self, new_text: str) -> None:
+        """Replace the last analysis line with new text"""
+        current = self.output_container.renderable
+        lines = str(current).split('\n')
+        
+        # Find the last line that starts with "💭 Analysis"
+        for i in range(len(lines) - 1, -1, -1):
+            if lines[i].startswith("💭 Analysis"):
+                lines[i] = new_text
+                break
+        
+        self.output_container.update('\n'.join(lines))
         
         # Auto-scroll to bottom
         scroll_container = self.query_one("#scroll-container", VerticalScroll)

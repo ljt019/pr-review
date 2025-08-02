@@ -38,7 +38,7 @@ class ToolCallMessage:
     """Message representing a tool being called by the agent."""
     tool_name: str
     arguments: str
-    reasoning: str | None = None  # Assistant's message before the tool call
+    reasoning: str | None = None
 
 
 @dataclass  
@@ -49,14 +49,25 @@ class ToolResultMessage:
 
 
 @dataclass
-class BugReportMessage:
-    """Message containing the final bug report from the agent."""
-    content: str
-    is_final: bool = False  # True when this is the last message
+class MessageStart:
+    """Indicates a new message is starting."""
+    message_type: str  # "analysis" or "final_report"
+
+
+@dataclass
+class MessageToken:
+    """A token/chunk being added to the current streaming message."""
+    token: str
+
+
+@dataclass
+class MessageEnd:
+    """Indicates the current streaming message is complete."""
+    pass
 
 
 # Union type for all message types
-BotMessage = Union[ToolCallMessage, ToolResultMessage, BugReportMessage]
+BotMessage = Union[ToolCallMessage, ToolResultMessage, MessageStart, MessageToken, MessageEnd]
 
 
 class BugBot:
@@ -122,28 +133,73 @@ class BugBot:
             self.messages = []
 
     def run_streaming(self):
-        """Run the agent and yield clean message types as they're generated.
+        """Run the agent and yield streaming message events.
         
         Yields:
-            BotMessage: Either ToolCallMessage, ToolResultMessage, or BugReportMessage
+            BotMessage: Stream events for tool calls, message starts/tokens/ends
         """
         self.messages.append({"role": "user", "content": load_prompt("starting_query")})
         
         try:
             last_yielded_count = 0
+            last_assistant_content = ""
+            current_message_started = False
             
             for responses in self.agent.run(messages=self.messages):
                 if not responses:
                     continue
                 
-                # Process only new messages since last yield
+                # Process new complete messages first (tool calls, tool results)
                 new_messages = responses[last_yielded_count:]
-                last_yielded_count = len(responses)
-                
                 for msg in new_messages:
-                    bot_message = self._convert_to_bot_message(msg)
-                    if bot_message:
-                        yield bot_message
+                    role = msg.role if hasattr(msg, 'role') else msg.get('role')
+                    content = msg.content if hasattr(msg, 'content') else msg.get('content')
+                    function_call = msg.function_call if hasattr(msg, 'function_call') else msg.get('function_call')
+                    name = msg.name if hasattr(msg, 'name') else msg.get('name')
+                    
+                    if role == "assistant" and function_call:
+                        # Tool call - complete message
+                        fc_name = function_call.name if hasattr(function_call, 'name') else function_call.get('name')
+                        fc_args = function_call.arguments if hasattr(function_call, 'arguments') else function_call.get('arguments')
+                        yield ToolCallMessage(
+                            tool_name=fc_name,
+                            arguments=fc_args,
+                            reasoning=content if content else None
+                        )
+                    
+                    elif role == "function":
+                        # Tool result - complete message
+                        yield ToolResultMessage(
+                            tool_name=name or "unknown",
+                            result=content or ""
+                        )
+                
+                # Check if the last assistant message is growing (streaming content)
+                if responses:
+                    last_msg = responses[-1]
+                    role = last_msg.role if hasattr(last_msg, 'role') else last_msg.get('role')
+                    content = last_msg.content if hasattr(last_msg, 'content') else last_msg.get('content')
+                    function_call = last_msg.function_call if hasattr(last_msg, 'function_call') else last_msg.get('function_call')
+                    
+                    if (role == "assistant" and not function_call and content):
+                        if not current_message_started:
+                            # Start of new streaming message
+                            yield MessageStart(message_type="analysis")
+                            current_message_started = True
+                            last_assistant_content = ""
+                        
+                        # Send new tokens
+                        if content != last_assistant_content:
+                            new_content = content[len(last_assistant_content):]
+                            if new_content:
+                                yield MessageToken(token=new_content)
+                                last_assistant_content = content
+                
+                last_yielded_count = len(responses)
+            
+            # End the current streaming message
+            if current_message_started:
+                yield MessageEnd()
                         
         finally:
             self.messages = []
