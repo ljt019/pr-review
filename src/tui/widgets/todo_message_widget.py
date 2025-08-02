@@ -28,10 +28,10 @@ class TodoMessageWidget(Widget):
             # Checkbox indicator
             status = todo.get("status", "pending")
             if status == "completed":
-                checkbox = "[x]"
+                checkbox = "●"  # Filled circle
                 style = ""
             else:
-                checkbox = "[ ]"  # Empty checkbox
+                checkbox = "○"  # Empty circle
                 style = ""
 
             todo_content = todo.get("content", "")

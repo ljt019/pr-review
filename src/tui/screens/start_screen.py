@@ -45,6 +45,9 @@ class StartScreen(Screen):
         # Get the selected model from the app or the parameter
         model = self.selected_model or getattr(self.app, "selected_model", "Unknown")
 
+        if model == "qwen/qwen3-coder":
+            model = "qwen/qwen3-480b-a35b-coder"
+
         yield Container(
             Static(f"{model}", classes="header"),
             Center(VerticalScroll(id="messages-container"), classes="messages-center"),

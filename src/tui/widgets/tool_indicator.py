@@ -31,6 +31,19 @@ class ToolIndicator(Widget):
             f"[DEBUG] _create_display_text: tool_name='{self.tool_name}', arguments='{self.arguments}'"
         )
 
+        # Symbol mapping based on tool_plans.md
+        # Using U+2064 invisible plus (forces text) as a workaround
+        tool_symbols = {
+            "cat": "⚯",  # Eye with invisible plus forces text rendering
+            "glob": "⌕\ufe0e",
+            "grep": "⌕\ufe0e",
+            "ls": "☰",  # Directory path
+            "todo_read": "⚯",  # Eye with invisible plus
+            "todo_write": "✎\ufe0e",
+        }
+
+        symbol = tool_symbols.get(self.tool_name, "")
+
         # Try to parse complete JSON first
         try:
             if self.arguments and self.arguments.strip().endswith("}"):
@@ -40,25 +53,25 @@ class ToolIndicator(Widget):
                 # Create descriptive text based on tool name and arguments
                 if self.tool_name == "cat":
                     file_path = args.get("filePath", "")
-                    return f"cat {file_path}" if file_path else "cat"
+                    return f"{symbol} cat {file_path}" if file_path else f"{symbol} cat"
                 elif self.tool_name == "ls":
                     directory = args.get("directory", ".")
-                    return f"ls {directory}"
+                    return f"{symbol} ls {directory}"
                 elif self.tool_name == "glob":
                     pattern = args.get("pattern", "")
-                    return f"glob '{pattern}'" if pattern else "glob"
+                    return f"{symbol} glob '{pattern}'" if pattern else f"{symbol} glob"
                 elif self.tool_name == "grep":
                     pattern = args.get("pattern", "")
-                    return f"grep '{pattern}'" if pattern else "grep"
+                    return f"{symbol} grep '{pattern}'" if pattern else f"{symbol} grep"
                 elif self.tool_name == "run_in_container":
                     command = args.get("command", "")
                     if len(command) > 30:
                         command = command[:27] + "..."
                     return f"run '{command}'" if command else "run"
                 elif self.tool_name == "todo_write":
-                    return "todo_write"
+                    return f"{symbol} todo_write"
                 elif self.tool_name == "todo_read":
-                    return "todo_read"
+                    return f"{symbol} todo_read"
         except json.JSONDecodeError:
             # JSON not complete yet, fall through to partial parsing
             pass
@@ -76,7 +89,7 @@ class ToolIndicator(Widget):
                 if match:
                     file_path = match.group(1)
                     if file_path:  # Only show if we have some path content
-                        return f"cat {file_path}"
+                        return f"{symbol} cat {file_path}"
             elif self.tool_name == "ls" and '"directory"' in self.arguments:
                 # Extract directory value if possible
                 match = re.search(
@@ -84,9 +97,9 @@ class ToolIndicator(Widget):
                 )  # Remove closing quote requirement
                 if match:
                     directory = match.group(1)
-                    return f"ls {directory}" if directory else "ls ."
+                    return f"{symbol} ls {directory}" if directory else f"{symbol} ls ."
                 elif self.arguments == "{}":
-                    return "ls ."
+                    return f"{symbol} ls ."
             elif self.tool_name == "glob" and '"pattern"' in self.arguments:
                 # Extract pattern value if possible
                 match = re.search(
@@ -95,7 +108,7 @@ class ToolIndicator(Widget):
                 if match:
                     pattern = match.group(1)
                     if pattern:  # Only show if we have some pattern content
-                        return f"glob '{pattern}'"
+                        return f"{symbol} glob '{pattern}'"
             elif self.tool_name == "grep" and '"pattern"' in self.arguments:
                 # Extract pattern value if possible
                 match = re.search(
@@ -104,17 +117,18 @@ class ToolIndicator(Widget):
                 if match:
                     pattern = match.group(1)
                     if pattern:  # Only show if we have some pattern content
-                        return f"grep '{pattern}'"
+                        return f"{symbol} grep '{pattern}'"
 
-        # Fallback to tool name
-        return self.tool_name
+        # Fallback to tool name with symbol
+        return f"{symbol} {self.tool_name}" if symbol else self.tool_name
 
     def render(self) -> Text:
         """Render a compact tool indicator."""
         if self.completed:
-            return Text(f"[DONE] {self.display_text}")
+            return Text(self.display_text)
         else:
-            return Text(f"[RUNNING] {self.display_text}")
+            # Don't display anything while running
+            return Text("")
 
     def mark_completed(self) -> None:
         """Mark the tool as completed."""

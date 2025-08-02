@@ -1,9 +1,9 @@
-from textual.app import ComposeResult
 from textual.widgets import OptionList
 from textual.widgets.option_list import Option
-from paths import get_widget_path
 
 from bug_bot.bug_bot import ModelOptions
+from paths import get_widget_path
+
 
 class ModelOptionsWidget(OptionList):
     """A widget that displays model options for selection."""
@@ -16,5 +16,5 @@ class ModelOptionsWidget(OptionList):
             Option("Qwen3 235B A22B", id=ModelOptions.QWEN3_235B_A22B_INSTRUCT.value),
             Option("Qwen3 480B A35B", id=ModelOptions.QWEN3_480B_A35B_CODER.value),
             id="model_select",
-            classes="model_options"
-        ) 
+            classes="model_options",
+        )
