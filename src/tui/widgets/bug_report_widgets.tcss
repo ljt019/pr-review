@@ -1,0 +1,49 @@
+/* Bug Report Widget Styles - Minimal Design */
+
+BugWidget {
+    margin: 2 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    height: auto;
+    width: 100%;
+}
+
+NitpickWidget {
+    margin: 2 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    height: auto;
+    width: 100%;
+}
+
+SummaryWidget {
+    margin: 3 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    height: auto;
+    width: 100%;
+}
+
+BugReportContainer {
+    margin: 2 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    height: auto;
+    width: 100%;
+}
+
+ReportPlaceholder {
+    margin: 2 0;
+    padding: 1 2;
+    background: transparent;
+    border: none;
+    height: auto;
+    width: 100%;
+    text-align: center;
+    color: $text-disabled;
+    text-style: dim italic;
+}

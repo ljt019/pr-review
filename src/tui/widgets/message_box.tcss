@@ -1,21 +1,21 @@
 MessageBox {
-    margin: 1 0;
-    padding: 1;
-    border: solid $primary;
-    background: $surface;
+    margin: 2 0;
+    padding: 1 2;
+    border: none;
+    background: transparent;
     height: auto;
-    min-height: 3;
+    min-height: 1;
     width: 100%;
 }
 
-
 .analysis-message {
-    border: solid $warning;
-    background: $warning 10%;
+    border: none;
+    background: transparent;
+    border-title-color: $text-disabled;
 }
 
 .analysis-message.streaming {
-    border: solid $warning;
-    background: $warning 20%;
-    border-title-color: $warning;
+    border: none;
+    background: transparent;
+    border-title-color: $text;
 }

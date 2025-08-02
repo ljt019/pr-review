@@ -6,9 +6,6 @@ from typing import List, Dict, Any
 
 from rich.console import RenderableType
 from rich.text import Text
-from rich.table import Table
-from rich.panel import Panel
-from rich.markdown import Markdown
 from textual.widget import Widget
 from textual.containers import Container
 from textual.widgets import Static, LoadingIndicator
@@ -43,38 +40,30 @@ class BugWidget(Widget):
         self.bug = bug
     
     def render(self) -> RenderableType:
-        """Render the bug as a styled panel."""
-        # Choose color based on severity
-        severity_colors = {
-            "critical": "red",
-            "high": "red",
-            "medium": "yellow", 
-            "low": "blue"
-        }
-        color = severity_colors.get(self.bug.severity.lower(), "yellow")
-        
-        # Build content
+        """Render the bug with minimal styling."""
         content = Text()
-        content.append(f"📍 {self.bug.file_path}", style="cyan")
+        
+        # Bug title with severity indicator
+        severity_icons = {
+            "critical": "🔴",
+            "high": "🟠", 
+            "medium": "🟡",
+            "low": "🔵"
+        }
+        icon = severity_icons.get(self.bug.severity.lower(), "🟡")
+        
+        content.append(f"{icon} {self.bug.title}\n", style="bold")
+        content.append(f"   {self.bug.file_path}", style="dim")
         
         if self.bug.line_number:
-            content.append(f":{self.bug.line_number}", style="cyan")
+            content.append(f":{self.bug.line_number}", style="dim")
         
-        content.append("\n\n")
-        content.append(self.bug.description, style="white")
+        content.append(f"\n   {self.bug.description}\n", style="")
         
         if self.bug.code_snippet:
-            content.append("\n\n")
-            content.append("Code:", style="bold")
-            content.append(f"\n{self.bug.code_snippet}", style="dim")
+            content.append(f"   Code: {self.bug.code_snippet}\n", style="dim")
         
-        return Panel(
-            content,
-            title=f"🐛 {self.bug.title}",
-            title_align="left",
-            border_style=color,
-            padding=(0, 1)
-        )
+        return content
 
 
 class NitpickWidget(Widget):
@@ -85,28 +74,21 @@ class NitpickWidget(Widget):
         self.nitpick = nitpick
     
     def render(self) -> RenderableType:
-        """Render the nitpick as a styled panel."""
+        """Render the nitpick with minimal styling."""
         content = Text()
-        content.append(f"📍 {self.nitpick.file_path}", style="cyan")
+        
+        content.append(f"✨ {self.nitpick.title}\n", style="bold")
+        content.append(f"   {self.nitpick.file_path}", style="dim")
         
         if self.nitpick.line_number:
-            content.append(f":{self.nitpick.line_number}", style="cyan")
+            content.append(f":{self.nitpick.line_number}", style="dim")
         
-        content.append("\n\n")
-        content.append(self.nitpick.description, style="white")
+        content.append(f"\n   {self.nitpick.description}\n", style="")
         
         if self.nitpick.suggestion:
-            content.append("\n\n")
-            content.append("💡 Suggestion: ", style="bold green")
-            content.append(self.nitpick.suggestion, style="green")
+            content.append(f"   💡 {self.nitpick.suggestion}\n", style="dim")
         
-        return Panel(
-            content,
-            title=f"✨ {self.nitpick.title}",
-            title_align="left", 
-            border_style="blue",
-            padding=(0, 1)
-        )
+        return content
 
 
 class SummaryWidget(Widget):
@@ -118,31 +100,20 @@ class SummaryWidget(Widget):
         self.stats = stats
     
     def render(self) -> RenderableType:
-        """Render the summary with stats."""
-        # Create stats table
-        table = Table(show_header=False, box=None, padding=(0, 2))
-        table.add_column(style="bold")
-        table.add_column(style="cyan")
+        """Render the summary with minimal styling."""
+        content = Text()
         
+        content.append("📋 Analysis Summary\n", style="bold")
+        
+        if self.summary:
+            content.append(f"   {self.summary}\n\n", style="")
+        
+        # Add stats as simple text
         for key, value in self.stats.items():
             icon = {"bugs": "🐛", "nitpicks": "✨", "files_analyzed": "📁"}.get(key, "📊")
-            table.add_row(f"{icon} {key.replace('_', ' ').title()}:", str(value))
+            content.append(f"   {icon} {key.replace('_', ' ').title()}: {value}\n", style="dim")
         
-        # Combine summary text and stats with newlines
-        from rich.console import Group
-        content = Group(
-            Markdown(self.summary) if self.summary else Text(""),
-            Text(""),  # Empty line separator
-            table
-        )
-        
-        return Panel(
-            content,
-            title="📋 Analysis Summary",
-            title_align="left",
-            border_style="green",
-            padding=(1, 1)
-        )
+        return content
 
 
 class BugReportContainer(Widget):
@@ -210,15 +181,9 @@ class ReportPlaceholder(Widget):
     """Placeholder widget shown while generating the report."""
     
     def render(self) -> RenderableType:
-        """Render the generating message."""
+        """Render the generating message with minimal styling."""
         content = Text()
-        content.append("🔄 Generating bug report...", style="yellow bold")
-        content.append("\nAnalyzing findings and formatting results", style="dim")
+        content.append("🔄 Generating bug report...\n", style="bold")
+        content.append("   Analyzing findings and formatting results", style="dim")
         
-        return Panel(
-            content,
-            title="📋 Bug Report",
-            title_align="left",
-            border_style="yellow",
-            padding=(1, 2)
-        )
+        return content
