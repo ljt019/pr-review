@@ -21,7 +21,7 @@ def save_response(
     Save bug detection response to organized file structure.
 
     Args:
-        response_data: Enhanced response data with metadata
+        response_data: Response data (raw text or structured dict)
         project_root: Root directory of the project
         model_name: Name of the model used for analysis
 
@@ -60,26 +60,32 @@ def save_response(
 
 def create_eval_summary(response_data: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Create a summary of the evaluation for quick review.
+    Create a simple summary of the evaluation for quick review.
 
     Args:
-        response_data: Enhanced response data with metadata
+        response_data: Response data (raw text or dict)
 
     Returns:
-        Summary dictionary with key metrics
+        Summary dictionary with basic metrics
     """
+    # Handle both string responses and dict responses
+    if isinstance(response_data, str):
+        return {
+            "response_type": "text",
+            "response_length": len(response_data),
+            "timestamp": datetime.now().isoformat(),
+        }
 
-    metadata = response_data.get("metadata", {})
+    # For dict responses, extract what we can
+    bugs = response_data.get("bugs", [])
+    nitpicks = response_data.get("nitpicks", [])
 
     return {
-        "scan_id": metadata.get("scan_id", "unknown"),
-        "timestamp": metadata.get("timestamp", ""),
-        "total_issues": metadata.get("total_bugs", 0)
-        + metadata.get("total_nitpicks", 0),
-        "critical_count": metadata.get("critical_bugs", 0),
-        "files_with_issues": len(metadata.get("files_with_bugs", [])),
-        "confidence": metadata.get("confidence", 0.0),
-        "top_categories": list(metadata.get("category_breakdown", {}).keys())[:3],
+        "response_type": "structured",
+        "total_bugs": len(bugs),
+        "total_nitpicks": len(nitpicks),
+        "total_issues": len(bugs) + len(nitpicks),
+        "timestamp": datetime.now().isoformat(),
     }
 
 
@@ -92,7 +98,7 @@ def save_response_with_summary(
     Save response and create summary file.
 
     Args:
-        response_data: Enhanced response data with metadata
+        response_data: Response data (raw text or structured dict)
         project_root: Root directory of the project
         model_name: Name of the model used for analysis
 

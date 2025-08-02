@@ -85,8 +85,6 @@ class CatTool(BaseTool):
             offset = parsed_params.get("offset", 0)
             limit = parsed_params.get("limit", DEFAULT_READ_LIMIT)
 
-            self._pretty_print_tool(file_path, offset, limit)
-
             # Check if file is likely binary by extension
             if self._is_binary_file(file_path):
                 return f"Error: Cannot read binary file: {file_path}\nThis appears to be a binary file based on its extension."
@@ -202,12 +200,3 @@ class CatTool(BaseTool):
 
         except Exception:
             return ""
-
-    def _pretty_print_tool(self, file_path: str, offset: int, limit: int):
-        print("🛠️ Reading File")
-        print(f"  - file: {file_path}")
-        if offset > 0:
-            print(f"  - offset: {offset}")
-        if limit != DEFAULT_READ_LIMIT:
-            print(f"  - limit: {limit}")
-        print()

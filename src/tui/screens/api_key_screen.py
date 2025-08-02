@@ -36,7 +36,7 @@ class APIKeyScreen(Screen):
         """Save API key and move to next screen"""
         api_key = self.query_one("#api_key", Input).value.strip()
         if api_key:
-            os.environ['OPENROUTER_API_KEY'] = api_key
+            os.environ['OPEN_ROUTER_API_KEY'] = api_key
             with open('.env', 'w') as file:
-                file.write(f'OPENROUTER_API_KEY={api_key}\n')
+                file.write(f'OPEN_ROUTER_API_KEY={api_key}\n')
             self.app.switch_screen("model_select")

@@ -22,9 +22,4 @@ class BashTool(BaseTool):
         if not command:
             return "Error: command parameter is required"
 
-        self._pretty_print_tool(command)
         return run_in_container(command)
-
-    def _pretty_print_tool(self, command: str):
-        print("🛠️ Executing command")
-        print(f"  - command: {command}\n")

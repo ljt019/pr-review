@@ -86,21 +86,6 @@ class TodoWriteTool(BaseTool):
         except Exception as e:
             return f"Error: {str(e)}"
 
-    def _pretty_print_todos(self):
-        """Pretty print the todo list"""
-        lines = []
-        for todo in _todos:
-            checkbox = "[x]" if todo["status"] == "complete" else "[]"
-            lines.append(f"{checkbox} - {todo['content']}")
-
-        formatted_todos = (
-            "\n".join([f"  - {line}" for line in lines]) if lines else "       No todos"
-        )
-
-        print("🛠️ Todo Write")
-        print("  - todos:")
-        print(f"{formatted_todos}\n")
-
 
 @register_tool("todo_read")
 class TodoReadTool(BaseTool):
@@ -115,13 +100,5 @@ class TodoReadTool(BaseTool):
             lines.append(f"{checkbox} - {todo['content']}")
 
         result = "\n".join(lines) if lines else "No todos"
-
-        # Pretty print
-        formatted_todos = (
-            "\n".join([f"  - {line}" for line in lines]) if lines else "       No todos"
-        )
-        print("🛠️ Todo Read")
-        print("  - todos:")
-        print(f"{formatted_todos}\n")
 
         return result

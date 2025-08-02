@@ -62,7 +62,7 @@ class SnifferTUI(App):
     def on_mount(self) -> None:
         """Set up the app when it starts"""
         # Check if API key already exists
-        if os.path.exists(".env") and os.getenv("OPENROUTER_API_KEY"):
+        if os.path.exists(".env") and os.getenv("OPEN_ROUTER_API_KEY"):
             self.push_screen("model_select")
         else:
             self.push_screen("api_key")

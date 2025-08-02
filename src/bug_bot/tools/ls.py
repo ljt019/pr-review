@@ -55,8 +55,6 @@ class LsTool(BaseTool):
             parsed_params = json5.loads(params)
             directory = parsed_params.get("directory", ".")
 
-            self._pretty_print_tool(directory)
-
             # Use find to get all files recursively, excluding ignored patterns
             ignore_conditions = []
             for pattern in IGNORE_PATTERNS:
@@ -149,8 +147,3 @@ class LsTool(BaseTool):
                     output.append(f"{file_indent}{file_name}")
 
         return "\n".join(output)
-
-    def _pretty_print_tool(self, directory: str):
-        print("🛠️ Listing Directory Tree")
-        print(f"  - directory: {directory}")
-        print()

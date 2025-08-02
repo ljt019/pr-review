@@ -75,8 +75,6 @@ class GrepTool(BaseTool):
             max_results = parsed_params.get("max_results", 100)
             context_lines = parsed_params.get("context_lines", 0)
 
-            self._pretty_print_tool(pattern)
-
             return self._ripgrep_search(
                 pattern,
                 directory,
@@ -151,7 +149,3 @@ class GrepTool(BaseTool):
             f'"{part}"' if " " in str(part) else str(part) for part in cmd
         )
         return run_in_container(command)
-
-    def _pretty_print_tool(self, pattern: str):
-        print("🛠️ Grepping")
-        print(f"  - pattern: {pattern}\n")

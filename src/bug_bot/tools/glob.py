@@ -31,8 +31,6 @@ class GlobTool(BaseTool):
 
             search_path = parsed_params.get("path", ".")
 
-            self._pretty_print_tool(pattern, search_path)
-
             # Build an appropriate find command
             # Special-case patterns that mean "all files"
             if pattern in ["*", "**", "**/*"]:
@@ -75,10 +73,3 @@ class GlobTool(BaseTool):
 
         except Exception as e:
             return f"Error: {str(e)}"
-
-    def _pretty_print_tool(self, pattern: str, path: str):
-        print("🛠️ Globbing")
-        print(f"  - pattern: {pattern}")
-        if path != ".":
-            print(f"  - path: {path}")
-        print()
