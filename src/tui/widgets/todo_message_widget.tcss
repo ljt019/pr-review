@@ -1,8 +1,8 @@
 /* Todo Message Widget Styles - Minimal Design */
 
 TodoMessageWidget {
-    margin: 2 0;
-    padding: 1 2;
+    margin: 0 0;
+    padding: 0 0;
     background: transparent;
     border: none;
     height: auto;
