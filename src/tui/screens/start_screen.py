@@ -130,7 +130,9 @@ class StartScreen(Screen):
                                 if (current_streaming_widget.message.has_json_detected and 
                                     not report_placeholder):
                                     # JSON detected! Extract content and add placeholder
-                                    json_content = current_streaming_widget.extract_json_content()
+                                    self.app.call_from_thread(
+                                        current_streaming_widget.extract_json_content
+                                    )
                                     report_placeholder = ReportPlaceholder()
                                     self.app.call_from_thread(self.add_message_widget, report_placeholder)
                     

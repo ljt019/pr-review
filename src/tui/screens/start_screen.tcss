@@ -29,13 +29,13 @@
     margin: 0;
     padding: 0;
     
-    /* Custom scrollbar styling */
-    scrollbar-color: $text-disabled;
-    scrollbar-color-hover: $text;
-    scrollbar-color-active: $text;
+    /* Hide scrollbar completely */
+    scrollbar-color: transparent;
+    scrollbar-color-hover: transparent;
+    scrollbar-color-active: transparent;
     scrollbar-background: transparent;
-    scrollbar-background-hover: $surface;
-    scrollbar-background-active: $surface;
+    scrollbar-background-hover: transparent;
+    scrollbar-background-active: transparent;
     scrollbar-size-vertical: 1;
 }
 
