@@ -5,7 +5,7 @@ from pathlib import Path
 
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Container, VerticalScroll
+from textual.containers import Container, VerticalScroll, Horizontal
 from textual.screen import Screen
 from textual.widgets import Static, LoadingIndicator
 from textual import work
@@ -20,6 +20,8 @@ from bug_bot.bug_bot import (
     ToolResultMessage,
 )
 from paths import get_assets_path
+from tui.widgets.message_box import MessageBox, BotMessage
+from tui.widgets.tool_indicator import ToolIndicator
 
 
 class StartScreen(Screen):
@@ -43,15 +45,14 @@ class StartScreen(Screen):
         yield Container(
             Static(f"🐛 Bug Bot Analysis - Model: {model}", classes="header"),
             VerticalScroll(
-                Static("🚀 Starting analysis...\n", id="output"),
-                id="scroll-container"
+                id="messages-container"
             ),
             classes="main-container"
         )
     
     def on_mount(self) -> None:
         """Start the bug bot analysis when screen mounts"""
-        self.output_container = self.query_one("#output", Static)
+        self.messages_container = self.query_one("#messages-container", VerticalScroll)
         self.run_bug_analysis()
     
     @work(thread=True)
@@ -77,102 +78,58 @@ class StartScreen(Screen):
         
         try:
             with BugBot(zipped_codebase=zipped_codebase, model_option=model_option) as bot:
-                # Clear initial message and start streaming
-                self.app.call_from_thread(self.clear_output)
-                
-                current_message_content = ""
-                current_message_type = None
+                current_streaming_widget = None
+                tool_indicators = {}  # Map tool_name to indicator for updating
                 
                 for message in bot.run_streaming():
                     if isinstance(message, ToolCallMessage):
-                        self.tool_count += 1
-                        self.app.call_from_thread(
-                            self.update_output,
-                            f"🔧 [{self.tool_count}] {message.tool_name}"
-                        )
+                        # Add minimal tool indicator in the chat flow
+                        tool_indicator = ToolIndicator(message.tool_name)
+                        tool_indicators[message.tool_name] = tool_indicator
+                        self.app.call_from_thread(self.add_message_widget, tool_indicator)
+                    
+                    elif isinstance(message, ToolResultMessage):
+                        # Mark the tool as completed (but don't show result)
+                        if message.tool_name in tool_indicators:
+                            tool_indicator = tool_indicators[message.tool_name]
+                            self.app.call_from_thread(tool_indicator.mark_completed)
                     
                     elif isinstance(message, MessageStart):
-                        # Start a new streaming message
-                        current_message_type = message.message_type
-                        current_message_content = ""
+                        # Start a new streaming analysis message
                         if message.message_type == "analysis":
-                            self.app.call_from_thread(
-                                self.update_output,
-                                "💭 Analysis: "
-                            )
+                            analysis_msg = BotMessage(role="analysis", content="")
+                            current_streaming_widget = MessageBox(analysis_msg)
+                            current_streaming_widget.add_class("streaming")
+                            self.app.call_from_thread(self.add_message_widget, current_streaming_widget)
                     
                     elif isinstance(message, MessageToken):
-                        # Append token to current message
-                        current_message_content += message.token
-                        self.app.call_from_thread(
-                            self.append_to_last_line,
-                            message.token
-                        )
+                        # Append token to current streaming message
+                        if current_streaming_widget:
+                            self.app.call_from_thread(
+                                current_streaming_widget.append_chunk,
+                                message.token
+                            )
                     
                     elif isinstance(message, MessageEnd):
-                        # Message complete - format as final report if it's long enough
-                        if current_message_type == "analysis" and len(current_message_content) > 100:
+                        # Streaming complete
+                        if current_streaming_widget:
                             self.app.call_from_thread(
-                                self.update_output,
-                                f"\n{'='*60}\n🐛 FINAL BUG REPORT\n{'='*60}\n\n{current_message_content}\n{'='*60}"
+                                current_streaming_widget.remove_class,
+                                "streaming"
                             )
-                        current_message_type = None
-                        current_message_content = ""
-                    
-                    # Skip tool results
+                            current_streaming_widget = None
                     
         except Exception as e:
-            self.app.call_from_thread(
-                self.update_output,
-                f"\n❌ Error during analysis: {str(e)}"
-            )
+            error_msg = BotMessage(role="analysis", content=f"❌ Error during analysis: {str(e)}")
+            error_widget = MessageBox(error_msg)
+            self.app.call_from_thread(self.add_message_widget, error_widget)
     
-    def update_output(self, text: str) -> None:
-        """Update the output container with new text"""
-        current = self.output_container.renderable
-        self.output_container.update(f"{current}\n{text}")
+    def add_message_widget(self, widget) -> None:
+        """Add a message widget to the container and auto-scroll."""
+        self.messages_container.mount(widget)
         
-        # Auto-scroll to bottom
-        scroll_container = self.query_one("#scroll-container", VerticalScroll)
-        scroll_container.scroll_end()
-    
-    def append_to_last_line(self, text: str) -> None:
-        """Append text to the last line in the output"""
-        current = self.output_container.renderable
-        lines = str(current).split('\n')
-        
-        if lines:
-            lines[-1] += text
-        else:
-            lines = [text]
-        
-        self.output_container.update('\n'.join(lines))
-        
-        # Auto-scroll to bottom
-        scroll_container = self.query_one("#scroll-container", VerticalScroll)
-        scroll_container.scroll_end()
-    
-    def replace_last_analysis(self, new_text: str) -> None:
-        """Replace the last analysis line with new text"""
-        current = self.output_container.renderable
-        lines = str(current).split('\n')
-        
-        # Find the last line that starts with "💭 Analysis"
-        for i in range(len(lines) - 1, -1, -1):
-            if lines[i].startswith("💭 Analysis"):
-                lines[i] = new_text
-                break
-        
-        self.output_container.update('\n'.join(lines))
-        
-        # Auto-scroll to bottom
-        scroll_container = self.query_one("#scroll-container", VerticalScroll)
-        scroll_container.scroll_end()
-    
-    def clear_output(self) -> None:
-        """Clear the output container"""
-        self.output_container.update("")
-        self.tool_count = 0
+        # Always scroll to bottom to prevent layout shifts
+        self.messages_container.scroll_end(animate=False)
     
     def action_back_to_model_select(self) -> None:
         """Go back to model selection screen"""

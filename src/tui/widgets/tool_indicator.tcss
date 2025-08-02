@@ -1,0 +1,11 @@
+ToolIndicator {
+    height: 1;
+    width: 100%;
+    margin: 0 0 1 0;
+    padding: 0 1;
+    background: $surface;
+    border: none;
+    text-align: center;
+    min-height: 1;
+    max-height: 1;
+}

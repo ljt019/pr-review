@@ -24,10 +24,3 @@
     padding: 1;
 }
 
-#output {
-    width: 100%;
-    background: $background;
-    color: $text;
-    text-align: left;
-    padding: 0;
-}

@@ -1,0 +1,21 @@
+MessageBox {
+    margin: 1 0;
+    padding: 1;
+    border: solid $primary;
+    background: $surface;
+    height: auto;
+    min-height: 3;
+    width: 100%;
+}
+
+
+.analysis-message {
+    border: solid $warning;
+    background: $warning 10%;
+}
+
+.analysis-message.streaming {
+    border: solid $warning;
+    background: $warning 20%;
+    border-title-color: $warning;
+}
