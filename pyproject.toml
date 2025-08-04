@@ -23,6 +23,7 @@ dependencies = [
     "ascii-magic>=2.3.0",
     "pillow>=11.3.0",
     "textual>=4.0.0",
+    "ijson>=3.2",
 ]
 
 [project.scripts]
