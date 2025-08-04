@@ -1,5 +1,5 @@
 from textual.widgets import Label
-from paths import get_widget_path
+from src.paths import get_widget_path
 
 class InstructionText(Label):
     """A label that displays instructions for the user."""

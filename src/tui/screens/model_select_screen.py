@@ -1,4 +1,4 @@
-"""Model selection screen for Bug Bot TUI"""
+"""Model selection screen for Sniff TUI"""
 
 from textual.screen import Screen
 from textual.app import ComposeResult

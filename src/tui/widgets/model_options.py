@@ -1,8 +1,8 @@
 from textual.widgets import OptionList
 from textual.widgets.option_list import Option
 
-from bug_bot.bug_bot import ModelOptions
-from paths import get_widget_path
+from agent.agent import ModelOptions
+from src.paths import get_widget_path
 
 
 class ModelOptionsWidget(OptionList):

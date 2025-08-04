@@ -313,8 +313,7 @@ class SemanticBugMatcher:
             )
 
             return float(similarity)
-        except Exception as e:
-            print(f"Error calculating semantic similarity: {e}")
+        except Exception:
             return 0.0
 
     def pattern_similarity(self, detected: Dict, truth: Dict) -> float:

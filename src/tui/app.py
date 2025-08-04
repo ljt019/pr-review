@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Bug Bot TUI Application using Textual
+Sniff TUI Application using Textual
 """
 
 import os
@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from textual.app import App
 from textual.binding import Binding
 
-from paths import get_tui_path
+from src.paths import get_tui_path
 
 from .screens import APIKeyScreen, ModelSelectScreen, StartScreen
 
@@ -21,28 +21,13 @@ load_dotenv()
 
 def load_css_path_list(path: str) -> list[str]:
     """Load a list of CSS paths"""
-    css_path_list = []
-
-    widgets_path = get_tui_path("widgets")
-    screens_path = get_tui_path("screens")
-    tui_path = get_tui_path("")
-
-    # search for all .tcss files in these three directories
-    for root, dirs, files in os.walk(widgets_path):
-        for file in files:
-            if file.endswith(".tcss"):
-                css_path_list.append(os.path.join(root, file))
-
-    for root, dirs, files in os.walk(screens_path):
-        for file in files:
-            if file.endswith(".tcss"):
-                css_path_list.append(os.path.join(root, file))
-
-    for root, dirs, files in os.walk(tui_path):
-        for file in files:
-            if file.endswith(".tcss"):
-                css_path_list.append(os.path.join(root, file))
-
+    from pathlib import Path
+    
+    tui_path = Path(get_tui_path(""))
+    
+    # Use rglob to recursively find all .tcss files
+    css_path_list = [str(p) for p in tui_path.rglob("*.tcss")]
+    
     return css_path_list
 
 
@@ -85,7 +70,7 @@ def main(
 ):
     """Sniffer"""
     if version:
-        print("Bug Bot TUI v0.1.0")
+        print("Sniff TUI v0.1.0")
         raise typer.Exit()
 
     # Run the TUI

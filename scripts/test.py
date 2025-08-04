@@ -1,21 +1,21 @@
 import os
 from dotenv import load_dotenv
-from bug_bot.bug_bot import BugBot
-from bug_bot.bug_bot import ModelOptions
+from agent.agent import SniffAgent
+from agent.agent import ModelOptions
 
-from paths import get_assets_path
+from src.paths import get_assets_path
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Enable verbose container debug logs for every run
-os.environ["BUGBOT_DEBUG"] = "0"
+os.environ["SNIFF_DEBUG"] = "0"
 
 zipped_codebase_path = get_assets_path("toy-webserver.zip")
 
 def main():
     try:
-        bot = BugBot(zipped_codebase_path, ModelOptions.QWEN3_30B_A3B_INSTRUCT)
+        bot = SniffAgent(zipped_codebase_path, ModelOptions.QWEN3_30B_A3B_INSTRUCT)
         print("[DEBUG] Using run_streaming() to debug tool calls...")
         for message in bot.run_streaming():
             print(f"[DEBUG] Got streaming message: {type(message).__name__}")

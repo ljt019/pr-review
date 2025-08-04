@@ -1,4 +1,4 @@
-"""API Key input screen for Bug Bot TUI"""
+"""API Key input screen for Sniff TUI"""
 
 import os
 from textual.screen import Screen
@@ -6,7 +6,7 @@ from textual.app import ComposeResult
 from textual.containers import Container, Vertical, Center, Horizontal
 from textual.widgets import Input, Label
 from textual.binding import Binding
-from paths import get_screen_path
+from src.paths import get_screen_path
 from ..widgets.ascii_art import ASCIIArt
 from ..widgets.instruction_text import InstructionText
 from ..widgets.api_key_input import ApiKeyInput

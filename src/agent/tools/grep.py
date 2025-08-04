@@ -1,9 +1,9 @@
 from typing import Optional
 
-import json5
 from qwen_agent.tools.base import BaseTool, register_tool
 
-from bug_bot.tools import load_tool_description, run_in_container
+from agent.tools import load_tool_description, run_in_container
+from agent.utils.param_parser import ParameterParser
 
 
 @register_tool("grep")
@@ -62,18 +62,16 @@ class GrepTool(BaseTool):
 
     def call(self, params: str, **kwargs) -> str:
         try:
-            parsed_params = json5.loads(params)
-            pattern = parsed_params.get("pattern")
-            if not pattern:
-                return "Error: pattern parameter is required"
+            parsed_params = ParameterParser.parse_params(params)
+            pattern = ParameterParser.get_required_param(parsed_params, "pattern")
 
-            directory = parsed_params.get("directory", ".")
-            include_files = parsed_params.get("include_files")
-            exclude_files = parsed_params.get("exclude_files")
-            case_sensitive = parsed_params.get("case_sensitive", False)
-            use_regex = parsed_params.get("use_regex", False)
-            max_results = parsed_params.get("max_results", 100)
-            context_lines = parsed_params.get("context_lines", 0)
+            directory = ParameterParser.get_optional_param(parsed_params, "directory", ".")
+            include_files = ParameterParser.get_optional_param(parsed_params, "include_files")
+            exclude_files = ParameterParser.get_optional_param(parsed_params, "exclude_files")
+            case_sensitive = ParameterParser.get_optional_param(parsed_params, "case_sensitive", False)
+            use_regex = ParameterParser.get_optional_param(parsed_params, "use_regex", False)
+            max_results = ParameterParser.get_optional_param(parsed_params, "max_results", 100)
+            context_lines = ParameterParser.get_optional_param(parsed_params, "context_lines", 0)
 
             return self._ripgrep_search(
                 pattern,

@@ -24,13 +24,14 @@ dependencies = [
     "pillow>=11.3.0",
     "textual>=4.0.0",
     "ijson>=3.2",
+    "docker>=7.1.0",
 ]
 
 [project.scripts]
 sniff = "tui.app:app"
 
 [tool.uv.build-backend]
-module-name = ["bug_bot", "tui"]
+module-name = ["agent", "tui"]
 module-root = "src"
 
 [build-system]

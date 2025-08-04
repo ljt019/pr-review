@@ -1,4 +1,4 @@
-"""Message widget for streaming bug bot responses - adapted from Elia chatbox."""
+"""Message widget for streaming sniff agent responses - adapted from Elia chatbox."""
 
 from __future__ import annotations
 from dataclasses import dataclass
@@ -14,7 +14,7 @@ from tui.utils.json_detector import json_detector
 
 @dataclass
 class BotMessage:
-    """A message from the bug bot."""
+    """A message from the sniff agent."""
     role: Literal["analysis"] 
     content: str
     has_json_detected: bool = False
@@ -22,7 +22,7 @@ class BotMessage:
 
 
 class MessageBox(Widget, can_focus=True):
-    """A widget for displaying bug bot messages with streaming support."""
+    """A widget for displaying sniff agent messages with streaming support."""
     
     def __init__(self, message: BotMessage, **kwargs):
         super().__init__(**kwargs)

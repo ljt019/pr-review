@@ -1,7 +1,7 @@
-import json5
 from qwen_agent.tools.base import BaseTool, register_tool
 
-from bug_bot.tools import load_tool_description, run_in_container
+from agent.tools import load_tool_description, run_in_container
+from agent.utils.param_parser import ParameterParser
 
 # Common development directories to ignore for cleaner output
 IGNORE_PATTERNS = [
@@ -52,20 +52,12 @@ class LsTool(BaseTool):
 
     def call(self, params: str, **kwargs) -> str:
         try:
-            # Handle both JSON params and empty/malformed params
+            # Handle empty params case
             if not params or params.strip() == "":
                 directory = "."
             else:
-                try:
-                    parsed_params = json5.loads(params)
-                    directory = parsed_params.get("directory", ".")
-                except:
-                    # If JSON parsing fails, treat params as the directory path directly
-                    directory = params.strip().strip('"\'') or "."
-
-            # Validate and sanitize directory path
-            if not directory or directory in ["", "null", "undefined"]:
-                directory = "."
+                parsed_params = ParameterParser.parse_params(params)
+                directory = ParameterParser.get_optional_param(parsed_params, "directory", ".")
 
             # Use find to get all files recursively, excluding ignored patterns
             ignore_conditions = []

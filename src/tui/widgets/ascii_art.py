@@ -1,9 +1,9 @@
-"""ASCII Art widget for Bug Bot TUI"""
+"""ASCII Art widget for Sniff TUI"""
 
 from textual.widgets import Static
 from PIL import Image
 import shutil
-from paths import get_widget_path, PROJECT_ROOT
+from src.paths import get_widget_path, PROJECT_ROOT
 
 
 class ASCIIArt(Static):
@@ -33,7 +33,7 @@ class ASCIIArt(Static):
                 with open(str(PROJECT_ROOT / "assets" / "art.txt"), 'r') as f:
                     return f.read()
             except FileNotFoundError:
-                return f"Bug Bot TUI\n\n[Banner error: {e}]"
+                return f"Sniff TUI\n\n[Banner error: {e}]"
     
     def render(self) -> str:
         return self.art_text

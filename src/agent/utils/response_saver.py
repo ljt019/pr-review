@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional
 
 import json5
 
-from paths import EVALS_DIR
+from src.paths import EVALS_DIR
 
 
 def save_response(
@@ -53,8 +53,7 @@ def save_response(
 
         return str(filepath)
 
-    except Exception as e:
-        print(f"Failed to save response: {e}")
+    except Exception:
         return None
 
 
@@ -124,6 +123,5 @@ def save_response_with_summary(
 
         return {"response": response_path, "summary": str(summary_path)}
 
-    except Exception as e:
-        print(f"Failed to save summary: {e}")
+    except Exception:
         return {"response": response_path}

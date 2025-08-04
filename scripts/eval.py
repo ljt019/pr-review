@@ -5,16 +5,15 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from paths import get_assets_path
+from src.paths import get_assets_path, EVALS_DIR, get_eval_path
 
 # Add src to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from bug_bot.bug_bot import BugBot
+from agent import SniffAgent
 
 # Import semantic evaluation system
-from bug_bot.evaluation.evaluator import BugDetectionEvaluator
-from paths import EVALS_DIR, get_eval_path
+from agent.evaluation.evaluator import BugDetectionEvaluator
 
 # Load environment variables from .env file
 load_dotenv()
@@ -45,12 +44,12 @@ def save_evaluation_results(results: dict, eval_dir: Path):
 
 
 def main():
-    """Run bug bot evaluation with semantic grading"""
+    """Run sniff agent evaluation with semantic grading"""
     try:
-        print("Starting bug bot evaluation...")
+        print("Starting sniff agent evaluation...")
 
         # Run the bot
-        bot = BugBot(zipped_codebase_path)
+        bot = SniffAgent(zipped_codebase_path)
         result = bot.run(save_response=True)
 
         # Parse the model response

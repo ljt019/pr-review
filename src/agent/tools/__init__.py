@@ -23,22 +23,13 @@ def load_prompt(prompt_name: str) -> str:
     return content
 
 
-def _debug_enabled() -> bool:
-    return os.environ.get("BUGBOT_DEBUG", "0") == "1"
-
-
 def run_in_container(command: str) -> str:
-    """Run a command inside the analysis container.
-    If BUGBOT_DEBUG=1 is set, print the command, stdout, stderr, and return code.
-    """
-    container_id = os.environ.get("BUGBOT_CONTAINER_ID")
+    """Run a command inside the analysis container."""
+    container_id = os.environ.get("SNIFF_CONTAINER_ID")
     if not container_id:
         return "Error: Container not available"
 
     full_command = f"cd /workspace && {command}"
-
-    if _debug_enabled():
-        print(f'[DEBUG] docker exec {container_id} sh -c "{full_command}"')
 
     try:
         result = subprocess.run(
@@ -47,12 +38,6 @@ def run_in_container(command: str) -> str:
             text=True,
             timeout=60,
         )
-        if _debug_enabled():
-            print(f"[DEBUG] exit code: {result.returncode}")
-            if result.stdout:
-                print(f"[DEBUG] stdout (first 200 chars):\n{result.stdout[:200]}")
-            if result.stderr:
-                print(f"[DEBUG] stderr (first 200 chars):\n{result.stderr[:200]}")
 
         if result.returncode == 0:
             return result.stdout

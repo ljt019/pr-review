@@ -6,7 +6,7 @@ import json
 import math
 from typing import Dict, Optional, Tuple
 
-from paths import get_eval_path
+from src.paths import get_eval_path
 
 from .bug_matcher import SemanticBugMatcher
 

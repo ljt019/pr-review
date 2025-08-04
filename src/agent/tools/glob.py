@@ -1,7 +1,7 @@
-import json5
 from qwen_agent.tools.base import BaseTool, register_tool
 
-from bug_bot.tools import load_tool_description, run_in_container
+from agent.tools import load_tool_description, run_in_container
+from agent.utils.param_parser import ParameterParser
 
 
 @register_tool("glob")
@@ -24,12 +24,9 @@ class GlobTool(BaseTool):
 
     def call(self, params: str, **kwargs) -> str:
         try:
-            parsed_params = json5.loads(params)
-            pattern = parsed_params.get("pattern")
-            if not pattern:
-                return "Error: pattern parameter is required"
-
-            search_path = parsed_params.get("path", ".")
+            parsed_params = ParameterParser.parse_params(params)
+            pattern = ParameterParser.get_required_param(parsed_params, "pattern")
+            search_path = ParameterParser.get_optional_param(parsed_params, "path", ".")
 
             # Build an appropriate find command
             # Special-case patterns that mean "all files"

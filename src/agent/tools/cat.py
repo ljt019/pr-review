@@ -1,7 +1,8 @@
-import json5
+import difflib
 from qwen_agent.tools.base import BaseTool, register_tool
 
-from bug_bot.tools import load_tool_description, run_in_container
+from agent.tools import load_tool_description, run_in_container
+from agent.utils.param_parser import ParameterParser
 
 DEFAULT_READ_LIMIT = 2000
 MAX_LINE_LENGTH = 2000
@@ -76,36 +77,13 @@ class CatTool(BaseTool):
     ]
 
     def call(self, params: str, **kwargs) -> str:
-        print(f"[DEBUG] CatTool called with params: {params}")
         try:
-            # Handle both JSON params and empty/malformed params
-            if not params or params.strip() == "":
-                print("[DEBUG] Empty params provided")
-                return "Error: filePath parameter is required"
+            parsed_params = ParameterParser.parse_params(params)
             
-            try:
-                parsed_params = json5.loads(params)
-                print(f"[DEBUG] Parsed params: {parsed_params}")
-            except Exception as parse_error:
-                print(f"[DEBUG] JSON parsing failed: {parse_error}")
-                # Try to handle params as direct string
-                file_path = params.strip().strip('"\'')
-                if file_path:
-                    print(f"[DEBUG] Using params as direct file path: '{file_path}'")
-                    parsed_params = {"filePath": file_path}
-                else:
-                    return "Error: Invalid parameters format"
-            
-            file_path = parsed_params.get("filePath")
-            print(f"[DEBUG] Extracted filePath: '{file_path}'")
-            
-            # Validate file path
-            if not file_path or file_path in ["", "null", "undefined"]:
-                print("[DEBUG] Error: filePath parameter is required or invalid")
-                return "Error: filePath parameter is required"
+            file_path = ParameterParser.get_required_param(parsed_params, "filePath")
 
-            offset = parsed_params.get("offset", 0)
-            limit = parsed_params.get("limit", DEFAULT_READ_LIMIT)
+            offset = ParameterParser.get_optional_param(parsed_params, "offset", 0)
+            limit = ParameterParser.get_optional_param(parsed_params, "limit", DEFAULT_READ_LIMIT)
 
             # Check if file is likely binary by extension
             if self._is_binary_file(file_path):
@@ -179,9 +157,6 @@ class CatTool(BaseTool):
             return output
 
         except Exception as e:
-            print(f"[DEBUG] Exception in CatTool: {e}")
-            import traceback
-            traceback.print_exc()
             return f"Error: {str(e)}"
 
     def _is_binary_file(self, file_path: str) -> bool:
@@ -209,19 +184,26 @@ class CatTool(BaseTool):
 
             files = [f.strip() for f in ls_result.split("\n") if f.strip()]
 
-            # Find similar files (contains part of the requested filename)
-            suggestions = []
+            # Use difflib to find close matches
+            close_matches = difflib.get_close_matches(filename, files, n=3, cutoff=0.6)
+            
+            # Also check for case-insensitive substring matches
             filename_lower = filename.lower()
+            substring_matches = [
+                file for file in files
+                if filename_lower in file.lower() and file not in close_matches
+            ]
+            
+            # Combine both types of matches
+            all_suggestions = close_matches + substring_matches[:3 - len(close_matches)]
+            
+            # Format with full paths
+            suggestions = []
+            for file in all_suggestions[:3]:
+                full_path = f"{directory}/{file}" if directory != "." else file
+                suggestions.append(full_path)
 
-            for file in files:
-                file_lower = file.lower()
-                if (
-                    filename_lower in file_lower or file_lower in filename_lower
-                ) and file != filename:
-                    full_path = f"{directory}/{file}" if directory != "." else file
-                    suggestions.append(full_path)
-
-            return "\n".join(suggestions[:3]) if suggestions else ""
+            return "\n".join(suggestions) if suggestions else ""
 
         except Exception:
             return ""

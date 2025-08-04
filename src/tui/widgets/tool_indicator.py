@@ -16,9 +16,6 @@ class ToolIndicator(Widget):
         self.arguments = arguments
         self.completed = False
         self.todo_data: Optional[List[Dict[str, Any]]] = None
-        print(
-            f"[DEBUG] ToolIndicator created: tool_name='{tool_name}', arguments='{arguments}'"
-        )
         self.display_text = self._create_display_text()
 
     def update_arguments(self, arguments: str) -> None:
@@ -34,9 +31,6 @@ class ToolIndicator(Widget):
 
     def _create_display_text(self) -> str:
         """Create a user-friendly display text for the tool call."""
-        print(
-            f"[DEBUG] _create_display_text: tool_name='{self.tool_name}', arguments='{self.arguments}'"
-        )
 
         # Symbol mapping based on tool_plans.md
         # Using U+2064 invisible plus (forces text) as a workaround
@@ -55,7 +49,6 @@ class ToolIndicator(Widget):
         try:
             if self.arguments and self.arguments.strip().endswith("}"):
                 args = json.loads(self.arguments)
-                print(f"[DEBUG] Parsed complete JSON args: {args}")
 
                 # Create descriptive text based on tool name and arguments
                 if self.tool_name == "cat":

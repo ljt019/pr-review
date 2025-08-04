@@ -84,8 +84,7 @@ class JSONDetector:
 
         try:
             return next(ijson.items(io.StringIO(json_str), ""))
-        except (JSONError, StopIteration) as e:
-            print(f"JSON parsing error: {e}")
+        except (JSONError, StopIteration):
             return None
 
 

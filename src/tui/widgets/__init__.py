@@ -1,4 +1,4 @@
-"""Widget components for Bug Bot TUI"""
+"""Widget components for Sniff TUI"""
 
 from .ascii_art import ASCIIArt
 from .instruction_text import InstructionText
