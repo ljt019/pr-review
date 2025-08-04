@@ -149,11 +149,11 @@ class ToolIndicator(Widget):
                         text.append("\n    ")
 
                     # Add checkbox
-                    status = todo.get("status", "pending")
-                    if status == "completed":
+                    status = todo.get("status", "incomplete")
+                    if status == "complete":
                         text.append("●")  # Filled circle for completed
                     else:
-                        text.append("○")  # Empty circle for pending
+                        text.append("○")  # Empty circle for incomplete
 
                     # Add todo content
                     content = todo.get("content", "")
