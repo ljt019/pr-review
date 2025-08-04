@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from bug_bot.bug_bot import BugBot
 
 # Import semantic evaluation system
-from evaluation.evaluator import BugDetectionEvaluator
+from bug_bot.evaluation.evaluator import BugDetectionEvaluator
 from paths import EVALS_DIR, get_eval_path
 
 # Load environment variables from .env file

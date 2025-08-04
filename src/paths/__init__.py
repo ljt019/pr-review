@@ -22,7 +22,7 @@ TOOLS_DIR = BUG_BOT_DIR / "tools"
 DOCKER_DIR = BUG_BOT_DIR / "docker"  # Source code for bot containers, not Docker config
 
 # evaluation
-EVALUATION_DIR = SRC_DIR / "evaluation"
+EVALUATION_DIR = BUG_BOT_DIR / "evaluation"
 
 # paths
 PATHS_DIR = SRC_DIR / "paths"
