@@ -23,45 +23,50 @@ class BugReportContainer(Widget):
         """Load report data from JSON and convert to markdown."""
         md_lines = []
 
-        # Title
-        md_lines.append("# 🐛 Bug Report\n")
+        # Title with subtle styling
+        md_lines.append("# Bug Analysis Report")
+        md_lines.append("---\n")
 
         # Summary
         summary = json_data.get("summary", "")
         if summary:
-            md_lines.append("## 📊 Analysis Summary\n")
-            md_lines.append(f"{summary}\n")
+            md_lines.append("## Executive Summary\n")
+            md_lines.append(f"> {summary}\n")
 
-        # Statistics
+        # Statistics with clean formatting
         bugs = json_data.get("bugs", [])
         nitpicks = json_data.get("nitpicks", [])
         files_analyzed = json_data.get("files_analyzed", 0)
 
-        md_lines.append("### 📈 Statistics\n")
-        md_lines.append(f"- **Bugs Found**: {len(bugs)}")
-        md_lines.append(f"- **Code Quality Issues**: {len(nitpicks)}")
-        md_lines.append(f"- **Files Analyzed**: {files_analyzed}\n")
+        md_lines.append("### Analysis Metrics\n")
+        md_lines.append("| Metric | Count |")
+        md_lines.append("|--------|-------|")
+        md_lines.append(f"| **Critical Issues** | {len(bugs)} |")
+        md_lines.append(f"| **Code Quality** | {len(nitpicks)} |")
+        md_lines.append(f"| **Files Analyzed** | {files_analyzed} |\n")
 
-        # Bugs section
+        # Bugs section with clean formatting
         if bugs:
-            md_lines.append("## 🚨 Bugs Found\n")
+            md_lines.append("## Critical Issues\n")
             for i, bug_data in enumerate(bugs, 1):
                 severity = bug_data.get("severity", "medium").upper()
-                severity_emoji = {
-                    "CRITICAL": "🔴",
-                    "HIGH": "🟠",
-                    "MEDIUM": "🟡",
-                    "LOW": "🟢",
-                }.get(severity, "🟡")
+                severity_marker = {
+                    "CRITICAL": "▌",
+                    "HIGH": "▌",
+                    "MEDIUM": "▌",
+                    "LOW": "▌",
+                }.get(severity, "▌")
 
                 md_lines.append(
-                    f"### {severity_emoji} Bug #{i}: {bug_data.get('title', 'Untitled Bug')}"
+                    f"### {severity_marker} {bug_data.get('title', 'Untitled Bug')}"
                 )
-                md_lines.append(f"**Severity**: `{severity}`")
-                md_lines.append(f"**File**: `{bug_data.get('file_path', 'Unknown')}`")
-
+                md_lines.append("")
+                location_line = f"**Severity:** `{severity}` • **Location:** `{bug_data.get('file_path', 'Unknown')}`"
+                
                 if bug_data.get("line_number"):
-                    md_lines.append(f"**Line**: {bug_data.get('line_number')}")
+                    location_line += f" • **Line:** `{bug_data.get('line_number')}`"
+                
+                md_lines.append(location_line)
 
                 md_lines.append(
                     f"\n{bug_data.get('description', 'No description provided.')}"
@@ -72,19 +77,20 @@ class BugReportContainer(Widget):
 
                 md_lines.append("")  # Empty line between bugs
 
-        # Nitpicks section
+        # Nitpicks section with minimal styling
         if nitpicks:
-            md_lines.append("## 💡 Code Quality Issues\n")
+            md_lines.append("## Code Quality Observations\n")
             for i, nitpick_data in enumerate(nitpicks, 1):
                 md_lines.append(
-                    f"### Issue #{i}: {nitpick_data.get('title', 'Untitled Issue')}"
+                    f"### {nitpick_data.get('title', 'Untitled Issue')}"
                 )
-                md_lines.append(
-                    f"**File**: `{nitpick_data.get('file_path', 'Unknown')}`"
-                )
-
+                md_lines.append("")
+                location_line = f"**Location:** `{nitpick_data.get('file_path', 'Unknown')}`"
+                
                 if nitpick_data.get("line_number"):
-                    md_lines.append(f"**Line**: {nitpick_data.get('line_number')}")
+                    location_line += f" • **Line:** `{nitpick_data.get('line_number')}`"
+                
+                md_lines.append(location_line)
 
                 md_lines.append(
                     f"\n{nitpick_data.get('description', 'No description provided.')}"
@@ -92,16 +98,16 @@ class BugReportContainer(Widget):
 
                 if nitpick_data.get("suggestion"):
                     md_lines.append(
-                        f"\n**💭 Suggestion**: {nitpick_data.get('suggestion')}"
+                        f"\n> **Recommendation:** {nitpick_data.get('suggestion')}"
                     )
 
                 md_lines.append("")  # Empty line between nitpicks
 
         # If no issues found
         if not bugs and not nitpicks:
-            md_lines.append("## ✅ No Issues Found\n")
+            md_lines.append("## Analysis Complete\n")
             md_lines.append(
-                "Great job! No bugs or code quality issues were detected in the analyzed code."
+                "> No critical issues or code quality concerns were identified in the analyzed codebase."
             )
 
         self.markdown_content = "\n".join(md_lines)
