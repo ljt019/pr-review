@@ -166,18 +166,13 @@ class BugBot:
             # Import here to avoid circular imports
             from bug_bot.tools.todo import _todos
 
-            # Convert internal format to UI format
             ui_todos = []
             for todo in _todos:
                 ui_todo = {
-                    "content": todo.get("content", ""),
-                    "status": "completed"
-                    if todo.get("status") == "complete"
-                    else "pending"
-                    if todo.get("status") == "incomplete"
-                    else "pending",
+                    "content": todo.content,
+                    "status": todo.status,
                     "priority": "medium",  # Default priority
-                    "id": todo.get("id", ""),
+                    "id": todo.id,
                 }
                 ui_todos.append(ui_todo)
 
