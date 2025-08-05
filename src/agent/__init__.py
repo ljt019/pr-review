@@ -1,5 +1,5 @@
 """
-SniffAgent - Simple, reliable code review agent using qwen models.
+SniffAgent - Simple, reliable code review agent using Pydantic-AI with OpenRouter.
 """
 
 import warnings

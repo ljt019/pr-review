@@ -1,8 +1,7 @@
 import difflib
-from qwen_agent.tools.base import BaseTool, register_tool
+from pydantic_ai.tools import Tool
 
 from agent.tools import load_tool_description, run_in_container
-from agent.utils.param_parser import ParameterParser
 
 DEFAULT_READ_LIMIT = 2000
 MAX_LINE_LENGTH = 2000
@@ -52,158 +51,111 @@ BINARY_EXTENSIONS = {
 }
 
 
-@register_tool("cat")
-class CatTool(BaseTool):
-    description = load_tool_description("cat")
-    parameters = [
-        {
-            "name": "filePath",
-            "type": "string",
-            "description": "Path to the file to read",
-            "required": True,
-        },
-        {
-            "name": "offset",
-            "type": "integer",
-            "description": "Line number to start reading from (0-based, optional)",
-            "required": False,
-        },
-        {
-            "name": "limit",
-            "type": "integer",
-            "description": "Number of lines to read (defaults to 2000, optional)",
-            "required": False,
-        },
-    ]
+def _is_binary_file(file_path: str) -> bool:
+    """Check if file is likely binary based on extension."""
+    file_path_lower = file_path.lower()
+    return any(file_path_lower.endswith(ext) for ext in BINARY_EXTENSIONS)
 
-    def call(self, params: str, **kwargs) -> str:
-        try:
-            parsed_params = ParameterParser.parse_params(params)
-            
-            file_path = ParameterParser.get_required_param(parsed_params, "filePath")
 
-            offset = ParameterParser.get_optional_param(parsed_params, "offset", 0)
-            limit = ParameterParser.get_optional_param(parsed_params, "limit", DEFAULT_READ_LIMIT)
+def _get_file_suggestions(file_path: str) -> str:
+    """Get suggestions for similar file names when file not found."""
+    try:
+        # Extract directory and filename
+        if "/" in file_path:
+            directory = "/".join(file_path.split("/")[:-1])
+            filename = file_path.split("/")[-1]
+        else:
+            directory = "."
+            filename = file_path
 
-            # Check if file is likely binary by extension
-            if self._is_binary_file(file_path):
-                return f"Error: Cannot read binary file: {file_path}\nThis appears to be a binary file based on its extension."
-
-            # First check if file exists
-            check_cmd = f'test -f "{file_path}" && echo "exists" || echo "not_found"'
-            exists_result = run_in_container(check_cmd)
-
-            if "not_found" in exists_result:
-                # Try to suggest similar files
-                suggestions = self._get_file_suggestions(file_path)
-                if suggestions:
-                    return f"Error: File not found: {file_path}\n\nDid you mean one of these?\n{suggestions}"
-                else:
-                    return f"Error: File not found: {file_path}"
-
-            # Read the file with line numbers
-            if offset == 0 and limit == DEFAULT_READ_LIMIT:
-                # Read entire file (up to default limit)
-                cat_cmd = f'cat -n "{file_path}" | head -{DEFAULT_READ_LIMIT}'
-            else:
-                # Read specific range
-                start_line = offset + 1  # cat -n uses 1-based indexing
-                end_line = offset + limit
-                cat_cmd = f'sed -n "{start_line},{end_line}p" "{file_path}" | cat -n'
-
-            result = run_in_container(cat_cmd)
-
-            if result.startswith("Error:"):
-                return result
-
-            # Format the output with proper line numbering
-            lines = result.split("\n")
-            formatted_lines = []
-
-            for line in lines:
-                if line.strip():  # Skip empty lines from command output
-                    # Reformat line numbers to match TypeScript version (5-digit padding)
-                    if "\t" in line:
-                        line_num, content = line.split("\t", 1)
-                        try:
-                            num = int(line_num.strip()) + offset
-                            # Truncate long lines
-                            if len(content) > MAX_LINE_LENGTH:
-                                content = content[:MAX_LINE_LENGTH] + "..."
-                            formatted_lines.append(f"{num:05d}| {content}")
-                        except ValueError:
-                            formatted_lines.append(line)
-                    else:
-                        formatted_lines.append(line)
-
-            if not formatted_lines:
-                return f"Error: File appears to be empty or unreadable: {file_path}"
-
-            # Check if there are more lines beyond what we read
-            total_lines_cmd = f'wc -l < "{file_path}"'
-            total_result = run_in_container(total_lines_cmd)
-
-            output = "<file>\n" + "\n".join(formatted_lines)
-
-            try:
-                total_lines = int(total_result.strip())
-                if total_lines > offset + len(formatted_lines):
-                    output += f"\n\n(File has more lines. Use 'offset' parameter to read beyond line {offset + len(formatted_lines)})"
-            except (ValueError, AttributeError):
-                pass
-
-            output += "\n</file>"
-
-            return output
-
-        except Exception as e:
-            return f"Error: {str(e)}"
-
-    def _is_binary_file(self, file_path: str) -> bool:
-        """Check if file is likely binary based on extension"""
-        file_path_lower = file_path.lower()
-        return any(file_path_lower.endswith(ext) for ext in BINARY_EXTENSIONS)
-
-    def _get_file_suggestions(self, file_path: str) -> str:
-        """Get suggestions for similar file names when file not found"""
-        try:
-            # Extract directory and filename
-            if "/" in file_path:
-                directory = "/".join(file_path.split("/")[:-1])
-                filename = file_path.split("/")[-1]
-            else:
-                directory = "."
-                filename = file_path
-
-            # List files in directory
-            ls_cmd = f'ls "{directory}" 2>/dev/null'
-            ls_result = run_in_container(ls_cmd)
-
-            if ls_result.startswith("Error:"):
-                return ""
-
-            files = [f.strip() for f in ls_result.split("\n") if f.strip()]
-
-            # Use difflib to find close matches
-            close_matches = difflib.get_close_matches(filename, files, n=3, cutoff=0.6)
-            
-            # Also check for case-insensitive substring matches
-            filename_lower = filename.lower()
-            substring_matches = [
-                file for file in files
-                if filename_lower in file.lower() and file not in close_matches
-            ]
-            
-            # Combine both types of matches
-            all_suggestions = close_matches + substring_matches[:3 - len(close_matches)]
-            
-            # Format with full paths
-            suggestions = []
-            for file in all_suggestions[:3]:
-                full_path = f"{directory}/{file}" if directory != "." else file
-                suggestions.append(full_path)
-
-            return "\n".join(suggestions) if suggestions else ""
-
-        except Exception:
+        ls_cmd = f'ls "{directory}" 2>/dev/null'
+        ls_result = run_in_container(ls_cmd)
+        if ls_result.startswith("Error:"):
             return ""
+        files = [f.strip() for f in ls_result.split("\n") if f.strip()]
+
+        close_matches = difflib.get_close_matches(filename, files, n=3, cutoff=0.6)
+        filename_lower = filename.lower()
+        substring_matches = [
+            file for file in files if filename_lower in file.lower() and file not in close_matches
+        ]
+        all_suggestions = close_matches + substring_matches[: 3 - len(close_matches)]
+        if not all_suggestions:
+            return ""
+        return "\n".join(all_suggestions)
+    except Exception:
+        return ""
+
+
+def cat(filePath: str, offset: int = 0, limit: int = DEFAULT_READ_LIMIT) -> str:
+    """Read file contents with line numbers and pagination.
+
+    Args:
+        filePath: Path to the file to read
+        offset: Line number to start reading from (0-based)
+        limit: Number of lines to read
+    """
+    try:
+        if _is_binary_file(filePath):
+            return (
+                f"Error: Cannot read binary file: {filePath}\n"
+                "This appears to be a binary file based on its extension."
+            )
+
+        check_cmd = f'test -f "{filePath}" && echo "exists" || echo "not_found"'
+        exists_result = run_in_container(check_cmd)
+        if "not_found" in exists_result:
+            suggestions = _get_file_suggestions(filePath)
+            if suggestions:
+                return f"Error: File not found: {filePath}\n\nDid you mean one of these?\n{suggestions}"
+            else:
+                return f"Error: File not found: {filePath}"
+
+        if offset == 0 and limit == DEFAULT_READ_LIMIT:
+            cat_cmd = f'cat -n "{filePath}" | head -{DEFAULT_READ_LIMIT}'
+        else:
+            start_line = offset + 1
+            end_line = offset + limit
+            cat_cmd = f'sed -n "{start_line},{end_line}p" "{filePath}" | cat -n'
+
+        result = run_in_container(cat_cmd)
+        if result.startswith("Error:"):
+            return result
+
+        lines = result.split("\n")
+        formatted_lines = []
+        for line in lines:
+            if line.strip():
+                if "\t" in line:
+                    line_num, content = line.split("\t", 1)
+                    try:
+                        num = int(line_num.strip()) + offset
+                        if len(content) > MAX_LINE_LENGTH:
+                            content = content[:MAX_LINE_LENGTH] + "..."
+                        formatted_lines.append(f"{num:05d}| {content}")
+                    except ValueError:
+                        formatted_lines.append(line)
+                else:
+                    formatted_lines.append(line)
+
+        if not formatted_lines:
+            return f"Error: File appears to be empty or unreadable: {filePath}"
+
+        total_lines_cmd = f'wc -l < "{filePath}"'
+        total_result = run_in_container(total_lines_cmd)
+        output = "<file>\n" + "\n".join(formatted_lines)
+        try:
+            total_lines = int(total_result.strip())
+            if total_lines > offset + len(formatted_lines):
+                output += (
+                    f"\n\n(File has more lines. Use 'offset' parameter to read beyond line {offset + len(formatted_lines)})"
+                )
+        except (ValueError, AttributeError):
+            pass
+        output += "\n</file>"
+        return output
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+
+cat_tool = Tool(cat, name="cat", description=load_tool_description("cat"))
