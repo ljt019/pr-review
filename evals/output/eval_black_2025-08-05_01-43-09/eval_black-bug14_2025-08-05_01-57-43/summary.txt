@@ -1,0 +1,35 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 3
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     3
+
+MISSED BUGS (1)
+   1. black.py:20
+      Fix import handling and module resolution...
+      Category: logic | Severity: major
+
+FALSE POSITIVES (3)
+   1. black.py:00302-00310
+      Invalid regular expression handling in main function
+   2. black.py:00386-00400, 00472-00473
+      Potential race condition in cache file access
+   3. black.py:00646-00666
+      Inadequate error recovery in file parsing
+
+============================================================

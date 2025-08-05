@@ -1,0 +1,41 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 6
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     6
+
+MISSED BUGS (1)
+   1. spacy/errors.py:88
+      Fix sentence segmentation logic...
+      Category: model | Severity: major
+
+FALSE POSITIVES (6)
+   1. spacy/cli/download.py:69
+      Potential code injection via dynamic model loading
+   2. spacy/cli/convert.py:104
+      Unsafe deserialization of user-provided JSON data
+   3. spacy/cli/train.py:97
+      Inadequate input validation in training pipeline
+   4. spacy/cli/train.py:130
+      Potential DoS attack via unbounded memory allocation
+   5. spacy/cli/train.py:377
+      Potential race condition in model saving
+   6. spacy/cli/download.py:136
+      Insecure handling of model files in download process
+
+============================================================

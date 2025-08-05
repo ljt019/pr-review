@@ -1,0 +1,18 @@
+{
+  "project": "black",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "black-6",
+      "project": "black",
+      "file_path": "black.py",
+      "line_start": 48,
+      "line_end": 54,
+      "description": "Add proper error handling for import failures",
+      "category": "error_handling",
+      "severity": "major",
+      "commit_buggy": "8c8adedc2a74a494c24f93e405b6418ac32f54cd",
+      "commit_fixed": "f8617f975d56e81cfb4070ce65584f7b29a77e7a"
+    }
+  ]
+}

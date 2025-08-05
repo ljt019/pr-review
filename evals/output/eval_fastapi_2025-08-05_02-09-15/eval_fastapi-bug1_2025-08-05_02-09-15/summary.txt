@@ -1,0 +1,35 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 3
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     3
+
+MISSED BUGS (1)
+   1. fastapi/applications.py:171
+      Fix application startup and dependency injection...
+      Category: security | Severity: major
+
+FALSE POSITIVES (3)
+   1. ./docs_src/sql_databases/sql_app/crud.py:19-20
+      Insecure Password Hashing Implementation
+   2. ./docs_src/sql_databases/sql_app/database.py:6
+      Potential Secret Exposure in Code Comments
+   3. ./docs_src/sql_databases/sql_app/schemas.py:28
+      Missing Input Validation for Password Complexity
+
+============================================================

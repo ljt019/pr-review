@@ -1,0 +1,18 @@
+{
+  "project": "black",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "black-1",
+      "project": "black",
+      "file_path": "black.py",
+      "line_start": 618,
+      "line_end": 631,
+      "description": "Fix OSError handling for ProcessPoolExecutor in environments without multiprocessing support",
+      "category": "error_handling",
+      "severity": "major",
+      "commit_buggy": "26c9465a22c732ab1e17b0dec578fa3432e9b558",
+      "commit_fixed": "c0a7582e3d4cc8bec3b7f5a6c52b36880dcb57d7"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "project": "ansible",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "ansible-2",
+      "project": "ansible",
+      "file_path": "lib/ansible/utils/version.py",
+      "line_start": 72,
+      "line_end": 85,
+      "description": "Fix inventory parsing and host group management",
+      "category": "error_handling",
+      "severity": "major",
+      "commit_buggy": "de59b17c7f69d5cfb72479b71776cc8b97e29a6b",
+      "commit_fixed": "5b9418c06ca6d51507468124250bb58046886be6"
+    }
+  ]
+}

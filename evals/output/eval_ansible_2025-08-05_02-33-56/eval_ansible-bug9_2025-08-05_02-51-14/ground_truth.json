@@ -1,0 +1,18 @@
+{
+  "project": "ansible",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "ansible-9",
+      "project": "ansible",
+      "file_path": "lib/ansible/modules/packaging/os/redhat_subscription.py",
+      "line_start": 515,
+      "line_end": 523,
+      "description": "Fix error handling and exception reporting",
+      "category": "module",
+      "severity": "major",
+      "commit_buggy": "9276dd2007a73172ed99ab5a56cded4298d3cd2b",
+      "commit_fixed": "6f1bb37feb81acd99157f5ba0933fecd747015a2"
+    }
+  ]
+}

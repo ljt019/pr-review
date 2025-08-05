@@ -1,0 +1,35 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 3
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     3
+
+MISSED BUGS (1)
+   1. lib/ansible/module_utils/network/eos/config/vlans/vlans.py:208
+      Fix YAML parsing and configuration validation...
+      Category: automation_logic | Severity: major
+
+FALSE POSITIVES (3)
+   1. ./hacking/build_library/build_ansible/command_plugins/generate_man.py:00238
+      Insecure use of os.path.expanduser() and relative paths
+   2. ./hacking/build_library/build_ansible/command_plugins/generate_man.py:00126-00127
+      Improper error handling in CLI module loading
+   3. ./hacking/build_library/build_ansible/command_plugins/generate_man.py:00295
+      Untrusted string interpolation in template rendering
+
+============================================================

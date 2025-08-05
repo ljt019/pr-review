@@ -1,0 +1,39 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 5
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     5
+
+MISSED BUGS (1)
+   1. lib/ansible/playbook/collectionsearch.py:7
+      Fix Jinja2 template rendering and variable substitution...
+      Category: playbook | Severity: major
+
+FALSE POSITIVES (5)
+   1. lib/ansible/module_utils/facts/network/iscsi.py:64
+      Critical: Hardcoded Secrets in Source Code
+   2. ./test/lib/ansible_test/_data/sanity/validate-modules/validate_modules/main.py:00420-00446
+      Security: Incomplete Input Validation in Module Validators
+   3. lib/ansible/parsing/vault/__init__.py:659-777
+      Security: Inadequate Error Handling in Vault Operations
+   4. ./test/lib/ansible_test/_data/sanity/validate-modules/validate_modules/main.py:0064-0084
+      Security: Weak Pattern Matching for Sensitive Data
+   5. test/support/integration/plugins/module_utils/cloudstack.py:33
+      Security: Inconsistent Use of no_log Attribute
+
+============================================================

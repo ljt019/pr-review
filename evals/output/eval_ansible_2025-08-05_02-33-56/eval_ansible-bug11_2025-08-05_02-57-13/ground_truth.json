@@ -1,0 +1,18 @@
+{
+  "project": "ansible",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "ansible-11",
+      "project": "ansible",
+      "file_path": "lib/ansible/modules/network/ios/ios_banner.py",
+      "line_start": 89,
+      "line_end": 97,
+      "description": "Fix file and directory operation handling",
+      "category": "module",
+      "severity": "major",
+      "commit_buggy": "da07b98b7a433493728ddb7ac7efbd20b8988776",
+      "commit_fixed": "52f3ce8a808f943561803bd664e695fed1841fe8"
+    }
+  ]
+}

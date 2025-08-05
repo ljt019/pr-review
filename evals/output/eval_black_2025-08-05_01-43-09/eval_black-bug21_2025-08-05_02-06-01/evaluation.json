@@ -1,0 +1,37 @@
+{
+  "summary": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "true_positives": 0,
+    "false_positives": 0,
+    "false_negatives": 1
+  },
+  "analysis": {
+    "total_ground_truth_bugs": 1,
+    "total_detected_bugs": 0,
+    "files_analyzed": 0,
+    "files_with_bugs": 1
+  },
+  "matches": [],
+  "false_positives": [],
+  "false_negatives": [
+    {
+      "bug_id": "black-21",
+      "file": "black.py",
+      "line_range": "2325-2331",
+      "description": "Fix trailing comma handling in expressions",
+      "category": "logic",
+      "severity": "major"
+    }
+  ],
+  "metadata": {
+    "evaluation_timestamp": "2025-08-05T02:06:44.184514",
+    "model_response": {
+      "summary": "The codebase is a Python code formatter called Black. The implementation is mature and well-structured with no critical security vulnerabilities in the core functionality. The codebase demonstrates strong adherence to best practices, with comprehensive error handling and sophisticated parsing logic. The main focus of the review is on evaluating the code quality and architectural decisions of this sophisticated code formatting tool.",
+      "bugs": [],
+      "nitpicks": [],
+      "files_analyzed": 1
+    }
+  }
+}

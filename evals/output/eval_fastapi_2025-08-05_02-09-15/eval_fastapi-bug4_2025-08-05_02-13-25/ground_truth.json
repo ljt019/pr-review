@@ -1,0 +1,18 @@
+{
+  "project": "fastapi",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "fastapi-4",
+      "project": "fastapi",
+      "file_path": "fastapi/openapi/utils.py",
+      "line_start": 180,
+      "line_end": 188,
+      "description": "Fix OpenAPI schema generation for request models",
+      "category": "http",
+      "severity": "major",
+      "commit_buggy": "7ccd81f70653857bd8f3a15ee946aa3fb0edc2cb",
+      "commit_fixed": "74c4d1c1dbe6bfdb05d6e4fc767ffe062398f0a3"
+    }
+  ]
+}

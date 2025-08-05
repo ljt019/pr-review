@@ -1,0 +1,49 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 10
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     10
+
+MISSED BUGS (1)
+   1. lib/ansible/cli/galaxy.py:29
+      Fix loop iteration and item processing...
+      Category: playbook | Severity: major
+
+FALSE POSITIVES (10)
+   1. lib/ansible/module_utils/basic.py:2590
+      Critical Subprocess Security Vulnerability
+   2. lib/ansible/plugins/connection/ssh.py:787
+      Missing Input Validation in Subprocess Calls
+   3. lib/ansible/plugins/callback/say.py:75
+      Insecure Use of subprocess.call()
+   4. lib/ansible/modules/database/mysql/mysql_db.py:294
+      SQL Injection Risk in Dynamic Query Construction
+   5. lib/ansible/utils/cmd_functions.py:44
+      Inconsistent Error Handling in Subprocess Operations
+   6. test/lib/ansible_test/_data/sanity/validate-modules/validate_modules/main.py:336
+      Deprecated Subprocess Usage in Module Validation
+   7. lib/ansible/plugins/connection/docker.py:160
+      Inefficient Subprocess Creation in Loop
+   8. test/lib/ansible_test/_data/sanity/validate-modules/validate_modules/main.py:336
+      Unnecessary Subprocess Calls in Validation Framework
+   9. lib/ansible/plugins/connection/ssh.py:787
+      Inconsistent Input Validation Across Modules
+   10. lib/ansible/utils/cmd_functions.py:44
+      Missing Return Value Validation for Subprocess Results
+
+============================================================

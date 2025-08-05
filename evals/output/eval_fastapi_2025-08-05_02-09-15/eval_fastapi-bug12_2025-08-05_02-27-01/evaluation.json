@@ -1,0 +1,151 @@
+{
+  "summary": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "true_positives": 0,
+    "false_positives": 5,
+    "false_negatives": 1
+  },
+  "analysis": {
+    "total_ground_truth_bugs": 1,
+    "total_detected_bugs": 5,
+    "files_analyzed": 0,
+    "files_with_bugs": 1
+  },
+  "matches": [],
+  "false_positives": [
+    {
+      "title": "Hardcoded SECRET_KEY in security tutorials",
+      "description": "Multiple security tutorial files contain hardcoded SECRET_KEY values that should never be exposed in production. This key is used for JWT token signing and verification, and if compromised, could allow attackers to forge valid tokens and gain unauthorized access to the system. The key is exposed in tutorial004.py and tutorial005.py.",
+      "file": "./docs/src/security/tutorial004.py",
+      "line": "13",
+      "severity": "critical",
+      "category": "security",
+      "recommendation": "Remove the hardcoded SECRET_KEY and use environment variables or configuration files to store sensitive information. Use a secure method to generate the key, such as running 'openssl rand -hex 32' to generate a random 32-byte key."
+    },
+    {
+      "title": "Inconsistent parameter naming and usage",
+      "description": "The codebase shows inconsistent parameter naming and usage patterns across different tutorial files. For example, some functions use 'q' for query parameters while others use 'search' or 'keyword', and the handling of optional parameters varies between using 'None' and explicit 'Optional' type annotation.",
+      "file": "./docs/src/query_params_str_validations/tutorial001.py",
+      "line": "7",
+      "severity": "major",
+      "category": "maintainability",
+      "recommendation": "Establish and enforce consistent naming conventions for parameters across all tutorial files. Use explicit 'Optional' type annotations instead of relying on default values of 'None' to make the code more predictable and easier to maintain."
+    },
+    {
+      "title": "Missing type hints for function parameters",
+      "description": "Several functions in the codebase, particularly in the security tutorials, lack proper type hints for parameters and return values. This makes the code harder to understand and maintain, especially in larger applications where type safety is crucial.",
+      "file": "./docs/src/security/tutorial002.py",
+      "line": "25",
+      "severity": "major",
+      "category": "best-practices",
+      "recommendation": "Add explicit type hints to all function parameters and return values, following the standard patterns in the rest of the codebase. This will improve code readability and enable better tooling support."
+    },
+    {
+      "title": "Inconsistent error handling patterns",
+      "description": "The error handling approaches are inconsistent across files. Some use HTTPException with specific status codes, while others use custom exception handlers without clear patterns. This inconsistency makes the codebase harder to maintain and troubleshoot.",
+      "file": "./docs/src/handling_errors/tutorial004.py",
+      "line": "10",
+      "severity": "major",
+      "category": "error-handling",
+      "recommendation": "Establish a consistent error handling pattern across all tutorial files. Use HTTPException with appropriate status codes for standard errors, and create custom exception handlers with clear error messages for specific use cases."
+    },
+    {
+      "title": "Code duplication across tutorial files",
+      "description": "Similar patterns appear repeatedly across different tutorial files for tasks like authentication, request validation, and dependency injection. This duplication makes the codebase harder to maintain and increases the risk of inconsistencies.",
+      "file": "./docs/src/security/tutorial003.py",
+      "line": "75",
+      "severity": "minor",
+      "category": "maintainability",
+      "recommendation": "Refactor the duplicated code into reusable components or utilities. This will reduce code duplication, improve maintainability, and make it easier to update common patterns across all tutorials."
+    }
+  ],
+  "false_negatives": [
+    {
+      "bug_id": "fastapi-12",
+      "file": "fastapi/security/http.py",
+      "line_range": "112-124",
+      "description": "Fix HTTP security scheme validation",
+      "category": "security",
+      "severity": "major"
+    }
+  ],
+  "metadata": {
+    "evaluation_timestamp": "2025-08-05T02:28:22.815235",
+    "model_response": {
+      "summary": "The codebase appears to be a collection of tutorial examples for a FastAPI-based web framework. The code demonstrates various features like routing, request handling, security, databases, and more. While the tutorials are educational and demonstrate correct patterns, there are several issues that would prevent them from being used in production. The most critical issue is the presence of hardcoded SECRET_KEY values in tutorial files, which should never be exposed in production code. Other concerns include inconsistent error handling, code duplication, improper use of optional parameters, and missing type hints. The code quality is generally good for educational purposes but would require significant refinement for production use.",
+      "bugs": [
+        {
+          "title": "Hardcoded SECRET_KEY in security tutorials",
+          "description": "Multiple security tutorial files contain hardcoded SECRET_KEY values that should never be exposed in production. This key is used for JWT token signing and verification, and if compromised, could allow attackers to forge valid tokens and gain unauthorized access to the system. The key is exposed in tutorial004.py and tutorial005.py.",
+          "file": "./docs/src/security/tutorial004.py",
+          "line": "13",
+          "severity": "critical",
+          "category": "security",
+          "recommendation": "Remove the hardcoded SECRET_KEY and use environment variables or configuration files to store sensitive information. Use a secure method to generate the key, such as running 'openssl rand -hex 32' to generate a random 32-byte key."
+        },
+        {
+          "title": "Inconsistent parameter naming and usage",
+          "description": "The codebase shows inconsistent parameter naming and usage patterns across different tutorial files. For example, some functions use 'q' for query parameters while others use 'search' or 'keyword', and the handling of optional parameters varies between using 'None' and explicit 'Optional' type annotation.",
+          "file": "./docs/src/query_params_str_validations/tutorial001.py",
+          "line": "7",
+          "severity": "major",
+          "category": "maintainability",
+          "recommendation": "Establish and enforce consistent naming conventions for parameters across all tutorial files. Use explicit 'Optional' type annotations instead of relying on default values of 'None' to make the code more predictable and easier to maintain."
+        },
+        {
+          "title": "Missing type hints for function parameters",
+          "description": "Several functions in the codebase, particularly in the security tutorials, lack proper type hints for parameters and return values. This makes the code harder to understand and maintain, especially in larger applications where type safety is crucial.",
+          "file": "./docs/src/security/tutorial002.py",
+          "line": "25",
+          "severity": "major",
+          "category": "best-practices",
+          "recommendation": "Add explicit type hints to all function parameters and return values, following the standard patterns in the rest of the codebase. This will improve code readability and enable better tooling support."
+        },
+        {
+          "title": "Inconsistent error handling patterns",
+          "description": "The error handling approaches are inconsistent across files. Some use HTTPException with specific status codes, while others use custom exception handlers without clear patterns. This inconsistency makes the codebase harder to maintain and troubleshoot.",
+          "file": "./docs/src/handling_errors/tutorial004.py",
+          "line": "10",
+          "severity": "major",
+          "category": "error-handling",
+          "recommendation": "Establish a consistent error handling pattern across all tutorial files. Use HTTPException with appropriate status codes for standard errors, and create custom exception handlers with clear error messages for specific use cases."
+        },
+        {
+          "title": "Code duplication across tutorial files",
+          "description": "Similar patterns appear repeatedly across different tutorial files for tasks like authentication, request validation, and dependency injection. This duplication makes the codebase harder to maintain and increases the risk of inconsistencies.",
+          "file": "./docs/src/security/tutorial003.py",
+          "line": "75",
+          "severity": "minor",
+          "category": "maintainability",
+          "recommendation": "Refactor the duplicated code into reusable components or utilities. This will reduce code duplication, improve maintainability, and make it easier to update common patterns across all tutorials."
+        }
+      ],
+      "nitpicks": [
+        {
+          "title": "Inconsistent use of optional parameters",
+          "description": "The handling of optional parameters varies between files, with some functions using 'None' as default values and others using explicit 'Optional' type annotations. This inconsistency can lead to confusion for developers reading the code.",
+          "file": "./docs/src/query_params_str_validations/tutorial005.py",
+          "line": "7",
+          "recommendation": "Standardize the use of optional parameters across all files, favoring explicit 'Optional' type annotations over relying on default 'None' values."
+        },
+        {
+          "title": "Generic error messages",
+          "description": "Some error messages in the exception handlers are generic and don't provide sufficient information to diagnose issues. For example, 'Incorrect username or password' doesn't help users understand what went wrong.",
+          "file": "./docs/src/security/tutorial003.py",
+          "line": "78",
+          "recommendation": "Provide more specific error messages that help users understand what went wrong, while being careful not to reveal sensitive information about the system."
+        },
+        {
+          "title": "Inconsistent function parameter order",
+          "description": "The order of function parameters varies between files, with some functions placing the main parameter first and others placing optional parameters first. This inconsistency makes the code harder to read and maintain.",
+          "file": "./docs/src/body_multiple_params/tutorial001.py",
+          "line": "15",
+          "recommendation": "Establish and enforce a consistent parameter ordering convention across all files, placing required parameters before optional ones."
+        }
+      ],
+      "files_analyzed": 4
+    }
+  }
+}

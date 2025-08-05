@@ -1,0 +1,18 @@
+{
+  "project": "spacy",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "spacy-10",
+      "project": "spacy",
+      "file_path": "spacy/errors.py",
+      "line_start": 476,
+      "line_end": 483,
+      "description": "Fix vocabulary management and word vectors",
+      "category": "error_handling",
+      "severity": "major",
+      "commit_buggy": "38de08c7a99d5d8c490223126071afe7dd4f4b67",
+      "commit_fixed": "52904b72700a3f301a26563d3f94493bad96a446"
+    }
+  ]
+}

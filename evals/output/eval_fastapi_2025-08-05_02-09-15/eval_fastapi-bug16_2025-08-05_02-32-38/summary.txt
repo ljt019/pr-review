@@ -1,0 +1,35 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 3
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     3
+
+MISSED BUGS (1)
+   1. fastapi/encoders.py:15
+      Fix JSON encoder for custom types...
+      Category: typing | Severity: major
+
+FALSE POSITIVES (3)
+   1. docs/src/security/tutorial004.py:14
+      Hardcoded secret key in production code
+   2. docs/src/security/tutorial004.py:114
+      Potential information leakage in error messages
+   3. docs/src/security/tutorial004.py:100
+      Inefficient password verification in token validation
+
+============================================================

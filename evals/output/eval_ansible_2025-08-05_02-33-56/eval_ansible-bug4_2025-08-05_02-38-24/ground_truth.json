@@ -1,0 +1,18 @@
+{
+  "project": "ansible",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "ansible-4",
+      "project": "ansible",
+      "file_path": "lib/ansible/playbook/collectionsearch.py",
+      "line_start": 7,
+      "line_end": 16,
+      "description": "Fix Jinja2 template rendering and variable substitution",
+      "category": "playbook",
+      "severity": "major",
+      "commit_buggy": "d91658ec0c8434c82c3ef98bfe9eb4e1027a43a3",
+      "commit_fixed": "18a66e291dad71128a32d662aa808213acefe0e9"
+    }
+  ]
+}

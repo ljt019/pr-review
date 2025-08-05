@@ -1,0 +1,18 @@
+{
+  "project": "spacy",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "spacy-3",
+      "project": "spacy",
+      "file_path": "bin/wiki_entity_linking/wikipedia_processor.py",
+      "line_start": 30,
+      "line_end": 37,
+      "description": "Fix pipeline component initialization and ordering",
+      "category": "nlp_logic",
+      "severity": "major",
+      "commit_buggy": "dac70f29eb3b1f21ae9e2c6346666bf6a46307b6",
+      "commit_fixed": "663333c3b2bad90915d1a48a626ca1275b7ef077"
+    }
+  ]
+}

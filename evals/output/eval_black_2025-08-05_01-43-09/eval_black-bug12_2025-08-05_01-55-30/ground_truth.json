@@ -1,0 +1,18 @@
+{
+  "project": "black",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "black-12",
+      "project": "black",
+      "file_path": "black.py",
+      "line_start": 877,
+      "line_end": 884,
+      "description": "Fix string literal formatting edge cases",
+      "category": "logic",
+      "severity": "major",
+      "commit_buggy": "8b340e210271a8108995fd479c55dbc0a34466bd",
+      "commit_fixed": "b53cb9474348e13533ccba3735191a55ef3da6c4"
+    }
+  ]
+}

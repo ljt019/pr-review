@@ -1,0 +1,104 @@
+{
+  "summary": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "true_positives": 0,
+    "false_positives": 2,
+    "false_negatives": 1
+  },
+  "analysis": {
+    "total_ground_truth_bugs": 1,
+    "total_detected_bugs": 2,
+    "files_analyzed": 0,
+    "files_with_bugs": 1
+  },
+  "matches": [],
+  "false_positives": [
+    {
+      "title": "Critical Security Vulnerability: Fake Password Hashing",
+      "description": "The code uses a fake password hashing mechanism that simply appends 'notreallyhashed' to the plain password. This is completely insecure as it provides no protection against password cracking and gives a false sense of security. Passwords are stored in reversible form and can be easily reconstructed.",
+      "file": "docs/src/sql_databases/sql_app/crud.py",
+      "line": "19-20",
+      "severity": "critical",
+      "category": "security",
+      "recommendation": "Replace the fake hashing with proper password hashing using libraries like bcrypt or passlib. Use pwd_context.hash() from fastapi.security for proper password hashing."
+    },
+    {
+      "title": "Security Misconfiguration: Hardcoded Database URL",
+      "description": "The database URL is commented out in the database.py file, which could lead to accidental use of insecure default connections or runtime errors if not properly configured. This creates a risk of exposing sensitive database credentials in production environments.",
+      "file": "docs/src/sql_databases/sql_app/database.py",
+      "line": "6",
+      "severity": "major",
+      "category": "security",
+      "recommendation": "Ensure the database URL is properly configured through environment variables or configuration files. Use a proper configuration management system to handle sensitive credentials."
+    }
+  ],
+  "false_negatives": [
+    {
+      "bug_id": "fastapi-4",
+      "file": "fastapi/openapi/utils.py",
+      "line_range": "180-188",
+      "description": "Fix OpenAPI schema generation for request models",
+      "category": "http",
+      "severity": "major"
+    }
+  ],
+  "metadata": {
+    "evaluation_timestamp": "2025-08-05T02:14:14.291991",
+    "model_response": {
+      "summary": "The codebase is a FastAPI application demonstrating CRUD operations with SQLAlchemy, organized into a clean architecture with separation of concerns. The project structure is well-organized with clear separation between models, CRUD operations, schemas, and API endpoints. Key security issues include the use of fake password hashing (notreallyhashed) which is a critical vulnerability. The code also shows proper use of dependency injection and proper error handling for common cases like user not found or duplicate email registration. The application demonstrates good practices in input validation through Pydantic models and proper database transaction management. Performance is adequate for typical use cases, with efficient query patterns using offset/limit for pagination.",
+      "bugs": [
+        {
+          "title": "Critical Security Vulnerability: Fake Password Hashing",
+          "description": "The code uses a fake password hashing mechanism that simply appends 'notreallyhashed' to the plain password. This is completely insecure as it provides no protection against password cracking and gives a false sense of security. Passwords are stored in reversible form and can be easily reconstructed.",
+          "file": "docs/src/sql_databases/sql_app/crud.py",
+          "line": "19-20",
+          "severity": "critical",
+          "category": "security",
+          "recommendation": "Replace the fake hashing with proper password hashing using libraries like bcrypt or passlib. Use pwd_context.hash() from fastapi.security for proper password hashing."
+        },
+        {
+          "title": "Security Misconfiguration: Hardcoded Database URL",
+          "description": "The database URL is commented out in the database.py file, which could lead to accidental use of insecure default connections or runtime errors if not properly configured. This creates a risk of exposing sensitive database credentials in production environments.",
+          "file": "docs/src/sql_databases/sql_app/database.py",
+          "line": "6",
+          "severity": "major",
+          "category": "security",
+          "recommendation": "Ensure the database URL is properly configured through environment variables or configuration files. Use a proper configuration management system to handle sensitive credentials."
+        }
+      ],
+      "nitpicks": [
+        {
+          "title": "Code Quality: Inefficient Query Pattern",
+          "description": "The code uses db.query().filter().first() for single entity lookup, which is appropriate, but could be optimized further by using database indexes on commonly queried fields like email to improve performance.",
+          "file": "docs/src/sql_databases/sql_app/crud.py",
+          "line": "6-11",
+          "recommendation": "Ensure database indexes are created on frequently queried columns (email, id) to improve query performance."
+        },
+        {
+          "title": "Code Quality: Missing Input Validation for Numeric Fields",
+          "description": "The code does not validate that user_id is positive in the read_user endpoint, which could lead to invalid queries or potential SQL injection if not properly sanitized.",
+          "file": "docs/src/sql_databases/sql_app/main.py",
+          "line": "38",
+          "recommendation": "Add validation to ensure user_id is positive before querying the database."
+        },
+        {
+          "title": "Code Quality: Inconsistent Function Naming",
+          "description": "The functions in crud.py follow a consistent pattern but could benefit from more descriptive names, such as 'get_user_by_email' could be renamed to 'find_user_by_email' for better alignment with common Python naming conventions.",
+          "file": "docs/src/sql_databases/sql_app/crud.py",
+          "line": "10",
+          "recommendation": "Consider renaming functions to follow more conventional Python naming patterns for better readability and maintainability."
+        },
+        {
+          "title": "Best Practices: Missing Error Logging",
+          "description": "While the code raises HTTPException for errors, it doesn't include proper logging of error conditions for debugging and monitoring purposes.",
+          "file": "docs/src/sql_databases/sql_app/main.py",
+          "line": "26",
+          "recommendation": "Add appropriate logging statements when raising HTTPExceptions to capture error context for debugging."
+        }
+      ],
+      "files_analyzed": 4
+    }
+  }
+}

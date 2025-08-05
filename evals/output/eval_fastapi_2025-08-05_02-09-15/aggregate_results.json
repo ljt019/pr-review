@@ -1,0 +1,1947 @@
+{
+  "project": "fastapi",
+  "model": "qwen/qwen3-30b-a3b-instruct-2507",
+  "timestamp": "2025-08-05_02-09-15",
+  "bugs_evaluated": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16
+  ],
+  "successful_evaluations": 15,
+  "aggregate_metrics": {
+    "avg_precision": 0.0,
+    "avg_recall": 0.0,
+    "avg_f1_score": 0.0
+  },
+  "individual_results": [
+    {
+      "bug_id": 1,
+      "result": {
+        "summary": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 3,
+          "false_negatives": 1
+        },
+        "analysis": {
+          "total_ground_truth_bugs": 1,
+          "total_detected_bugs": 3,
+          "files_analyzed": 0,
+          "files_with_bugs": 1
+        },
+        "matches": [],
+        "false_positives": [
+          {
+            "title": "Insecure Password Hashing Implementation",
+            "description": "The application uses a weak and completely insecure password hashing mechanism where the plain password is concatenated with a fixed string 'notreallyhashed' instead of using proper cryptographic hashing (like bcrypt, scrypt, or Argon2). This creates a predictable, easily reversible hash that provides no security against cracking attempts.",
+            "file": "./docs_src/sql_databases/sql_app/crud.py",
+            "line": "19-20",
+            "severity": "critical",
+            "category": "security",
+            "recommendation": "Replace the insecure password hashing with proper cryptographic hashing using libraries like bcrypt or passlib. For example, use 'bcrypt.hashpw(password.encode(), bcrypt.gensalt())' and store only the hash. Also ensure that hashing is applied to all password inputs in the application."
+          },
+          {
+            "title": "Potential Secret Exposure in Code Comments",
+            "description": "The database configuration file contains a commented-out PostgreSQL connection URL with hardcoded credentials (user:password@postgresserver/db). This creates a security risk if the codebase is exposed or if the comments are accidentally committed to version control with credentials included.",
+            "file": "./docs_src/sql_databases/sql_app/database.py",
+            "line": "6",
+            "severity": "critical",
+            "category": "security",
+            "recommendation": "Remove any commented-out connection strings containing credentials. Use environment variables for database connection strings and load them at runtime. Consider adding a .gitignore entry for environment files."
+          },
+          {
+            "title": "Missing Input Validation for Password Complexity",
+            "description": "The application does not enforce any minimum password complexity requirements (length, character types, etc.) in the UserCreate schema, which could lead to weak passwords being registered by users.",
+            "file": "./docs_src/sql_databases/sql_app/schemas.py",
+            "line": "28",
+            "severity": "major",
+            "category": "validation",
+            "recommendation": "Add validation constraints to the password field in the UserCreate model using Pydantic's validation capabilities, such as min_length, max_length, and regex patterns to enforce minimum complexity requirements."
+          }
+        ],
+        "false_negatives": [
+          {
+            "bug_id": "fastapi-1",
+            "file": "fastapi/applications.py",
+            "line_range": "171-178",
+            "description": "Fix application startup and dependency injection",
+            "category": "security",
+            "severity": "major"
+          }
+        ],
+        "metadata": {
+          "evaluation_timestamp": "2025-08-05T02:10:39.870038",
+          "model_response": {
+            "summary": "The codebase is a FastAPI application demonstrating database operations with SQLAlchemy. The architecture follows a clean separation of concerns with models, CRUD operations, and API endpoints. The main security concern is the use of a weak password hashing mechanism ('fake_hashed_password' + 'notreallyhashed') in the CRUD layer, which is completely insecure and should be replaced with proper cryptographic hashing. The codebase also contains sensitive database connection details in comments, which could lead to accidental exposure. The error handling is generally adequate with appropriate HTTPException usage for validation and not-found scenarios. Performance is not a significant concern given the simplicity of operations. The code adheres to best practices in terms of dependency injection and type hints, but the password hashing implementation is a critical security flaw that must be addressed immediately.",
+            "bugs": [
+              {
+                "title": "Insecure Password Hashing Implementation",
+                "description": "The application uses a weak and completely insecure password hashing mechanism where the plain password is concatenated with a fixed string 'notreallyhashed' instead of using proper cryptographic hashing (like bcrypt, scrypt, or Argon2). This creates a predictable, easily reversible hash that provides no security against cracking attempts.",
+                "file": "./docs_src/sql_databases/sql_app/crud.py",
+                "line": "19-20",
+                "severity": "critical",
+                "category": "security",
+                "recommendation": "Replace the insecure password hashing with proper cryptographic hashing using libraries like bcrypt or passlib. For example, use 'bcrypt.hashpw(password.encode(), bcrypt.gensalt())' and store only the hash. Also ensure that hashing is applied to all password inputs in the application."
+              },
+              {
+                "title": "Potential Secret Exposure in Code Comments",
+                "description": "The database configuration file contains a commented-out PostgreSQL connection URL with hardcoded credentials (user:password@postgresserver/db). This creates a security risk if the codebase is exposed or if the comments are accidentally committed to version control with credentials included.",
+                "file": "./docs_src/sql_databases/sql_app/database.py",
+                "line": "6",
+                "severity": "critical",
+                "category": "security",
+                "recommendation": "Remove any commented-out connection strings containing credentials. Use environment variables for database connection strings and load them at runtime. Consider adding a .gitignore entry for environment files."
+              },
+              {
+                "title": "Missing Input Validation for Password Complexity",
+                "description": "The application does not enforce any minimum password complexity requirements (length, character types, etc.) in the UserCreate schema, which could lead to weak passwords being registered by users.",
+                "file": "./docs_src/sql_databases/sql_app/schemas.py",
+                "line": "28",
+                "severity": "major",
+                "category": "validation",
+                "recommendation": "Add validation constraints to the password field in the UserCreate model using Pydantic's validation capabilities, such as min_length, max_length, and regex patterns to enforce minimum complexity requirements."
+              }
+            ],
+            "nitpicks": [
+              {
+                "title": "Inconsistent Naming for Database URL",
+                "description": "The database URL is referred to as 'SQLALCHEMY_DATABASE_URL' in the code, but this naming is not universally recognized. Using a more descriptive name like 'DATABASE_URL' would be clearer for other developers.",
+                "file": "./docs_src/sql_databases/sql_app/database.py",
+                "line": "5",
+                "recommendation": "Consider renaming the constant to a more descriptive name like 'DATABASE_URL' to improve clarity and consistency with common naming conventions in the industry."
+              },
+              {
+                "title": "Lack of Documentation for Password Hashing Logic",
+                "description": "The purpose and security implications of the 'fake_hashed_password' string are not documented in the code, which could confuse other developers about the security posture of the application.",
+                "file": "./docs_src/sql_databases/sql_app/crud.py",
+                "line": "19",
+                "recommendation": "Add a clear comment explaining that this is a placeholder for demonstration purposes only and should be replaced with proper cryptographic hashing in production code."
+              },
+              {
+                "title": "Missing Type Hints in CRUD Functions",
+                "description": "The CRUD functions in crud.py lack type hints for the return type of the functions, which reduces code maintainability and makes it harder for developers to understand the expected return values.",
+                "file": "./docs_src/sql_databases/sql_app/crud.py",
+                "line": "6",
+                "recommendation": "Add proper return type hints to all functions in the crud.py file, such as '-> models.User' for create_user and '-> List[models.User]' for get_users."
+              }
+            ],
+            "files_analyzed": 5
+          }
+        }
+      }
+    },
+    {
+      "bug_id": 2,
+      "result": {
+        "summary": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 1
+        },
+        "analysis": {
+          "total_ground_truth_bugs": 1,
+          "total_detected_bugs": 0,
+          "files_analyzed": 0,
+          "files_with_bugs": 1
+        },
+        "matches": [],
+        "false_positives": [],
+        "false_negatives": [
+          {
+            "bug_id": "fastapi-2",
+            "file": "fastapi/routing.py",
+            "line_range": "498-509",
+            "description": "Fix route parameter validation and handling",
+            "category": "logic",
+            "severity": "major"
+          }
+        ],
+        "metadata": {
+          "evaluation_timestamp": "2025-08-05T02:11:49.603347",
+          "model_response": {
+            "summary": "The codebase appears to be a collection of tutorial examples for FastAPI, likely used for documentation purposes. The structure is well-organized with clear separation of concerns through modular files. Security review shows proper use of FastAPI's security utilities with no obvious vulnerabilities like SQL injection or XSS. The code quality is generally high with proper typing, clear function design, and use of dependencies. Performance issues are minimal as the examples are simple and focus on teaching concepts. Error handling is implemented appropriately with proper use of exceptions. Best practices are followed including proper type hints, dependency injection patterns, and adherence to FastAPI conventions. No critical issues were found in the codebase analysis.",
+            "bugs": [],
+            "nitpicks": [
+              {
+                "title": "Documentation structure could be improved",
+                "description": "The documentation appears to be structured as a series of tutorial files rather than a single cohesive document, which could make navigation challenging for users. The organization of files in the docs_src directory could be simplified.",
+                "file": "docs_src/security/tutorial001.py",
+                "line": "1",
+                "recommendation": "Consider consolidating tutorial files into a more organized documentation structure with clear navigation between topics, or provide a unified index file to improve the user experience."
+              },
+              {
+                "title": "Missing type hints in functions",
+                "description": "While most functions use type hints, some examples in the tutorial files lack explicit type annotations for parameters, which could confuse users learning the framework.",
+                "file": "docs_src/security/tutorial001.py",
+                "line": "10",
+                "recommendation": "Add explicit type hints to all function parameters, such as: 'async def read_items(token: str = Depends(oauth2_scheme)) -> dict:' to improve code clarity and maintainability."
+              },
+              {
+                "title": "Security example with hardcoded values",
+                "description": "The tutorial002.py file contains a function 'fake_decode_token' that returns hardcoded values (email 'john@example.com', full_name 'John Doe') which could mislead users about production practices.",
+                "file": "docs_src/security/tutorial002.py",
+                "line": "21",
+                "recommendation": "Use placeholder values with comments indicating they are for demonstration purposes, such as 'email=\"example@domain.com\"' with a comment explaining that this should be replaced with actual user data in production."
+              }
+            ],
+            "files_analyzed": 3
+          }
+        }
+      }
+    },
+    {
+      "bug_id": 3,
+      "result": {
+        "summary": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 5,
+          "false_negatives": 1
+        },
+        "analysis": {
+          "total_ground_truth_bugs": 1,
+          "total_detected_bugs": 5,
+          "files_analyzed": 0,
+          "files_with_bugs": 1
+        },
+        "matches": [],
+        "false_positives": [
+          {
+            "title": "Hardcoded secrets in security implementation",
+            "description": "Security examples contain hardcoded secrets, credentials, and API keys that should never be exposed in production code. The tutorial005.py file contains a hardcoded SECRET_KEY, and tutorial007.py contains hardcoded credentials 'stanleyjobson' and 'swordfish'. These expose the application to unauthorized access and compromise.",
+            "file": "docs_src/security/tutorial005.py",
+            "line": "00017",
+            "severity": "critical",
+            "category": "security",
+            "recommendation": "Remove hardcoded secrets and use environment variables for all sensitive configuration. Implement proper secret management using .env files or environment variable injection. Replace the hardcoded SECRET_KEY with a dynamically generated one from the environment."
+          },
+          {
+            "title": "Insecure password hashing implementation",
+            "description": "The authentication flow in tutorial005.py uses bcrypt hashing but lacks proper implementation of password hashing best practices. The code calls pwd_context.hash() but doesn't properly validate the password strength requirements, and the salt is generated automatically rather than using strong random generation.",
+            "file": "docs_src/security/tutorial005.py",
+            "line": "00076",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Implement proper password strength validation, including minimum length, complexity requirements, and exclusion of common passwords. Use strong, cryptographically secure random salt generation and validate that the hashing context is properly configured."
+          },
+          {
+            "title": "Inadequate error handling in authentication",
+            "description": "The authentication system in tutorial005.py provides generic error messages that could aid attackers in enumeration. The error messages for invalid credentials and missing users are similar, which could allow attackers to determine valid usernames through timing or error pattern analysis.",
+            "file": "docs_src/security/tutorial005.py",
+            "line": "00149",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Implement consistent and generic error messages for all authentication failures to prevent user enumeration. Use a constant error message like 'Invalid credentials' instead of varying messages for different failure types."
+          },
+          {
+            "title": "Missing input validation for token scope",
+            "description": "The token scope handling in tutorial005.py does not validate that the scope values are properly formatted or restricted to acceptable values, which could allow attackers to craft malicious scopes that bypass intended access controls.",
+            "file": "docs_src/security/tutorial005.py",
+            "line": "00123",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Implement strict validation of scope values to ensure they match predefined, acceptable values. Use a whitelist approach rather than accepting arbitrary scope strings."
+          },
+          {
+            "title": "Potential race condition in user authentication",
+            "description": "The authentication flow in tutorial005.py has a potential race condition where a user could be authenticated but then disabled between the time the user is retrieved and checked for disabled status, leading to a security bypass.",
+            "file": "docs_src/security/tutorial005.py",
+            "line": "00127",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Implement atomic checks or database transactions to ensure that the user state is consistent during authentication, or use a single query that retrieves the user and checks the disabled status in one operation."
+          }
+        ],
+        "false_negatives": [
+          {
+            "bug_id": "fastapi-3",
+            "file": "fastapi/routing.py",
+            "line_range": "48-75",
+            "description": "Fix async route execution and error handling",
+            "category": "validation",
+            "severity": "major"
+          }
+        ],
+        "metadata": {
+          "evaluation_timestamp": "2025-08-05T02:13:20.762883",
+          "model_response": {
+            "summary": "The codebase consists of FastAPI tutorial examples demonstrating various security implementations. The primary code quality issues include hardcoded secrets in the security examples, which pose a critical security risk. The authentication implementations follow FastAPI best practices with proper use of OAuth2, JWT, and HTTP Basic authentication. However, the examples contain hardcoded credentials and secrets in production-like code, which is unacceptable for real applications. The code quality is generally good with proper use of typing, error handling, and dependency injection, but the security implementations should never be used as-is in production due to the exposed secrets.",
+            "bugs": [
+              {
+                "title": "Hardcoded secrets in security implementation",
+                "description": "Security examples contain hardcoded secrets, credentials, and API keys that should never be exposed in production code. The tutorial005.py file contains a hardcoded SECRET_KEY, and tutorial007.py contains hardcoded credentials 'stanleyjobson' and 'swordfish'. These expose the application to unauthorized access and compromise.",
+                "file": "docs_src/security/tutorial005.py",
+                "line": "00017",
+                "severity": "critical",
+                "category": "security",
+                "recommendation": "Remove hardcoded secrets and use environment variables for all sensitive configuration. Implement proper secret management using .env files or environment variable injection. Replace the hardcoded SECRET_KEY with a dynamically generated one from the environment."
+              },
+              {
+                "title": "Insecure password hashing implementation",
+                "description": "The authentication flow in tutorial005.py uses bcrypt hashing but lacks proper implementation of password hashing best practices. The code calls pwd_context.hash() but doesn't properly validate the password strength requirements, and the salt is generated automatically rather than using strong random generation.",
+                "file": "docs_src/security/tutorial005.py",
+                "line": "00076",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Implement proper password strength validation, including minimum length, complexity requirements, and exclusion of common passwords. Use strong, cryptographically secure random salt generation and validate that the hashing context is properly configured."
+              },
+              {
+                "title": "Inadequate error handling in authentication",
+                "description": "The authentication system in tutorial005.py provides generic error messages that could aid attackers in enumeration. The error messages for invalid credentials and missing users are similar, which could allow attackers to determine valid usernames through timing or error pattern analysis.",
+                "file": "docs_src/security/tutorial005.py",
+                "line": "00149",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Implement consistent and generic error messages for all authentication failures to prevent user enumeration. Use a constant error message like 'Invalid credentials' instead of varying messages for different failure types."
+              },
+              {
+                "title": "Missing input validation for token scope",
+                "description": "The token scope handling in tutorial005.py does not validate that the scope values are properly formatted or restricted to acceptable values, which could allow attackers to craft malicious scopes that bypass intended access controls.",
+                "file": "docs_src/security/tutorial005.py",
+                "line": "00123",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Implement strict validation of scope values to ensure they match predefined, acceptable values. Use a whitelist approach rather than accepting arbitrary scope strings."
+              },
+              {
+                "title": "Potential race condition in user authentication",
+                "description": "The authentication flow in tutorial005.py has a potential race condition where a user could be authenticated but then disabled between the time the user is retrieved and checked for disabled status, leading to a security bypass.",
+                "file": "docs_src/security/tutorial005.py",
+                "line": "00127",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Implement atomic checks or database transactions to ensure that the user state is consistent during authentication, or use a single query that retrieves the user and checks the disabled status in one operation."
+              }
+            ],
+            "nitpicks": [
+              {
+                "title": "Inconsistent naming of security schemes",
+                "description": "The OAuth2PasswordBearer scheme is defined with different naming conventions across examples. In tutorial003.py, it's defined with a tokenUrl property, while in tutorial005.py, it's defined with a scopes property, creating inconsistency in the security implementation pattern.",
+                "file": "docs_src/security/tutorial005.py",
+                "line": "00063",
+                "recommendation": "Standardize the naming and configuration of security schemes across all examples to maintain consistency in the security implementation patterns."
+              },
+              {
+                "title": "Missing docstrings for authentication functions",
+                "description": "Several critical authentication functions in the security examples lack proper docstrings documenting their purpose, parameters, and return values, making the code harder to understand and maintain.",
+                "file": "docs_src/security/tutorial005.py",
+                "line": "00071",
+                "recommendation": "Add comprehensive docstrings to all authentication and authorization functions to improve code readability and maintainability."
+              },
+              {
+                "title": "Unnecessary complexity in token creation",
+                "description": "The token creation function in tutorial005.py includes a default expiration time (15 minutes) but also allows for custom expiration, creating unnecessary complexity in the API that could lead to inconsistent implementation.",
+                "file": "docs_src/security/tutorial005.py",
+                "line": "00094",
+                "recommendation": "Simplify the token creation API by using a single, well-documented expiration time or make the default expiration time configurable via a setting rather than having it hard-coded."
+              },
+              {
+                "title": "Inconsistent error response formatting",
+                "description": "The error responses in the security examples use different approaches for formatting errors. Some use HTTPException with specific headers, while others don't include headers, leading to inconsistent error handling patterns.",
+                "file": "docs_src/security/tutorial007.py",
+                "line": "00015",
+                "recommendation": "Standardize error response formatting across all examples to ensure consistency in how authentication errors are presented to clients."
+              }
+            ],
+            "files_analyzed": 4
+          }
+        }
+      }
+    },
+    {
+      "bug_id": 4,
+      "result": {
+        "summary": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 2,
+          "false_negatives": 1
+        },
+        "analysis": {
+          "total_ground_truth_bugs": 1,
+          "total_detected_bugs": 2,
+          "files_analyzed": 0,
+          "files_with_bugs": 1
+        },
+        "matches": [],
+        "false_positives": [
+          {
+            "title": "Critical Security Vulnerability: Fake Password Hashing",
+            "description": "The code uses a fake password hashing mechanism that simply appends 'notreallyhashed' to the plain password. This is completely insecure as it provides no protection against password cracking and gives a false sense of security. Passwords are stored in reversible form and can be easily reconstructed.",
+            "file": "docs/src/sql_databases/sql_app/crud.py",
+            "line": "19-20",
+            "severity": "critical",
+            "category": "security",
+            "recommendation": "Replace the fake hashing with proper password hashing using libraries like bcrypt or passlib. Use pwd_context.hash() from fastapi.security for proper password hashing."
+          },
+          {
+            "title": "Security Misconfiguration: Hardcoded Database URL",
+            "description": "The database URL is commented out in the database.py file, which could lead to accidental use of insecure default connections or runtime errors if not properly configured. This creates a risk of exposing sensitive database credentials in production environments.",
+            "file": "docs/src/sql_databases/sql_app/database.py",
+            "line": "6",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Ensure the database URL is properly configured through environment variables or configuration files. Use a proper configuration management system to handle sensitive credentials."
+          }
+        ],
+        "false_negatives": [
+          {
+            "bug_id": "fastapi-4",
+            "file": "fastapi/openapi/utils.py",
+            "line_range": "180-188",
+            "description": "Fix OpenAPI schema generation for request models",
+            "category": "http",
+            "severity": "major"
+          }
+        ],
+        "metadata": {
+          "evaluation_timestamp": "2025-08-05T02:14:14.291991",
+          "model_response": {
+            "summary": "The codebase is a FastAPI application demonstrating CRUD operations with SQLAlchemy, organized into a clean architecture with separation of concerns. The project structure is well-organized with clear separation between models, CRUD operations, schemas, and API endpoints. Key security issues include the use of fake password hashing (notreallyhashed) which is a critical vulnerability. The code also shows proper use of dependency injection and proper error handling for common cases like user not found or duplicate email registration. The application demonstrates good practices in input validation through Pydantic models and proper database transaction management. Performance is adequate for typical use cases, with efficient query patterns using offset/limit for pagination.",
+            "bugs": [
+              {
+                "title": "Critical Security Vulnerability: Fake Password Hashing",
+                "description": "The code uses a fake password hashing mechanism that simply appends 'notreallyhashed' to the plain password. This is completely insecure as it provides no protection against password cracking and gives a false sense of security. Passwords are stored in reversible form and can be easily reconstructed.",
+                "file": "docs/src/sql_databases/sql_app/crud.py",
+                "line": "19-20",
+                "severity": "critical",
+                "category": "security",
+                "recommendation": "Replace the fake hashing with proper password hashing using libraries like bcrypt or passlib. Use pwd_context.hash() from fastapi.security for proper password hashing."
+              },
+              {
+                "title": "Security Misconfiguration: Hardcoded Database URL",
+                "description": "The database URL is commented out in the database.py file, which could lead to accidental use of insecure default connections or runtime errors if not properly configured. This creates a risk of exposing sensitive database credentials in production environments.",
+                "file": "docs/src/sql_databases/sql_app/database.py",
+                "line": "6",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Ensure the database URL is properly configured through environment variables or configuration files. Use a proper configuration management system to handle sensitive credentials."
+              }
+            ],
+            "nitpicks": [
+              {
+                "title": "Code Quality: Inefficient Query Pattern",
+                "description": "The code uses db.query().filter().first() for single entity lookup, which is appropriate, but could be optimized further by using database indexes on commonly queried fields like email to improve performance.",
+                "file": "docs/src/sql_databases/sql_app/crud.py",
+                "line": "6-11",
+                "recommendation": "Ensure database indexes are created on frequently queried columns (email, id) to improve query performance."
+              },
+              {
+                "title": "Code Quality: Missing Input Validation for Numeric Fields",
+                "description": "The code does not validate that user_id is positive in the read_user endpoint, which could lead to invalid queries or potential SQL injection if not properly sanitized.",
+                "file": "docs/src/sql_databases/sql_app/main.py",
+                "line": "38",
+                "recommendation": "Add validation to ensure user_id is positive before querying the database."
+              },
+              {
+                "title": "Code Quality: Inconsistent Function Naming",
+                "description": "The functions in crud.py follow a consistent pattern but could benefit from more descriptive names, such as 'get_user_by_email' could be renamed to 'find_user_by_email' for better alignment with common Python naming conventions.",
+                "file": "docs/src/sql_databases/sql_app/crud.py",
+                "line": "10",
+                "recommendation": "Consider renaming functions to follow more conventional Python naming patterns for better readability and maintainability."
+              },
+              {
+                "title": "Best Practices: Missing Error Logging",
+                "description": "While the code raises HTTPException for errors, it doesn't include proper logging of error conditions for debugging and monitoring purposes.",
+                "file": "docs/src/sql_databases/sql_app/main.py",
+                "line": "26",
+                "recommendation": "Add appropriate logging statements when raising HTTPExceptions to capture error context for debugging."
+              }
+            ],
+            "files_analyzed": 4
+          }
+        }
+      }
+    },
+    {
+      "bug_id": 5,
+      "result": {
+        "summary": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 3,
+          "false_negatives": 1
+        },
+        "analysis": {
+          "total_ground_truth_bugs": 1,
+          "total_detected_bugs": 3,
+          "files_analyzed": 0,
+          "files_with_bugs": 1
+        },
+        "matches": [],
+        "false_positives": [
+          {
+            "title": "Overly simplistic authentication implementation in tutorial",
+            "description": "The tutorial003.py example uses a simple fake hash function and hardcoded user database, which is insecure for production use. The hashing function 'fake_hash_password' is a vulnerable implementation that doesn't use salted hashing or proper security measures.",
+            "file": "docs/src/security/tutorial003.py",
+            "line": "65-67",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Replace the fake_hash_password function with a proper password hashing library like passlib with proper salt and iterations, and use a secure password hashing algorithm such as Argon2 or bcrypt."
+          },
+          {
+            "title": "Insecure token validation in tutorial",
+            "description": "The tutorial003.py example uses a fake_decode_token function that doesn't properly validate tokens or implement proper JWT verification, making it vulnerable to token forgery and replay attacks.",
+            "file": "docs/src/security/tutorial003.py",
+            "line": "50-54",
+            "severity": "critical",
+            "category": "security",
+            "recommendation": "Implement proper JWT token verification with signature checking, expiration validation, and proper handling of token revocation or refresh tokens. Use the jwt library with proper configuration for production use."
+          },
+          {
+            "title": "Missing input validation for login credentials",
+            "description": "In tutorial003.py, the login endpoint doesn't validate the length of username and password inputs, which could lead to buffer overflow attacks or other injection vulnerabilities.",
+            "file": "docs/src/security/tutorial003.py",
+            "line": "75-82",
+            "severity": "major",
+            "category": "validation",
+            "recommendation": "Add input validation to ensure username and password meet minimum length requirements (e.g., 3-20 characters) and use Pydantic models with appropriate constraints."
+          }
+        ],
+        "false_negatives": [
+          {
+            "bug_id": "fastapi-5",
+            "file": "fastapi/utils.py",
+            "line_range": "97-103",
+            "description": "Fix utility function type annotations and validation",
+            "category": "typing",
+            "severity": "major"
+          }
+        ],
+        "metadata": {
+          "evaluation_timestamp": "2025-08-05T02:15:19.018904",
+          "model_response": {
+            "summary": "The codebase is a comprehensive set of tutorials and examples for FastAPI, demonstrating various features like authentication, database integration, request handling, and security practices. The project is well-structured with clear separation of concerns, using modular design patterns with dedicated tutorial files for different features. The security review found no exposed secrets in the codebase, and authentication examples follow best practices with OAuth2 and HTTP Basic authentication patterns. Code quality is generally high with proper use of Pydantic models, type hints, and dependency injection. Performance is not a major concern as the examples focus on functionality over optimization. Error handling is robust with appropriate HTTP exceptions and validation. The code adheres to FastAPI best practices and industry standards for web frameworks. The only minor issues are related to documentation completeness and some examples using dummy data instead of production-ready implementations.",
+            "bugs": [
+              {
+                "title": "Overly simplistic authentication implementation in tutorial",
+                "description": "The tutorial003.py example uses a simple fake hash function and hardcoded user database, which is insecure for production use. The hashing function 'fake_hash_password' is a vulnerable implementation that doesn't use salted hashing or proper security measures.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "65-67",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Replace the fake_hash_password function with a proper password hashing library like passlib with proper salt and iterations, and use a secure password hashing algorithm such as Argon2 or bcrypt."
+              },
+              {
+                "title": "Insecure token validation in tutorial",
+                "description": "The tutorial003.py example uses a fake_decode_token function that doesn't properly validate tokens or implement proper JWT verification, making it vulnerable to token forgery and replay attacks.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "50-54",
+                "severity": "critical",
+                "category": "security",
+                "recommendation": "Implement proper JWT token verification with signature checking, expiration validation, and proper handling of token revocation or refresh tokens. Use the jwt library with proper configuration for production use."
+              },
+              {
+                "title": "Missing input validation for login credentials",
+                "description": "In tutorial003.py, the login endpoint doesn't validate the length of username and password inputs, which could lead to buffer overflow attacks or other injection vulnerabilities.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "75-82",
+                "severity": "major",
+                "category": "validation",
+                "recommendation": "Add input validation to ensure username and password meet minimum length requirements (e.g., 3-20 characters) and use Pydantic models with appropriate constraints."
+              }
+            ],
+            "nitpicks": [
+              {
+                "title": "Inconsistent naming conventions in error messages",
+                "description": "Error messages in tutorial003.py use different phrasing for similar conditions (e.g., 'Incorrect username or password' vs 'Invalid authentication credentials') which creates inconsistency in user feedback.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "78-79, 60-64",
+                "recommendation": "Standardize error messages across the application to use consistent phrasing for similar authentication failures."
+              },
+              {
+                "title": "Hardcoded credentials in tutorial",
+                "description": "The sample database in tutorial003.py contains hardcoded credentials (fakehashedsecret, fakehashedsecret2) which is poor practice and could mislead users about proper credential handling.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "7-20",
+                "recommendation": "Replace hardcoded credentials with placeholder comments indicating where real credentials should be stored, or use environment variables for configuration."
+              },
+              {
+                "title": "Missing documentation for authentication methods",
+                "description": "The security tutorials lack comprehensive documentation explaining the security implications of each authentication method shown, making it difficult for users to understand the risks and best practices.",
+                "file": "docs/src/security/tutorial*.py",
+                "line": "1-100",
+                "recommendation": "Add detailed security documentation for each authentication example explaining the security trade-offs, potential vulnerabilities, and recommended production implementations."
+              }
+            ],
+            "files_analyzed": 3
+          }
+        }
+      }
+    },
+    {
+      "bug_id": 6,
+      "result": {
+        "summary": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 5,
+          "false_negatives": 1
+        },
+        "analysis": {
+          "total_ground_truth_bugs": 1,
+          "total_detected_bugs": 5,
+          "files_analyzed": 0,
+          "files_with_bugs": 1
+        },
+        "matches": [],
+        "false_positives": [
+          {
+            "title": "Use of weak password hashing in tutorial003.py",
+            "description": "The fake_hash_password function in tutorial003.py uses a simple concatenation of 'fakehashed' with the password, which provides no security. This is explicitly noted in the code as 'This doesn't provide any security at all' but is still presented as a demonstration example that could mislead developers. The actual password hash in the fake_users_db is 'fakehashedsecret' which is easily guessable.",
+            "file": "docs/src/security/tutorial003.py",
+            "line": "6-34",
+            "severity": "critical",
+            "category": "security",
+            "recommendation": "Replace the fake_hash_password function with a proper password hashing library like passlib or bcrypt. The current implementation should not be used in production as it offers no security against rainbow table attacks or brute force attacks."
+          },
+          {
+            "title": "Insecure authentication implementation in tutorial001.py",
+            "description": "The authentication in tutorial001.py is completely insecure as it uses the OAuth2 Bearer token directly without any validation or hashing. The token is simply echoed back to the user without any mechanism to validate its authenticity. This creates a significant security vulnerability where any token can be used to authenticate as any user.",
+            "file": "docs/src/security/tutorial001.py",
+            "line": "9-11",
+            "severity": "critical",
+            "category": "security",
+            "recommendation": "Implement proper token validation using JWT with a secret key. Include expiration timestamps and validate the token signature to prevent token forgery. The current implementation should not be used in any real application."
+          },
+          {
+            "title": "Incomplete access control in tutorial001.py",
+            "description": "The tutorial001.py example shows a simple authentication flow but doesn't implement any access control or user role validation. The endpoint returns the token without checking if the user is authorized to access the requested resource, which could lead to privilege escalation issues.",
+            "file": "docs/src/security/tutorial001.py",
+            "line": "9-11",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Implement proper authorization checks that verify user roles or permissions before granting access to resources. Use dependency injection with role-based access control to ensure users can only access resources they're authorized to."
+          },
+          {
+            "title": "Missing input validation for credentials in tutorial006.py",
+            "description": "The tutorial006.py example uses HTTP Basic Authentication but doesn't validate the format of the username and password inputs. This could lead to potential injection attacks or malformed input issues if the data is not properly sanitized before use.",
+            "file": "docs/src/security/tutorial006.py",
+            "line": "10",
+            "severity": "major",
+            "category": "validation",
+            "recommendation": "Implement proper input validation and sanitization for all credentials. Use appropriate length limits and character restrictions to prevent injection attacks. Validate input format before processing."
+          },
+          {
+            "title": "Potential security flaw in tutorial005.py",
+            "description": "The code in tutorial005.py uses a fixed SECRET_KEY that is hardcoded in the source code. This key is also present in tutorial004.py and is a well-known example key that appears in many security tutorials. If this code were used in production, the security of all tokens would be compromised.",
+            "file": "docs/src/security/tutorial005.py",
+            "line": "18",
+            "severity": "critical",
+            "category": "security",
+            "recommendation": "Never hardcode secrets in source code. Use environment variables or secure secret management systems. In production, the SECRET_KEY should be generated securely and stored outside the codebase."
+          }
+        ],
+        "false_negatives": [
+          {
+            "bug_id": "fastapi-6",
+            "file": "fastapi/dependencies/utils.py",
+            "line_range": "629-637",
+            "description": "Fix dependency resolution for nested dependencies",
+            "category": "http",
+            "severity": "major"
+          }
+        ],
+        "metadata": {
+          "evaluation_timestamp": "2025-08-05T02:16:34.786181",
+          "model_response": {
+            "summary": "The codebase appears to be a FastAPI documentation project with a focus on security tutorials. The security implementations demonstrate good practices in most areas, including proper use of OAuth2, JWT token validation, and bcrypt password hashing. However, there are some critical security issues in the code, particularly in the tutorial003.py file where a naive password hash function is used with an easily guessable hash (fakehashedsecret). The code also contains redundant or commented-out code that could lead to confusion. The documentation project structure is well-organized, but the code examples in the security tutorials contain security anti-patterns that could mislead developers if used without proper understanding of the limitations. The code quality is generally good with proper typing and error handling, but could benefit from improved input validation and more comprehensive error messaging.",
+            "bugs": [
+              {
+                "title": "Use of weak password hashing in tutorial003.py",
+                "description": "The fake_hash_password function in tutorial003.py uses a simple concatenation of 'fakehashed' with the password, which provides no security. This is explicitly noted in the code as 'This doesn't provide any security at all' but is still presented as a demonstration example that could mislead developers. The actual password hash in the fake_users_db is 'fakehashedsecret' which is easily guessable.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "6-34",
+                "severity": "critical",
+                "category": "security",
+                "recommendation": "Replace the fake_hash_password function with a proper password hashing library like passlib or bcrypt. The current implementation should not be used in production as it offers no security against rainbow table attacks or brute force attacks."
+              },
+              {
+                "title": "Insecure authentication implementation in tutorial001.py",
+                "description": "The authentication in tutorial001.py is completely insecure as it uses the OAuth2 Bearer token directly without any validation or hashing. The token is simply echoed back to the user without any mechanism to validate its authenticity. This creates a significant security vulnerability where any token can be used to authenticate as any user.",
+                "file": "docs/src/security/tutorial001.py",
+                "line": "9-11",
+                "severity": "critical",
+                "category": "security",
+                "recommendation": "Implement proper token validation using JWT with a secret key. Include expiration timestamps and validate the token signature to prevent token forgery. The current implementation should not be used in any real application."
+              },
+              {
+                "title": "Incomplete access control in tutorial001.py",
+                "description": "The tutorial001.py example shows a simple authentication flow but doesn't implement any access control or user role validation. The endpoint returns the token without checking if the user is authorized to access the requested resource, which could lead to privilege escalation issues.",
+                "file": "docs/src/security/tutorial001.py",
+                "line": "9-11",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Implement proper authorization checks that verify user roles or permissions before granting access to resources. Use dependency injection with role-based access control to ensure users can only access resources they're authorized to."
+              },
+              {
+                "title": "Missing input validation for credentials in tutorial006.py",
+                "description": "The tutorial006.py example uses HTTP Basic Authentication but doesn't validate the format of the username and password inputs. This could lead to potential injection attacks or malformed input issues if the data is not properly sanitized before use.",
+                "file": "docs/src/security/tutorial006.py",
+                "line": "10",
+                "severity": "major",
+                "category": "validation",
+                "recommendation": "Implement proper input validation and sanitization for all credentials. Use appropriate length limits and character restrictions to prevent injection attacks. Validate input format before processing."
+              },
+              {
+                "title": "Potential security flaw in tutorial005.py",
+                "description": "The code in tutorial005.py uses a fixed SECRET_KEY that is hardcoded in the source code. This key is also present in tutorial004.py and is a well-known example key that appears in many security tutorials. If this code were used in production, the security of all tokens would be compromised.",
+                "file": "docs/src/security/tutorial005.py",
+                "line": "18",
+                "severity": "critical",
+                "category": "security",
+                "recommendation": "Never hardcode secrets in source code. Use environment variables or secure secret management systems. In production, the SECRET_KEY should be generated securely and stored outside the codebase."
+              }
+            ],
+            "nitpicks": [
+              {
+                "title": "Redundant code in tutorial005.py",
+                "description": "The tutorial005.py file contains a lot of redundant code with similar patterns to other tutorial files. The authentication logic is repeated multiple times, which makes the codebase harder to maintain and understand.",
+                "file": "docs/src/security/tutorial005.py",
+                "line": "1-174",
+                "recommendation": "Refactor the code to extract common authentication logic into reusable components or utilities. This would reduce code duplication and make the examples more maintainable."
+              },
+              {
+                "title": "Inconsistent error message formatting",
+                "description": "The error messages in various tutorial files have inconsistent formatting and structure. Some use status codes without proper error details, others include verbose messages that could expose system information.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "40-50",
+                "recommendation": "Standardize error messages across all examples to follow the same format. Use generic error messages that don't expose internal system details while providing enough information for debugging."
+              },
+              {
+                "title": "Missing type hints for function parameters",
+                "description": "Several functions in the security tutorials lack proper type hints for their parameters, which reduces code readability and maintainability. This is particularly notable in the dependency injection functions.",
+                "file": "docs/src/security/tutorial005.py",
+                "line": "106-137",
+                "recommendation": "Add comprehensive type hints to all functions, especially those used for dependency injection. This improves code clarity and helps developers understand the expected input and output types."
+              },
+              {
+                "title": "Incomplete documentation in tutorial001.py",
+                "description": "The tutorial001.py file lacks comprehensive comments explaining the security implications and limitations of the code. The examples are presented without sufficient context about the security risks involved.",
+                "file": "docs/src/security/tutorial001.py",
+                "line": "1-11",
+                "recommendation": "Add comprehensive comments to each example explaining the security trade-offs, limitations, and potential risks. Include warnings about using these examples in production systems."
+              }
+            ],
+            "files_analyzed": 7
+          }
+        }
+      }
+    },
+    {
+      "bug_id": 7,
+      "result": {
+        "summary": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 5,
+          "false_negatives": 1
+        },
+        "analysis": {
+          "total_ground_truth_bugs": 1,
+          "total_detected_bugs": 5,
+          "files_analyzed": 0,
+          "files_with_bugs": 1
+        },
+        "matches": [],
+        "false_positives": [
+          {
+            "title": "Hardcoded SECRET_KEY in plaintext",
+            "description": "The authentication system uses a hardcoded SECRET_KEY in the tutorial code that is meant to be a secret. This is a critical security vulnerability that exposes the application to token spoofing attacks if the code is ever exposed. The key should be loaded from environment variables or a secrets manager.",
+            "file": "docs/src/security/tutorial004.py",
+            "line": "13",
+            "severity": "critical",
+            "category": "security",
+            "recommendation": "Replace the hardcoded SECRET_KEY with environment variable loading using os.getenv('SECRET_KEY'). Ensure the key is properly rotated and managed through environment variables or a secrets manager."
+          },
+          {
+            "title": "Inadequate error handling for JWT token decoding",
+            "description": "The JWT token decoding does not properly handle token expiration or invalid signatures, which could lead to security issues. The current implementation raises the same credentials exception for all JWT errors, making it difficult to distinguish between different failure modes.",
+            "file": "docs/src/security/tutorial004.py",
+            "line": "97",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Implement specific error handling for JWT token expiration (PyJWTError) and invalid signatures. Return more specific error messages to distinguish between different authentication failures."
+          },
+          {
+            "title": "Potential SQL injection in database queries",
+            "description": "Although the code uses SQLAlchemy ORM in the tutorials, the pattern of string formatting in queries could lead to SQL injection if the application uses raw SQL queries. The codebase shows examples of string building that could be vulnerable to injection.",
+            "file": "docs/src/sql_databases/sql_app/crud.py",
+            "line": "6",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Always use parameterized queries or ORM methods with proper escaping, never concatenate user input directly into SQL strings."
+          },
+          {
+            "title": "Missing input validation for optional parameters",
+            "description": "The application allows certain parameters to be optional but doesn't validate their presence when required by business logic. This could lead to unexpected behavior or data integrity issues.",
+            "file": "docs/src/body_multiple_params/tutorial001.py",
+            "line": "15",
+            "severity": "major",
+            "category": "validation",
+            "recommendation": "Implement proper validation for all parameters, particularly those that are conditionally required based on other parameter values."
+          },
+          {
+            "title": "Inconsistent exception handling for authentication",
+            "description": "The authentication system uses different HTTP status codes for similar failure types (e.g., 401 for incorrect credentials vs 400 for inactive users). This inconsistency makes it difficult to handle authentication failures predictably.",
+            "file": "docs/src/security/tutorial004.py",
+            "line": "120",
+            "severity": "major",
+            "category": "error-handling",
+            "recommendation": "Use consistent HTTP status codes for related failure types and provide clear, standardized error messages in the response body."
+          }
+        ],
+        "false_negatives": [
+          {
+            "bug_id": "fastapi-7",
+            "file": "fastapi/exception_handlers.py",
+            "line_range": "1-4",
+            "description": "Fix exception handler import and registration",
+            "category": "validation",
+            "severity": "major"
+          }
+        ],
+        "metadata": {
+          "evaluation_timestamp": "2025-08-05T02:17:49.409051",
+          "model_response": {
+            "summary": "The codebase is a FastAPI application with comprehensive documentation and tutorial examples. The core security implementation in the JWT authentication workflow is solid, but contains a critical security flaw: a hardcoded SECRET_KEY in plaintext within the code. This exposes the application to potential compromise if the code is leaked. The code quality is generally good with proper use of Pydantic models and dependency injection, but there are areas for improvement in error handling and maintainability. Performance is adequate for typical use cases, though the application doesn't implement connection pooling or caching for database operations. Error handling is implemented but could be more robust with better logging and user feedback.",
+            "bugs": [
+              {
+                "title": "Hardcoded SECRET_KEY in plaintext",
+                "description": "The authentication system uses a hardcoded SECRET_KEY in the tutorial code that is meant to be a secret. This is a critical security vulnerability that exposes the application to token spoofing attacks if the code is ever exposed. The key should be loaded from environment variables or a secrets manager.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "13",
+                "severity": "critical",
+                "category": "security",
+                "recommendation": "Replace the hardcoded SECRET_KEY with environment variable loading using os.getenv('SECRET_KEY'). Ensure the key is properly rotated and managed through environment variables or a secrets manager."
+              },
+              {
+                "title": "Inadequate error handling for JWT token decoding",
+                "description": "The JWT token decoding does not properly handle token expiration or invalid signatures, which could lead to security issues. The current implementation raises the same credentials exception for all JWT errors, making it difficult to distinguish between different failure modes.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "97",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Implement specific error handling for JWT token expiration (PyJWTError) and invalid signatures. Return more specific error messages to distinguish between different authentication failures."
+              },
+              {
+                "title": "Potential SQL injection in database queries",
+                "description": "Although the code uses SQLAlchemy ORM in the tutorials, the pattern of string formatting in queries could lead to SQL injection if the application uses raw SQL queries. The codebase shows examples of string building that could be vulnerable to injection.",
+                "file": "docs/src/sql_databases/sql_app/crud.py",
+                "line": "6",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Always use parameterized queries or ORM methods with proper escaping, never concatenate user input directly into SQL strings."
+              },
+              {
+                "title": "Missing input validation for optional parameters",
+                "description": "The application allows certain parameters to be optional but doesn't validate their presence when required by business logic. This could lead to unexpected behavior or data integrity issues.",
+                "file": "docs/src/body_multiple_params/tutorial001.py",
+                "line": "15",
+                "severity": "major",
+                "category": "validation",
+                "recommendation": "Implement proper validation for all parameters, particularly those that are conditionally required based on other parameter values."
+              },
+              {
+                "title": "Inconsistent exception handling for authentication",
+                "description": "The authentication system uses different HTTP status codes for similar failure types (e.g., 401 for incorrect credentials vs 400 for inactive users). This inconsistency makes it difficult to handle authentication failures predictably.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "120",
+                "severity": "major",
+                "category": "error-handling",
+                "recommendation": "Use consistent HTTP status codes for related failure types and provide clear, standardized error messages in the response body."
+              }
+            ],
+            "nitpicks": [
+              {
+                "title": "Missing type hints for function parameters",
+                "description": "Several functions in the codebase are missing explicit type annotations for their parameters, which reduces code readability and can lead to type-related issues during refactoring.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "117",
+                "recommendation": "Add explicit type annotations for all function parameters to improve code clarity and enable better IDE support."
+              },
+              {
+                "title": "Redundant imports",
+                "description": "The file imports both jwt and PyJWTError, but only uses jwt for the encode function. The PyJWTError import is not used in this file.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "6",
+                "recommendation": "Remove unused imports to reduce code clutter and potential confusion about what is being used."
+              },
+              {
+                "title": "Inconsistent naming of security scheme",
+                "description": "The security scheme is referred to as both 'oauth2_scheme' and 'reusable_oauth2' in different parts of the codebase, which could lead to confusion about the proper way to use the authentication system.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "51",
+                "recommendation": "Standardize on one naming convention for the authentication scheme across the codebase to improve consistency and maintainability."
+              },
+              {
+                "title": "Missing docstrings for utility functions",
+                "description": "Several utility functions like get_password_hash, verify_password, and create_access_token lack docstrings that explain their purpose, parameters, and return values.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "56",
+                "recommendation": "Add comprehensive docstrings to all utility functions to improve code documentation and maintainability."
+              },
+              {
+                "title": "Hardcoded token expiration time",
+                "description": "The access token expiration time is hardcoded as 30 minutes in the tutorial code, which may not be appropriate for all production scenarios.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "15",
+                "recommendation": "Make the token expiration time configurable through environment variables to allow for different security requirements in different deployment environments."
+              }
+            ],
+            "files_analyzed": 1
+          }
+        }
+      }
+    },
+    {
+      "bug_id": 8,
+      "result": {
+        "summary": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 7,
+          "false_negatives": 1
+        },
+        "analysis": {
+          "total_ground_truth_bugs": 1,
+          "total_detected_bugs": 7,
+          "files_analyzed": 0,
+          "files_with_bugs": 1
+        },
+        "matches": [],
+        "false_positives": [
+          {
+            "title": "Inconsistent Error Messages in Authentication Flows",
+            "description": "Multiple tutorials contain inconsistent error messages that reveal too much information to potential attackers. For example, tutorial003.py and tutorial004.py differentiate between 'Incorrect username or password' and 'Invalid authentication credentials', which could be exploited for username enumeration attacks. The error message should always be consistent and non-specific to prevent information leakage.",
+            "file": "docs/src/security/tutorial003.py",
+            "line": "78, 81",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Standardize error messages across all authentication endpoints to consistently return 'Invalid authentication credentials' regardless of the specific failure reason (incorrect username, password, or invalid token)."
+          },
+          {
+            "title": "Hardcoded Secrets in Production Code",
+            "description": "The SECRET_KEY is hardcoded in multiple tutorial files (tutorial004.py and tutorial005.py) as a string literal. This is a critical security vulnerability as it exposes the application's secret key, allowing attackers to forge tokens and gain unauthorized access to protected endpoints.",
+            "file": "docs/src/security/tutorial004.py",
+            "line": "13",
+            "severity": "critical",
+            "category": "security",
+            "recommendation": "Never hardcode secrets in source code. Use environment variables to store the SECRET_KEY and load it at runtime. For example, use os.getenv('SECRET_KEY') instead of the hardcoded string."
+          },
+          {
+            "title": "Inadequate Hashing Algorithm in Tutorial003.py",
+            "description": "Tutorial003.py uses a simplistic 'fake_hash_password' function that prefixes 'fakehashed' to the password. This is completely insecure and does not provide any cryptographic protection. It should use a proper hashing algorithm like bcrypt or Argon2.",
+            "file": "docs/src/security/tutorial003.py",
+            "line": "26",
+            "severity": "critical",
+            "category": "security",
+            "recommendation": "Replace the fake_hash_password function with a proper password hashing algorithm using bcrypt or Argon2. The example should demonstrate industry-standard password hashing practices."
+          },
+          {
+            "title": "Insecure Password Comparison in Authentication",
+            "description": "The authentication flow in tutorial003.py compares password hashes directly with string equality (hashed_password == user.hashed_password). This is vulnerable to timing attacks which can allow attackers to determine the correct hash through timing analysis.",
+            "file": "docs/src/security/tutorial003.py",
+            "line": "81",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Use constant-time comparison functions like 'hmac.compare_digest()' to compare the password hashes, which mitigates timing attacks."
+          },
+          {
+            "title": "Missing Input Validation on Token Scopes",
+            "description": "In tutorial005.py, the token scopes are directly taken from the form_data.scopes without validation. This allows unauthenticated users to potentially request any scope by manipulating the request body, leading to privilege escalation vulnerabilities.",
+            "file": "docs/src/security/tutorial005.py",
+            "line": "155",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Validate that the requested scopes are within a predefined set of allowed scopes before including them in the token. Implement a whitelist of valid scopes and reject requests with invalid scopes."
+          },
+          {
+            "title": "Unvalidated User Input in OAuth2 Flow",
+            "description": "In tutorial005.py, the username and password are used directly in the token creation without input validation. This could potentially lead to injection attacks if the values contain malicious characters that could be exploited in subsequent operations.",
+            "file": "docs/src/security/tutorial005.py",
+            "line": "155",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Implement proper input validation for username and password fields, including length limits and character sanitization, before using them in token creation."
+          },
+          {
+            "title": "Missing Error Handling for JWT Decoding",
+            "description": "In tutorial004.py, the JWT decoding logic doesn't handle all possible error cases that could occur during decoding, such as expired tokens or malformed tokens with invalid signatures. This could lead to unexpected behavior or security vulnerabilities.",
+            "file": "docs/src/security/tutorial004.py",
+            "line": "97",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Implement comprehensive error handling for JWT decoding that explicitly checks for expired tokens, invalid signatures, and other common JWT errors, returning appropriate HTTP error codes for each case."
+          }
+        ],
+        "false_negatives": [
+          {
+            "bug_id": "fastapi-8",
+            "file": "fastapi/routing.py",
+            "line_range": "348-357",
+            "description": "Fix route matching and parameter extraction",
+            "category": "http",
+            "severity": "major"
+          }
+        ],
+        "metadata": {
+          "evaluation_timestamp": "2025-08-05T02:19:44.439909",
+          "model_response": {
+            "summary": "The codebase consists of tutorial examples for FastAPI security implementations. The review focused on common security patterns, with particular attention to authentication, input validation, and error handling. All security-critical areas have been thoroughly examined. The code demonstrates a good understanding of authentication patterns, particularly OAuth2 with JWT, but exhibits significant quality and consistency issues that affect maintainability and best practices compliance.",
+            "bugs": [
+              {
+                "title": "Inconsistent Error Messages in Authentication Flows",
+                "description": "Multiple tutorials contain inconsistent error messages that reveal too much information to potential attackers. For example, tutorial003.py and tutorial004.py differentiate between 'Incorrect username or password' and 'Invalid authentication credentials', which could be exploited for username enumeration attacks. The error message should always be consistent and non-specific to prevent information leakage.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "78, 81",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Standardize error messages across all authentication endpoints to consistently return 'Invalid authentication credentials' regardless of the specific failure reason (incorrect username, password, or invalid token)."
+              },
+              {
+                "title": "Hardcoded Secrets in Production Code",
+                "description": "The SECRET_KEY is hardcoded in multiple tutorial files (tutorial004.py and tutorial005.py) as a string literal. This is a critical security vulnerability as it exposes the application's secret key, allowing attackers to forge tokens and gain unauthorized access to protected endpoints.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "13",
+                "severity": "critical",
+                "category": "security",
+                "recommendation": "Never hardcode secrets in source code. Use environment variables to store the SECRET_KEY and load it at runtime. For example, use os.getenv('SECRET_KEY') instead of the hardcoded string."
+              },
+              {
+                "title": "Inadequate Hashing Algorithm in Tutorial003.py",
+                "description": "Tutorial003.py uses a simplistic 'fake_hash_password' function that prefixes 'fakehashed' to the password. This is completely insecure and does not provide any cryptographic protection. It should use a proper hashing algorithm like bcrypt or Argon2.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "26",
+                "severity": "critical",
+                "category": "security",
+                "recommendation": "Replace the fake_hash_password function with a proper password hashing algorithm using bcrypt or Argon2. The example should demonstrate industry-standard password hashing practices."
+              },
+              {
+                "title": "Insecure Password Comparison in Authentication",
+                "description": "The authentication flow in tutorial003.py compares password hashes directly with string equality (hashed_password == user.hashed_password). This is vulnerable to timing attacks which can allow attackers to determine the correct hash through timing analysis.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "81",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Use constant-time comparison functions like 'hmac.compare_digest()' to compare the password hashes, which mitigates timing attacks."
+              },
+              {
+                "title": "Missing Input Validation on Token Scopes",
+                "description": "In tutorial005.py, the token scopes are directly taken from the form_data.scopes without validation. This allows unauthenticated users to potentially request any scope by manipulating the request body, leading to privilege escalation vulnerabilities.",
+                "file": "docs/src/security/tutorial005.py",
+                "line": "155",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Validate that the requested scopes are within a predefined set of allowed scopes before including them in the token. Implement a whitelist of valid scopes and reject requests with invalid scopes."
+              },
+              {
+                "title": "Unvalidated User Input in OAuth2 Flow",
+                "description": "In tutorial005.py, the username and password are used directly in the token creation without input validation. This could potentially lead to injection attacks if the values contain malicious characters that could be exploited in subsequent operations.",
+                "file": "docs/src/security/tutorial005.py",
+                "line": "155",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Implement proper input validation for username and password fields, including length limits and character sanitization, before using them in token creation."
+              },
+              {
+                "title": "Missing Error Handling for JWT Decoding",
+                "description": "In tutorial004.py, the JWT decoding logic doesn't handle all possible error cases that could occur during decoding, such as expired tokens or malformed tokens with invalid signatures. This could lead to unexpected behavior or security vulnerabilities.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "97",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Implement comprehensive error handling for JWT decoding that explicitly checks for expired tokens, invalid signatures, and other common JWT errors, returning appropriate HTTP error codes for each case."
+              }
+            ],
+            "nitpicks": [
+              {
+                "title": "Inconsistent Naming Conventions",
+                "description": "The codebase uses inconsistent naming conventions for variables and functions. Some functions use snake_case (get_current_user), while others use camelCase (fake_decode_token). This inconsistency makes the code harder to read and maintain.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "24, 50, 75",
+                "recommendation": "Standardize on snake_case for all function and variable names throughout the codebase to maintain consistency and adhere to Python's PEP 8 style guide."
+              },
+              {
+                "title": "Redundant Comments in Authentication Tutorials",
+                "description": "Many authentication tutorials contain redundant comments like 'This doesn't provide any security at all' or 'Check the next version'. These comments are unhelpful and could be misleading to developers who might think the code is being updated soon.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "52",
+                "recommendation": "Remove redundant comments that don't provide value. Instead, focus on explaining the security implications and best practices in a more informative way."
+              },
+              {
+                "title": "Inconsistent Use of Type Hints and Annotation",
+                "description": "The codebase shows inconsistent use of type hints. Some functions have complete type annotations while others don't, making the code less readable and maintainable.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "7, 79",
+                "recommendation": "Apply consistent type hints to all function parameters and return values throughout the codebase to improve code clarity and enable better tooling support."
+              },
+              {
+                "title": "Non-Descriptive Variable Names",
+                "description": "The code uses non-descriptive variable names like 'fake_users_db', 'fake_hash_password', and 'fake_decode_token'. These names suggest the code is for demonstration purposes only but are not clear about the security implications.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "7, 26, 50",
+                "recommendation": "Use more descriptive names that clearly indicate the purpose and security implications of the code, such as 'in_memory_user_database', 'dummy_password_hasher', and 'mock_token_decoder'."
+              },
+              {
+                "title": "Missing Documentation for Security Patterns",
+                "description": "While the tutorials demonstrate security patterns, they lack comprehensive documentation explaining why certain approaches are secure and others are not. This makes it difficult for developers to understand the security rationale behind the implementation.",
+                "file": "docs/src/security/tutorial005.py",
+                "line": "1, 7",
+                "recommendation": "Add detailed comments and documentation explaining the security benefits of the implemented patterns, such as why proper JWT validation is important and what threats it mitigates."
+              }
+            ],
+            "files_analyzed": 13
+          }
+        }
+      }
+    },
+    {
+      "bug_id": 9,
+      "result": {
+        "summary": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 1
+        },
+        "analysis": {
+          "total_ground_truth_bugs": 1,
+          "total_detected_bugs": 0,
+          "files_analyzed": 0,
+          "files_with_bugs": 1
+        },
+        "matches": [],
+        "false_positives": [],
+        "false_negatives": [
+          {
+            "bug_id": "fastapi-9",
+            "file": "fastapi/dependencies/utils.py",
+            "line_range": "559-566",
+            "description": "Fix dependency parameter type validation",
+            "category": "typing",
+            "severity": "major"
+          }
+        ],
+        "metadata": {
+          "evaluation_timestamp": "2025-08-05T02:23:59.168339",
+          "model_response": {
+            "summary": "The codebase is a documentation repository (likely for FastAPI) with no executable Python code files present. The documentation structure is well-organized but no actual source code was found for review, preventing identification of security vulnerabilities, code quality issues, performance problems, or error handling concerns.",
+            "bugs": [],
+            "nitpicks": [],
+            "files_analyzed": 0
+          }
+        }
+      }
+    },
+    {
+      "bug_id": 10,
+      "result": {
+        "summary": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 1
+        },
+        "analysis": {
+          "total_ground_truth_bugs": 1,
+          "total_detected_bugs": 0,
+          "files_analyzed": 0,
+          "files_with_bugs": 1
+        },
+        "matches": [],
+        "false_positives": [],
+        "false_negatives": [
+          {
+            "bug_id": "fastapi-10",
+            "file": "fastapi/routing.py",
+            "line_range": "52-59",
+            "description": "Fix route initialization and middleware setup",
+            "category": "validation",
+            "severity": "major"
+          }
+        ],
+        "metadata": {
+          "evaluation_timestamp": "2025-08-05T02:25:28.002431",
+          "model_response": {
+            "summary": "The codebase consists of FastAPI tutorial examples that demonstrate proper security practices, input validation, and error handling. The code shows no critical security vulnerabilities, with proper authentication patterns using OAuth2 and JWT. All examples follow FastAPI best practices with proper type hints, validation, and error handling. The documentation is accurate and aligns with the code. No performance issues were identified as the code focuses on demonstrating API patterns rather than production systems.",
+            "bugs": [],
+            "nitpicks": [
+              {
+                "title": "Missing proper password hashing in tutorial",
+                "description": "The tutorial uses a simple 'fakehashed' prefix for passwords, which is inadequate for production systems and could mislead developers about proper password security practices.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "00026-00027",
+                "recommendation": "Replace the fake_password_hash function with a proper password hashing implementation using libraries like bcrypt or passlib, and add a comment explaining this is for demonstration purposes only."
+              },
+              {
+                "title": "Lack of explicit error messages in auth flow",
+                "description": "The authentication error messages are generic ('Incorrect username or password') which could be exploited to enumerate valid usernames via timing or response differences.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "00077-00080",
+                "recommendation": "Use consistent error messages for both invalid usernames and passwords to prevent username enumeration attacks."
+              },
+              {
+                "title": "Insecure token generation in tutorial",
+                "description": "The tutorial generates access tokens using only the username, which provides minimal security and could be predictable.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "00084",
+                "recommendation": "Replace the simple token generation with a proper JWT implementation using a secure signing algorithm and include proper claims and expiration times."
+              },
+              {
+                "title": "No rate limiting in authentication endpoints",
+                "description": "The authentication endpoints are vulnerable to brute force attacks as there is no rate limiting implemented.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "00074-00084",
+                "recommendation": "Implement rate limiting on authentication endpoints using FastAPI middleware or external libraries like starlette-rate-limit."
+              },
+              {
+                "title": "Incomplete JWT implementation in tutorial",
+                "description": "The tutorial shows OAuth2 flow but doesn't implement the full JWT verification process including signature validation, expiration checks, and proper token refresh mechanisms.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "00050-00054",
+                "recommendation": "Extend the tutorial to include a proper JWT implementation with signature verification, expiration checks, and refresh token handling."
+              }
+            ],
+            "files_analyzed": 4
+          }
+        }
+      }
+    },
+    {
+      "bug_id": 11,
+      "result": {
+        "summary": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 5,
+          "false_negatives": 1
+        },
+        "analysis": {
+          "total_ground_truth_bugs": 1,
+          "total_detected_bugs": 5,
+          "files_analyzed": 0,
+          "files_with_bugs": 1
+        },
+        "matches": [],
+        "false_positives": [
+          {
+            "title": "Hardcoded Secrets in Source Code",
+            "description": "The project contains hardcoded JWT secrets (SECRET_KEY) in multiple files (tutorial004.py, tutorial005.py). This is a critical security vulnerability as these secrets are directly exposed in the repository code. In production, secrets should never be hardcoded and should be loaded from environment variables.",
+            "file": "docs/src/security/tutorial004.py",
+            "line": "13",
+            "severity": "critical",
+            "category": "security",
+            "recommendation": "Move the SECRET_KEY to environment variables and load it using os.getenv(\"SECRET_KEY\"). Use a .env file for development and ensure it's added to .gitignore. Validate that secrets are never committed to version control."
+          },
+          {
+            "title": "Insecure Password Storage in Test Data",
+            "description": "The code contains hardcoded password hashes in fake_users_db (tutorial004.py, tutorial005.py). While this is acceptable for demonstration purposes, it represents a security anti-pattern for production applications. These hashes should not be included in the codebase as they could be exploited if the code is ever deployed publicly.",
+            "file": "docs/src/security/tutorial004.py",
+            "line": "23",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Remove the hardcoded password hashes from the codebase for production use. In a real application, these would be stored in a secure database and retrieved at runtime. Consider using database seeding scripts instead of hardcoded data."
+          },
+          {
+            "title": "Incomplete Error Information Disclosure",
+            "description": "In the login endpoint (tutorial004.py), the error message for failed authentication is \"Incorrect username or password\". This is actually a security risk because it reveals whether the username exists or not, which can be exploited in brute force attacks by distinguishing between 'invalid username' and 'wrong password' errors.",
+            "file": "docs/src/security/tutorial004.py",
+            "line": "120",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Standardize error messages to always say \"Invalid credentials\" regardless of the specific reason for failure. This prevents information leakage about whether usernames exist in the system."
+          },
+          {
+            "title": "Potential Race Condition in Token Validation",
+            "description": "In the get_current_user function (tutorial004.py), there's a potential race condition between token validation and user retrieval from fake_users_db. If the database is modified between these operations, an attacker could potentially exploit this timing window to gain unauthorized access.",
+            "file": "docs/src/security/tutorial004.py",
+            "line": "97",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Use atomic operations when validating tokens against user data. Consider implementing a locking mechanism or ensuring that the user database is thread-safe. In production, use a properly secured database with proper locking mechanisms."
+          },
+          {
+            "title": "Missing Input Validation for Scopes",
+            "description": "The code allows scopes to be passed unvalidated through the login endpoint (tutorial005.py). This could allow an attacker to request excessive permissions by including unexpected scope values in the login request.",
+            "file": "docs/src/security/tutorial005.py",
+            "line": "155",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Validate that scopes are from a predefined set of allowed values before including them in the token. Use a whitelist approach to prevent arbitrary scope values."
+          }
+        ],
+        "false_negatives": [
+          {
+            "bug_id": "fastapi-11",
+            "file": "fastapi/dependencies/utils.py",
+            "line_range": "131-147",
+            "description": "Fix dependency injection with complex type annotations",
+            "category": "typing",
+            "severity": "major"
+          }
+        ],
+        "metadata": {
+          "evaluation_timestamp": "2025-08-05T02:26:56.380055",
+          "model_response": {
+            "summary": "The codebase appears to be a documentation project for FastAPI, showcasing various functionality through tutorial examples. The core application is minimal, with focus on demonstrating security patterns, authentication mechanisms, and API patterns. The project uses FastAPI with Pydantic models for type validation and JWT for authentication. While the code is well-structured and follows FastAPI best practices, there are several critical security issues related to hardcoded secrets and potential information exposure vulnerabilities.",
+            "bugs": [
+              {
+                "title": "Hardcoded Secrets in Source Code",
+                "description": "The project contains hardcoded JWT secrets (SECRET_KEY) in multiple files (tutorial004.py, tutorial005.py). This is a critical security vulnerability as these secrets are directly exposed in the repository code. In production, secrets should never be hardcoded and should be loaded from environment variables.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "13",
+                "severity": "critical",
+                "category": "security",
+                "recommendation": "Move the SECRET_KEY to environment variables and load it using os.getenv(\"SECRET_KEY\"). Use a .env file for development and ensure it's added to .gitignore. Validate that secrets are never committed to version control."
+              },
+              {
+                "title": "Insecure Password Storage in Test Data",
+                "description": "The code contains hardcoded password hashes in fake_users_db (tutorial004.py, tutorial005.py). While this is acceptable for demonstration purposes, it represents a security anti-pattern for production applications. These hashes should not be included in the codebase as they could be exploited if the code is ever deployed publicly.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "23",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Remove the hardcoded password hashes from the codebase for production use. In a real application, these would be stored in a secure database and retrieved at runtime. Consider using database seeding scripts instead of hardcoded data."
+              },
+              {
+                "title": "Incomplete Error Information Disclosure",
+                "description": "In the login endpoint (tutorial004.py), the error message for failed authentication is \"Incorrect username or password\". This is actually a security risk because it reveals whether the username exists or not, which can be exploited in brute force attacks by distinguishing between 'invalid username' and 'wrong password' errors.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "120",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Standardize error messages to always say \"Invalid credentials\" regardless of the specific reason for failure. This prevents information leakage about whether usernames exist in the system."
+              },
+              {
+                "title": "Potential Race Condition in Token Validation",
+                "description": "In the get_current_user function (tutorial004.py), there's a potential race condition between token validation and user retrieval from fake_users_db. If the database is modified between these operations, an attacker could potentially exploit this timing window to gain unauthorized access.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "97",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Use atomic operations when validating tokens against user data. Consider implementing a locking mechanism or ensuring that the user database is thread-safe. In production, use a properly secured database with proper locking mechanisms."
+              },
+              {
+                "title": "Missing Input Validation for Scopes",
+                "description": "The code allows scopes to be passed unvalidated through the login endpoint (tutorial005.py). This could allow an attacker to request excessive permissions by including unexpected scope values in the login request.",
+                "file": "docs/src/security/tutorial005.py",
+                "line": "155",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Validate that scopes are from a predefined set of allowed values before including them in the token. Use a whitelist approach to prevent arbitrary scope values."
+              }
+            ],
+            "nitpicks": [
+              {
+                "title": "Inconsistent Error Message Formatting",
+                "description": "Error messages are inconsistently formatted across the codebase, with some using single quotes and others using double quotes. This affects code consistency and maintainability.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "121",
+                "recommendation": "Standardize error message formatting across the codebase using double quotes for consistency with Python style guidelines."
+              },
+              {
+                "title": "Redundant Function Parameter",
+                "description": "The get_current_user function in tutorial004.py has a redundant 'token' parameter that is not used directly. It's only used indirectly through the OAuth2PasswordBearer dependency, which is unnecessary complexity.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "90",
+                "recommendation": "Remove the explicit 'token' parameter and let the OAuth2PasswordBearer dependency handle the token processing directly. This simplifies the function signature."
+              },
+              {
+                "title": "Missing Docstrings for Utility Functions",
+                "description": "Several utility functions like verify_password and get_password_hash lack docstrings that explain their purpose and parameters, making the code less maintainable.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "56",
+                "recommendation": "Add comprehensive docstrings to utility functions explaining their purpose, parameters, return values, and any side effects."
+              },
+              {
+                "title": "Inconsistent Naming for Security Functions",
+                "description": "The security functions use inconsistent naming conventions (e.g., get_current_user vs get_current_active_user). This makes it harder to understand the security hierarchy in the code.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "90",
+                "recommendation": "Use consistent naming conventions for security-related functions, possibly with prefixes like 'auth_' or 'security_' to indicate their purpose."
+              }
+            ],
+            "files_analyzed": 9
+          }
+        }
+      }
+    },
+    {
+      "bug_id": 12,
+      "result": {
+        "summary": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 5,
+          "false_negatives": 1
+        },
+        "analysis": {
+          "total_ground_truth_bugs": 1,
+          "total_detected_bugs": 5,
+          "files_analyzed": 0,
+          "files_with_bugs": 1
+        },
+        "matches": [],
+        "false_positives": [
+          {
+            "title": "Hardcoded SECRET_KEY in security tutorials",
+            "description": "Multiple security tutorial files contain hardcoded SECRET_KEY values that should never be exposed in production. This key is used for JWT token signing and verification, and if compromised, could allow attackers to forge valid tokens and gain unauthorized access to the system. The key is exposed in tutorial004.py and tutorial005.py.",
+            "file": "./docs/src/security/tutorial004.py",
+            "line": "13",
+            "severity": "critical",
+            "category": "security",
+            "recommendation": "Remove the hardcoded SECRET_KEY and use environment variables or configuration files to store sensitive information. Use a secure method to generate the key, such as running 'openssl rand -hex 32' to generate a random 32-byte key."
+          },
+          {
+            "title": "Inconsistent parameter naming and usage",
+            "description": "The codebase shows inconsistent parameter naming and usage patterns across different tutorial files. For example, some functions use 'q' for query parameters while others use 'search' or 'keyword', and the handling of optional parameters varies between using 'None' and explicit 'Optional' type annotation.",
+            "file": "./docs/src/query_params_str_validations/tutorial001.py",
+            "line": "7",
+            "severity": "major",
+            "category": "maintainability",
+            "recommendation": "Establish and enforce consistent naming conventions for parameters across all tutorial files. Use explicit 'Optional' type annotations instead of relying on default values of 'None' to make the code more predictable and easier to maintain."
+          },
+          {
+            "title": "Missing type hints for function parameters",
+            "description": "Several functions in the codebase, particularly in the security tutorials, lack proper type hints for parameters and return values. This makes the code harder to understand and maintain, especially in larger applications where type safety is crucial.",
+            "file": "./docs/src/security/tutorial002.py",
+            "line": "25",
+            "severity": "major",
+            "category": "best-practices",
+            "recommendation": "Add explicit type hints to all function parameters and return values, following the standard patterns in the rest of the codebase. This will improve code readability and enable better tooling support."
+          },
+          {
+            "title": "Inconsistent error handling patterns",
+            "description": "The error handling approaches are inconsistent across files. Some use HTTPException with specific status codes, while others use custom exception handlers without clear patterns. This inconsistency makes the codebase harder to maintain and troubleshoot.",
+            "file": "./docs/src/handling_errors/tutorial004.py",
+            "line": "10",
+            "severity": "major",
+            "category": "error-handling",
+            "recommendation": "Establish a consistent error handling pattern across all tutorial files. Use HTTPException with appropriate status codes for standard errors, and create custom exception handlers with clear error messages for specific use cases."
+          },
+          {
+            "title": "Code duplication across tutorial files",
+            "description": "Similar patterns appear repeatedly across different tutorial files for tasks like authentication, request validation, and dependency injection. This duplication makes the codebase harder to maintain and increases the risk of inconsistencies.",
+            "file": "./docs/src/security/tutorial003.py",
+            "line": "75",
+            "severity": "minor",
+            "category": "maintainability",
+            "recommendation": "Refactor the duplicated code into reusable components or utilities. This will reduce code duplication, improve maintainability, and make it easier to update common patterns across all tutorials."
+          }
+        ],
+        "false_negatives": [
+          {
+            "bug_id": "fastapi-12",
+            "file": "fastapi/security/http.py",
+            "line_range": "112-124",
+            "description": "Fix HTTP security scheme validation",
+            "category": "security",
+            "severity": "major"
+          }
+        ],
+        "metadata": {
+          "evaluation_timestamp": "2025-08-05T02:28:22.815235",
+          "model_response": {
+            "summary": "The codebase appears to be a collection of tutorial examples for a FastAPI-based web framework. The code demonstrates various features like routing, request handling, security, databases, and more. While the tutorials are educational and demonstrate correct patterns, there are several issues that would prevent them from being used in production. The most critical issue is the presence of hardcoded SECRET_KEY values in tutorial files, which should never be exposed in production code. Other concerns include inconsistent error handling, code duplication, improper use of optional parameters, and missing type hints. The code quality is generally good for educational purposes but would require significant refinement for production use.",
+            "bugs": [
+              {
+                "title": "Hardcoded SECRET_KEY in security tutorials",
+                "description": "Multiple security tutorial files contain hardcoded SECRET_KEY values that should never be exposed in production. This key is used for JWT token signing and verification, and if compromised, could allow attackers to forge valid tokens and gain unauthorized access to the system. The key is exposed in tutorial004.py and tutorial005.py.",
+                "file": "./docs/src/security/tutorial004.py",
+                "line": "13",
+                "severity": "critical",
+                "category": "security",
+                "recommendation": "Remove the hardcoded SECRET_KEY and use environment variables or configuration files to store sensitive information. Use a secure method to generate the key, such as running 'openssl rand -hex 32' to generate a random 32-byte key."
+              },
+              {
+                "title": "Inconsistent parameter naming and usage",
+                "description": "The codebase shows inconsistent parameter naming and usage patterns across different tutorial files. For example, some functions use 'q' for query parameters while others use 'search' or 'keyword', and the handling of optional parameters varies between using 'None' and explicit 'Optional' type annotation.",
+                "file": "./docs/src/query_params_str_validations/tutorial001.py",
+                "line": "7",
+                "severity": "major",
+                "category": "maintainability",
+                "recommendation": "Establish and enforce consistent naming conventions for parameters across all tutorial files. Use explicit 'Optional' type annotations instead of relying on default values of 'None' to make the code more predictable and easier to maintain."
+              },
+              {
+                "title": "Missing type hints for function parameters",
+                "description": "Several functions in the codebase, particularly in the security tutorials, lack proper type hints for parameters and return values. This makes the code harder to understand and maintain, especially in larger applications where type safety is crucial.",
+                "file": "./docs/src/security/tutorial002.py",
+                "line": "25",
+                "severity": "major",
+                "category": "best-practices",
+                "recommendation": "Add explicit type hints to all function parameters and return values, following the standard patterns in the rest of the codebase. This will improve code readability and enable better tooling support."
+              },
+              {
+                "title": "Inconsistent error handling patterns",
+                "description": "The error handling approaches are inconsistent across files. Some use HTTPException with specific status codes, while others use custom exception handlers without clear patterns. This inconsistency makes the codebase harder to maintain and troubleshoot.",
+                "file": "./docs/src/handling_errors/tutorial004.py",
+                "line": "10",
+                "severity": "major",
+                "category": "error-handling",
+                "recommendation": "Establish a consistent error handling pattern across all tutorial files. Use HTTPException with appropriate status codes for standard errors, and create custom exception handlers with clear error messages for specific use cases."
+              },
+              {
+                "title": "Code duplication across tutorial files",
+                "description": "Similar patterns appear repeatedly across different tutorial files for tasks like authentication, request validation, and dependency injection. This duplication makes the codebase harder to maintain and increases the risk of inconsistencies.",
+                "file": "./docs/src/security/tutorial003.py",
+                "line": "75",
+                "severity": "minor",
+                "category": "maintainability",
+                "recommendation": "Refactor the duplicated code into reusable components or utilities. This will reduce code duplication, improve maintainability, and make it easier to update common patterns across all tutorials."
+              }
+            ],
+            "nitpicks": [
+              {
+                "title": "Inconsistent use of optional parameters",
+                "description": "The handling of optional parameters varies between files, with some functions using 'None' as default values and others using explicit 'Optional' type annotations. This inconsistency can lead to confusion for developers reading the code.",
+                "file": "./docs/src/query_params_str_validations/tutorial005.py",
+                "line": "7",
+                "recommendation": "Standardize the use of optional parameters across all files, favoring explicit 'Optional' type annotations over relying on default 'None' values."
+              },
+              {
+                "title": "Generic error messages",
+                "description": "Some error messages in the exception handlers are generic and don't provide sufficient information to diagnose issues. For example, 'Incorrect username or password' doesn't help users understand what went wrong.",
+                "file": "./docs/src/security/tutorial003.py",
+                "line": "78",
+                "recommendation": "Provide more specific error messages that help users understand what went wrong, while being careful not to reveal sensitive information about the system."
+              },
+              {
+                "title": "Inconsistent function parameter order",
+                "description": "The order of function parameters varies between files, with some functions placing the main parameter first and others placing optional parameters first. This inconsistency makes the code harder to read and maintain.",
+                "file": "./docs/src/body_multiple_params/tutorial001.py",
+                "line": "15",
+                "recommendation": "Establish and enforce a consistent parameter ordering convention across all files, placing required parameters before optional ones."
+              }
+            ],
+            "files_analyzed": 4
+          }
+        }
+      }
+    },
+    {
+      "bug_id": 13,
+      "result": {
+        "summary": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 2,
+          "false_negatives": 1
+        },
+        "analysis": {
+          "total_ground_truth_bugs": 1,
+          "total_detected_bugs": 2,
+          "files_analyzed": 0,
+          "files_with_bugs": 1
+        },
+        "matches": [],
+        "false_positives": [
+          {
+            "title": "Potential vulnerability in fake authentication implementation",
+            "description": "In tutorial003.py, the fake_decode_token function uses a simple username lookup without proper user authentication, which could lead to authentication bypass if used in production. The function does not validate the token signature or use proper credential verification.",
+            "file": "docs/src/security/tutorial003.py",
+            "line": "64",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Replace the fake_decode_token function with a proper token verification mechanism using secure methods like JWT with proper signature validation, or use a real authentication backend."
+          },
+          {
+            "title": "Hardcoded test credentials in tutorial",
+            "description": "The fake_users_db dictionary in tutorial003.py contains hardcoded test credentials including usernames and hashed passwords that could be misused if this code is copied to production without proper changes.",
+            "file": "docs/src/security/tutorial003.py",
+            "line": "5-20",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Replace the hardcoded credentials with a proper database connection or use environment variables for credentials in production code."
+          }
+        ],
+        "false_negatives": [
+          {
+            "bug_id": "fastapi-13",
+            "file": "fastapi/routing.py",
+            "line_range": "285-295",
+            "description": "Fix route path parameter parsing",
+            "category": "http",
+            "severity": "major"
+          }
+        ],
+        "metadata": {
+          "evaluation_timestamp": "2025-08-05T02:29:52.542777",
+          "model_response": {
+            "summary": "The codebase is a comprehensive collection of FastAPI tutorial examples demonstrating various security and authentication patterns. The code follows best practices with proper use of type hints, dependency injection, and error handling. Security implementations are thorough and cover multiple authentication methods including OAuth2, API keys, and JWT. No critical security vulnerabilities were found, and the code maintains high quality with proper input validation and data sanitization.",
+            "bugs": [
+              {
+                "title": "Potential vulnerability in fake authentication implementation",
+                "description": "In tutorial003.py, the fake_decode_token function uses a simple username lookup without proper user authentication, which could lead to authentication bypass if used in production. The function does not validate the token signature or use proper credential verification.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "64",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Replace the fake_decode_token function with a proper token verification mechanism using secure methods like JWT with proper signature validation, or use a real authentication backend."
+              },
+              {
+                "title": "Hardcoded test credentials in tutorial",
+                "description": "The fake_users_db dictionary in tutorial003.py contains hardcoded test credentials including usernames and hashed passwords that could be misused if this code is copied to production without proper changes.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "5-20",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Replace the hardcoded credentials with a proper database connection or use environment variables for credentials in production code."
+              }
+            ],
+            "nitpicks": [
+              {
+                "title": "Inconsistent error message formatting",
+                "description": "Error messages in different tutorial files use inconsistent formatting (some use 'Incorrect username or password', others use 'Invalid authentication credentials'). This could lead to confusion for users trying to debug authentication issues.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "75, 80",
+                "recommendation": "Standardize error messages across all tutorial files to use consistent wording for better user experience."
+              },
+              {
+                "title": "Missing error detail for authentication failures",
+                "description": "Several authentication endpoints return generic error messages like 'Invalid authentication credentials' without providing specific details about what failed, which could make debugging difficult.",
+                "file": "docs/src/security/tutorial003.py",
+                "line": "59",
+                "recommendation": "Enhance error messages to include specific details about what authentication step failed (e.g., 'Invalid username', 'Wrong password') while maintaining security by not revealing sensitive information."
+              },
+              {
+                "title": "Inconsistent token type in tutorial",
+                "description": "The tutorial004.py example creates a token with type 'bearer' but the OAuth2PasswordBearer scheme expects a 'Bearer' prefix, which could cause confusion for users following the tutorial.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "8",
+                "recommendation": "Update the token_type in the response to match the expected format, or clarify in documentation that the token_type should be 'bearer' (lowercase)."
+              }
+            ],
+            "files_analyzed": 9
+          }
+        }
+      }
+    },
+    {
+      "bug_id": 14,
+      "result": {
+        "summary": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 5,
+          "false_negatives": 1
+        },
+        "analysis": {
+          "total_ground_truth_bugs": 1,
+          "total_detected_bugs": 5,
+          "files_analyzed": 0,
+          "files_with_bugs": 1
+        },
+        "matches": [],
+        "false_positives": [
+          {
+            "title": "Hardcoded secret key in production code",
+            "description": "The tutorial004.py file contains a hardcoded SECRET_KEY (09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7) in the security implementation. This is a critical security vulnerability as it exposes the application to potential token manipulation and authentication bypass.",
+            "file": "./docs/src/security/tutorial004.py",
+            "line": "00013",
+            "severity": "critical",
+            "category": "security",
+            "recommendation": "Replace the hardcoded secret key with a dynamically generated key from environment variables. Use a strong, randomly generated key of at least 32 bytes."
+          },
+          {
+            "title": "Weak password hashing implementation",
+            "description": "The tutorial003.py file uses a simple fake_hash_password function that prepends 'fakehashed' to the password, which provides no real security. This is dangerous in demonstration code as it might be copied to production without proper understanding.",
+            "file": "./docs/src/security/tutorial003.py",
+            "line": "00025",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Use proper password hashing with bcrypt or similar algorithms. In the tutorial, replace the fake_hash_password function with a real implementation using passlib or bcrypt."
+          },
+          {
+            "title": "Insecure JWT token decoding without proper validation",
+            "description": "While the tutorial004.py implements JWT verification, it doesn't properly validate the token's subject (sub) or use a dedicated JWT library with proper error handling. The implementation could be vulnerable to certain attacks.",
+            "file": "./docs/src/security/tutorial004.py",
+            "line": "00093",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Use a comprehensive JWT library with proper validation, including checking the token's subject, expiration, and signature. Add proper error handling for specific JWT errors."
+          },
+          {
+            "title": "Potential SQL injection in query parameters without proper sanitization",
+            "description": "The tutorial001.py file in the query_params directory uses raw string inputs in the URL query (q: str = None) which could lead to injection attacks if used with databases or other systems without proper sanitization.",
+            "file": "./docs/src/query_params/tutorial001.py",
+            "line": "00007",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Implement proper input validation and sanitization for all query parameters. Use parameterized queries when interacting with databases, and consider regex validation for string inputs."
+          },
+          {
+            "title": "Unvalidated input leading to potential XSS",
+            "description": "The query_params/tutorial001.py file passes the query parameter 'q' directly into the response without any sanitization, which could lead to XSS attacks if the response is rendered in a browser context.",
+            "file": "./docs/src/query_params/tutorial001.py",
+            "line": "00010",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Sanitize all user-provided inputs before including them in responses. Consider using a proper HTML escaping library or framework features to prevent XSS."
+          }
+        ],
+        "false_negatives": [
+          {
+            "bug_id": "fastapi-14",
+            "file": "fastapi/openapi/models.py",
+            "line_range": "99-105",
+            "description": "Fix OpenAPI model schema definitions",
+            "category": "http",
+            "severity": "major"
+          }
+        ],
+        "metadata": {
+          "evaluation_timestamp": "2025-08-05T02:31:26.626867",
+          "model_response": {
+            "summary": "The codebase appears to be a collection of tutorials for FastAPI, demonstrating various features like authentication, path operations, query parameters, and security implementations. The project structure is well-organized with tutorials grouped by functionality. The security tutorials demonstrate proper implementation of token-based authentication with OAuth2 and JWT, though some examples use weak password hashing and fake data. The code quality is generally good with proper use of Pydantic models and type hints. Performance issues are minimal in the sample code, and error handling is adequate, though some patterns could be improved. The tutorials follow FastAPI conventions and best practices, though some examples use hard-coded secrets that would be problematic in production.",
+            "bugs": [
+              {
+                "title": "Hardcoded secret key in production code",
+                "description": "The tutorial004.py file contains a hardcoded SECRET_KEY (09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7) in the security implementation. This is a critical security vulnerability as it exposes the application to potential token manipulation and authentication bypass.",
+                "file": "./docs/src/security/tutorial004.py",
+                "line": "00013",
+                "severity": "critical",
+                "category": "security",
+                "recommendation": "Replace the hardcoded secret key with a dynamically generated key from environment variables. Use a strong, randomly generated key of at least 32 bytes."
+              },
+              {
+                "title": "Weak password hashing implementation",
+                "description": "The tutorial003.py file uses a simple fake_hash_password function that prepends 'fakehashed' to the password, which provides no real security. This is dangerous in demonstration code as it might be copied to production without proper understanding.",
+                "file": "./docs/src/security/tutorial003.py",
+                "line": "00025",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Use proper password hashing with bcrypt or similar algorithms. In the tutorial, replace the fake_hash_password function with a real implementation using passlib or bcrypt."
+              },
+              {
+                "title": "Insecure JWT token decoding without proper validation",
+                "description": "While the tutorial004.py implements JWT verification, it doesn't properly validate the token's subject (sub) or use a dedicated JWT library with proper error handling. The implementation could be vulnerable to certain attacks.",
+                "file": "./docs/src/security/tutorial004.py",
+                "line": "00093",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Use a comprehensive JWT library with proper validation, including checking the token's subject, expiration, and signature. Add proper error handling for specific JWT errors."
+              },
+              {
+                "title": "Potential SQL injection in query parameters without proper sanitization",
+                "description": "The tutorial001.py file in the query_params directory uses raw string inputs in the URL query (q: str = None) which could lead to injection attacks if used with databases or other systems without proper sanitization.",
+                "file": "./docs/src/query_params/tutorial001.py",
+                "line": "00007",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Implement proper input validation and sanitization for all query parameters. Use parameterized queries when interacting with databases, and consider regex validation for string inputs."
+              },
+              {
+                "title": "Unvalidated input leading to potential XSS",
+                "description": "The query_params/tutorial001.py file passes the query parameter 'q' directly into the response without any sanitization, which could lead to XSS attacks if the response is rendered in a browser context.",
+                "file": "./docs/src/query_params/tutorial001.py",
+                "line": "00010",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Sanitize all user-provided inputs before including them in responses. Consider using a proper HTML escaping library or framework features to prevent XSS."
+              }
+            ],
+            "nitpicks": [
+              {
+                "title": "Incomplete error handling in password validation",
+                "description": "The fake_decode_token function in tutorial003.py does not handle the case where the decoded token might not contain a username field, which could lead to runtime errors.",
+                "file": "./docs/src/security/tutorial003.py",
+                "line": "00052",
+                "recommendation": "Add proper error handling to check for the existence of required fields before using them, and return None or raise a specific exception if the token is malformed."
+              },
+              {
+                "title": "Inconsistent error message formatting",
+                "description": "The error messages in the authentication tutorials use different formats (e.g., 'Incorrect username or password' vs 'Invalid authentication credentials'), which could confuse users and make debugging harder.",
+                "file": "./docs/src/security/tutorial003.py",
+                "line": "00075",
+                "recommendation": "Standardize error message formats across the application to improve consistency and provide better user feedback."
+              },
+              {
+                "title": "Missing response model validation for login response",
+                "description": "In tutorial004.py, the login endpoint returns a token but doesn't validate the response structure against a proper model, which could lead to inconsistencies in the frontend.",
+                "file": "./docs/src/security/tutorial004.py",
+                "line": "00118",
+                "recommendation": "Define a proper response model for the login endpoint that includes both access_token and token_type fields with proper typing."
+              },
+              {
+                "title": "Redundant code in user model definitions",
+                "description": "Multiple examples (tutorial001.py, tutorial003.py, tutorial004.py) define similar User and UserInDB models with duplicated fields, leading to code duplication.",
+                "file": "./docs/src/security/tutorial003.py",
+                "line": "00028",
+                "recommendation": "Create a base User model that can be inherited by other models to avoid code duplication and maintain consistency across implementations."
+              },
+              {
+                "title": "Missing rate limiting in authentication endpoints",
+                "description": "The login endpoints in tutorial003.py and tutorial004.py have no rate limiting, which could allow brute force attacks against the authentication system.",
+                "file": "./docs/src/security/tutorial004.py",
+                "line": "00111",
+                "recommendation": "Implement rate limiting on authentication endpoints using FastAPI's built-in capabilities or third-party libraries to prevent brute force attacks."
+              }
+            ],
+            "files_analyzed": 8
+          }
+        }
+      }
+    },
+    {
+      "bug_id": 16,
+      "result": {
+        "summary": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 3,
+          "false_negatives": 1
+        },
+        "analysis": {
+          "total_ground_truth_bugs": 1,
+          "total_detected_bugs": 3,
+          "files_analyzed": 0,
+          "files_with_bugs": 1
+        },
+        "matches": [],
+        "false_positives": [
+          {
+            "title": "Hardcoded secret key in production code",
+            "description": "The file docs/src/security/tutorial004.py contains a hardcoded SECRET_KEY value that should never be exposed in production. This key is used for JWT token signing and is critical for application security. The current value '09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7' is static and should be configured through environment variables.",
+            "file": "docs/src/security/tutorial004.py",
+            "line": "14",
+            "severity": "critical",
+            "category": "security",
+            "recommendation": "Replace the hardcoded SECRET_KEY with a value retrieved from an environment variable. Use os.getenv('SECRET_KEY') to load the key from environment variables, and ensure the key is rotated regularly."
+          },
+          {
+            "title": "Potential information leakage in error messages",
+            "description": "The authentication endpoints in docs/src/security/tutorial004.py return detailed error messages like 'Incorrect email or password' which could be used by attackers to enumerate valid usernames. This information leakage could facilitate account enumeration attacks.",
+            "file": "docs/src/security/tutorial004.py",
+            "line": "114",
+            "severity": "major",
+            "category": "security",
+            "recommendation": "Standardize error messages across all authentication endpoints to return a generic message like 'Invalid credentials' regardless of whether the username or password is incorrect. This prevents attackers from determining valid usernames."
+          },
+          {
+            "title": "Inefficient password verification in token validation",
+            "description": "In docs/src/security/tutorial004.py, the get_current_user function calls get_user with the username from the token payload without first validating the token. This creates an unnecessary database lookup and could be optimized by validating the token signature and expiration first.",
+            "file": "docs/src/security/tutorial004.py",
+            "line": "100",
+            "severity": "minor",
+            "category": "performance",
+            "recommendation": "Reorder the validation steps to check token signature, expiration, and subject first before calling get_user to retrieve the user object. This reduces unnecessary database lookups for invalid or expired tokens."
+          }
+        ],
+        "false_negatives": [
+          {
+            "bug_id": "fastapi-16",
+            "file": "fastapi/encoders.py",
+            "line_range": "15-26",
+            "description": "Fix JSON encoder for custom types",
+            "category": "typing",
+            "severity": "major"
+          }
+        ],
+        "metadata": {
+          "evaluation_timestamp": "2025-08-05T02:33:51.724953",
+          "model_response": {
+            "summary": "The codebase appears to be a FastAPI application with extensive documentation tutorials covering various aspects of the framework. The project structure is well-organized with dedicated directories for different features. The security implementation in the tutorials demonstrates a progression from basic authentication to more robust JWT-based authentication with proper password hashing. The code quality is generally good with appropriate type hints, proper use of async/await patterns, and well-structured code. The documentation tutorials provide comprehensive examples for building FastAPI applications with proper security practices, input validation, and error handling.",
+            "bugs": [
+              {
+                "title": "Hardcoded secret key in production code",
+                "description": "The file docs/src/security/tutorial004.py contains a hardcoded SECRET_KEY value that should never be exposed in production. This key is used for JWT token signing and is critical for application security. The current value '09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7' is static and should be configured through environment variables.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "14",
+                "severity": "critical",
+                "category": "security",
+                "recommendation": "Replace the hardcoded SECRET_KEY with a value retrieved from an environment variable. Use os.getenv('SECRET_KEY') to load the key from environment variables, and ensure the key is rotated regularly."
+              },
+              {
+                "title": "Potential information leakage in error messages",
+                "description": "The authentication endpoints in docs/src/security/tutorial004.py return detailed error messages like 'Incorrect email or password' which could be used by attackers to enumerate valid usernames. This information leakage could facilitate account enumeration attacks.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "114",
+                "severity": "major",
+                "category": "security",
+                "recommendation": "Standardize error messages across all authentication endpoints to return a generic message like 'Invalid credentials' regardless of whether the username or password is incorrect. This prevents attackers from determining valid usernames."
+              },
+              {
+                "title": "Inefficient password verification in token validation",
+                "description": "In docs/src/security/tutorial004.py, the get_current_user function calls get_user with the username from the token payload without first validating the token. This creates an unnecessary database lookup and could be optimized by validating the token signature and expiration first.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "100",
+                "severity": "minor",
+                "category": "performance",
+                "recommendation": "Reorder the validation steps to check token signature, expiration, and subject first before calling get_user to retrieve the user object. This reduces unnecessary database lookups for invalid or expired tokens."
+              }
+            ],
+            "nitpicks": [
+              {
+                "title": "Missing error handling for JWT token missing",
+                "description": "The function get_current_user in docs/src/security/tutorial004.py does not handle the case where the token is missing from the request. This could result in a KeyError when trying to decode the token. A more robust implementation would validate the presence of the token before attempting to decode it.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "93",
+                "recommendation": "Add a check to ensure the token is present before attempting to decode it. If the token is missing, return a specific HTTP error like 401 Unauthorized with a clear message about missing authentication credentials."
+              },
+              {
+                "title": "Inconsistent error status codes",
+                "description": "The tutorial uses different HTTP status codes for similar error conditions. For example, unauthorized access uses 403 Forbidden while failed authentication uses 400 Bad Request. This inconsistency could confuse clients and make error handling less predictable.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "97",
+                "recommendation": "Standardize on using HTTP 401 Unauthorized for authentication failures and 403 Forbidden for authorization failures. This follows REST API best practices and makes error handling more predictable."
+              },
+              {
+                "title": "Missing documentation for security endpoints",
+                "description": "The tutorials in the security directory lack comprehensive documentation about the security implications of the code examples. This could lead to developers implementing these patterns without understanding the security trade-offs and potential vulnerabilities.",
+                "file": "docs/src/security/tutorial004.py",
+                "line": "1-127",
+                "recommendation": "Add detailed security notes to each tutorial explaining the security implications of the code, potential attack vectors, and recommended security practices for production deployment."
+              }
+            ],
+            "files_analyzed": 4
+          }
+        }
+      }
+    }
+  ]
+}

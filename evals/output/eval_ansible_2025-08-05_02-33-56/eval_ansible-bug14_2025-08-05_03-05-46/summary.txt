@@ -1,0 +1,33 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 2
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     2
+
+MISSED BUGS (1)
+   1. lib/ansible/galaxy/api.py:21
+      Fix fact gathering and system information collection...
+      Category: error_handling | Severity: major
+
+FALSE POSITIVES (2)
+   1. hacking/build_library/build_ansible/command_plugins/dump_config.py:700
+      Unclear error handling in Vault decryption failures
+   2. hacking/build_library/build_ansible/command_plugins/dump_config.py:64
+      Inadequate input validation for configuration files
+
+============================================================

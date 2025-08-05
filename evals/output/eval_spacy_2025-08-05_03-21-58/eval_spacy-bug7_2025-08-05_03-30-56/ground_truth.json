@@ -1,0 +1,18 @@
+{
+  "project": "spacy",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "spacy-7",
+      "project": "spacy",
+      "file_path": "examples/information_extraction/entity_relations.py",
+      "line_start": 7,
+      "line_end": 13,
+      "description": "Fix named entity recognition boundary detection",
+      "category": "model",
+      "severity": "major",
+      "commit_buggy": "da6e0de34f4947fdebc839df3969c641014cfa97",
+      "commit_fixed": "6f54e59fe7ccb3bacce896ed33d36b39f11cbfaf"
+    }
+  ]
+}

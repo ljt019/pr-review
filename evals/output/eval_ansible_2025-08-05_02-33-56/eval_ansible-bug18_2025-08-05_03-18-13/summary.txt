@@ -1,0 +1,39 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 5
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     5
+
+MISSED BUGS (1)
+   1. lib/ansible/cli/galaxy.py:55
+      Fix async task execution and result collection...
+      Category: variables | Severity: major
+
+FALSE POSITIVES (5)
+   1. ./hacking/build_library/build_ansible/command_plugins/dump_config.py:00063-00065
+      Insufficient input validation for configuration files
+   2. ./hacking/build_library/build_ansible/command_plugins/dump_config.py:00058-00074
+      Lack of proper error handling for file operations
+   3. ./hacking/build_library/build_ansible/command_plugins/dump_config.py:00063-00064
+      Potential memory issues with large configuration files
+   4. ./hacking/build_library/build_ansible/command_plugins/dump_config.py:00073
+      SQL injection risks in configuration processing
+   5. ./hacking/build_library/build_ansible/command_plugins/dump_config.py:00057-00075
+      Insufficient logging for debugging and monitoring
+
+============================================================

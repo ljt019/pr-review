@@ -1,0 +1,37 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 4
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     4
+
+MISSED BUGS (1)
+   1. spacy/language.py:678
+      Fix unicode handling in text preprocessing...
+      Category: pipeline | Severity: major
+
+FALSE POSITIVES (4)
+   1. spacy/cli/train.py:542-553
+      Inconsistent error handling in training pipeline
+   2. spacy/cli/train.py:230-270
+      Missing input validation in training data processing
+   3. spacy/cli/train.py:350-370
+      Potential memory issues in training loop
+   4. spacy/gold.py:400-402
+      Inconsistent error messages in gold corpus processing
+
+============================================================

@@ -1,0 +1,39 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 5
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     5
+
+MISSED BUGS (1)
+   1. black.py:2405
+      Fix parentheses handling in expression formatting...
+      Category: formatting | Severity: major
+
+FALSE POSITIVES (5)
+   1. black.py:00743
+      Potential file content parsing vulnerability in lib2to3_parse
+   2. black.py:00566
+      Improper error handling in file content formatting
+   3. black.py:00401
+      Missing input validation in CLI argument parsing
+   4. black.py:00648
+      Inconsistent handling of empty files in formatting process
+   5. black.py:00476
+      Potential cache poisoning vulnerability
+
+============================================================

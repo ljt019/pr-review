@@ -1,0 +1,18 @@
+{
+  "project": "ansible",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "ansible-17",
+      "project": "ansible",
+      "file_path": "lib/ansible/module_utils/facts/hardware/linux.py",
+      "line_start": 79,
+      "line_end": 87,
+      "description": "Fix callback plugin system and event handling",
+      "category": "automation_logic",
+      "severity": "major",
+      "commit_buggy": "9cb47832d15c61884b30d70f9d4e0f816b064b05",
+      "commit_fixed": "b38cb37728df76e0529243bdce694b18ca0e1163"
+    }
+  ]
+}

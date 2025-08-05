@@ -1,0 +1,201 @@
+{
+  "summary": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "true_positives": 0,
+    "false_positives": 7,
+    "false_negatives": 1
+  },
+  "analysis": {
+    "total_ground_truth_bugs": 1,
+    "total_detected_bugs": 7,
+    "files_analyzed": 0,
+    "files_with_bugs": 1
+  },
+  "matches": [],
+  "false_positives": [
+    {
+      "title": "Inconsistent Error Messages in Authentication Flows",
+      "description": "Multiple tutorials contain inconsistent error messages that reveal too much information to potential attackers. For example, tutorial003.py and tutorial004.py differentiate between 'Incorrect username or password' and 'Invalid authentication credentials', which could be exploited for username enumeration attacks. The error message should always be consistent and non-specific to prevent information leakage.",
+      "file": "docs/src/security/tutorial003.py",
+      "line": "78, 81",
+      "severity": "major",
+      "category": "security",
+      "recommendation": "Standardize error messages across all authentication endpoints to consistently return 'Invalid authentication credentials' regardless of the specific failure reason (incorrect username, password, or invalid token)."
+    },
+    {
+      "title": "Hardcoded Secrets in Production Code",
+      "description": "The SECRET_KEY is hardcoded in multiple tutorial files (tutorial004.py and tutorial005.py) as a string literal. This is a critical security vulnerability as it exposes the application's secret key, allowing attackers to forge tokens and gain unauthorized access to protected endpoints.",
+      "file": "docs/src/security/tutorial004.py",
+      "line": "13",
+      "severity": "critical",
+      "category": "security",
+      "recommendation": "Never hardcode secrets in source code. Use environment variables to store the SECRET_KEY and load it at runtime. For example, use os.getenv('SECRET_KEY') instead of the hardcoded string."
+    },
+    {
+      "title": "Inadequate Hashing Algorithm in Tutorial003.py",
+      "description": "Tutorial003.py uses a simplistic 'fake_hash_password' function that prefixes 'fakehashed' to the password. This is completely insecure and does not provide any cryptographic protection. It should use a proper hashing algorithm like bcrypt or Argon2.",
+      "file": "docs/src/security/tutorial003.py",
+      "line": "26",
+      "severity": "critical",
+      "category": "security",
+      "recommendation": "Replace the fake_hash_password function with a proper password hashing algorithm using bcrypt or Argon2. The example should demonstrate industry-standard password hashing practices."
+    },
+    {
+      "title": "Insecure Password Comparison in Authentication",
+      "description": "The authentication flow in tutorial003.py compares password hashes directly with string equality (hashed_password == user.hashed_password). This is vulnerable to timing attacks which can allow attackers to determine the correct hash through timing analysis.",
+      "file": "docs/src/security/tutorial003.py",
+      "line": "81",
+      "severity": "major",
+      "category": "security",
+      "recommendation": "Use constant-time comparison functions like 'hmac.compare_digest()' to compare the password hashes, which mitigates timing attacks."
+    },
+    {
+      "title": "Missing Input Validation on Token Scopes",
+      "description": "In tutorial005.py, the token scopes are directly taken from the form_data.scopes without validation. This allows unauthenticated users to potentially request any scope by manipulating the request body, leading to privilege escalation vulnerabilities.",
+      "file": "docs/src/security/tutorial005.py",
+      "line": "155",
+      "severity": "major",
+      "category": "security",
+      "recommendation": "Validate that the requested scopes are within a predefined set of allowed scopes before including them in the token. Implement a whitelist of valid scopes and reject requests with invalid scopes."
+    },
+    {
+      "title": "Unvalidated User Input in OAuth2 Flow",
+      "description": "In tutorial005.py, the username and password are used directly in the token creation without input validation. This could potentially lead to injection attacks if the values contain malicious characters that could be exploited in subsequent operations.",
+      "file": "docs/src/security/tutorial005.py",
+      "line": "155",
+      "severity": "major",
+      "category": "security",
+      "recommendation": "Implement proper input validation for username and password fields, including length limits and character sanitization, before using them in token creation."
+    },
+    {
+      "title": "Missing Error Handling for JWT Decoding",
+      "description": "In tutorial004.py, the JWT decoding logic doesn't handle all possible error cases that could occur during decoding, such as expired tokens or malformed tokens with invalid signatures. This could lead to unexpected behavior or security vulnerabilities.",
+      "file": "docs/src/security/tutorial004.py",
+      "line": "97",
+      "severity": "major",
+      "category": "security",
+      "recommendation": "Implement comprehensive error handling for JWT decoding that explicitly checks for expired tokens, invalid signatures, and other common JWT errors, returning appropriate HTTP error codes for each case."
+    }
+  ],
+  "false_negatives": [
+    {
+      "bug_id": "fastapi-8",
+      "file": "fastapi/routing.py",
+      "line_range": "348-357",
+      "description": "Fix route matching and parameter extraction",
+      "category": "http",
+      "severity": "major"
+    }
+  ],
+  "metadata": {
+    "evaluation_timestamp": "2025-08-05T02:19:44.439909",
+    "model_response": {
+      "summary": "The codebase consists of tutorial examples for FastAPI security implementations. The review focused on common security patterns, with particular attention to authentication, input validation, and error handling. All security-critical areas have been thoroughly examined. The code demonstrates a good understanding of authentication patterns, particularly OAuth2 with JWT, but exhibits significant quality and consistency issues that affect maintainability and best practices compliance.",
+      "bugs": [
+        {
+          "title": "Inconsistent Error Messages in Authentication Flows",
+          "description": "Multiple tutorials contain inconsistent error messages that reveal too much information to potential attackers. For example, tutorial003.py and tutorial004.py differentiate between 'Incorrect username or password' and 'Invalid authentication credentials', which could be exploited for username enumeration attacks. The error message should always be consistent and non-specific to prevent information leakage.",
+          "file": "docs/src/security/tutorial003.py",
+          "line": "78, 81",
+          "severity": "major",
+          "category": "security",
+          "recommendation": "Standardize error messages across all authentication endpoints to consistently return 'Invalid authentication credentials' regardless of the specific failure reason (incorrect username, password, or invalid token)."
+        },
+        {
+          "title": "Hardcoded Secrets in Production Code",
+          "description": "The SECRET_KEY is hardcoded in multiple tutorial files (tutorial004.py and tutorial005.py) as a string literal. This is a critical security vulnerability as it exposes the application's secret key, allowing attackers to forge tokens and gain unauthorized access to protected endpoints.",
+          "file": "docs/src/security/tutorial004.py",
+          "line": "13",
+          "severity": "critical",
+          "category": "security",
+          "recommendation": "Never hardcode secrets in source code. Use environment variables to store the SECRET_KEY and load it at runtime. For example, use os.getenv('SECRET_KEY') instead of the hardcoded string."
+        },
+        {
+          "title": "Inadequate Hashing Algorithm in Tutorial003.py",
+          "description": "Tutorial003.py uses a simplistic 'fake_hash_password' function that prefixes 'fakehashed' to the password. This is completely insecure and does not provide any cryptographic protection. It should use a proper hashing algorithm like bcrypt or Argon2.",
+          "file": "docs/src/security/tutorial003.py",
+          "line": "26",
+          "severity": "critical",
+          "category": "security",
+          "recommendation": "Replace the fake_hash_password function with a proper password hashing algorithm using bcrypt or Argon2. The example should demonstrate industry-standard password hashing practices."
+        },
+        {
+          "title": "Insecure Password Comparison in Authentication",
+          "description": "The authentication flow in tutorial003.py compares password hashes directly with string equality (hashed_password == user.hashed_password). This is vulnerable to timing attacks which can allow attackers to determine the correct hash through timing analysis.",
+          "file": "docs/src/security/tutorial003.py",
+          "line": "81",
+          "severity": "major",
+          "category": "security",
+          "recommendation": "Use constant-time comparison functions like 'hmac.compare_digest()' to compare the password hashes, which mitigates timing attacks."
+        },
+        {
+          "title": "Missing Input Validation on Token Scopes",
+          "description": "In tutorial005.py, the token scopes are directly taken from the form_data.scopes without validation. This allows unauthenticated users to potentially request any scope by manipulating the request body, leading to privilege escalation vulnerabilities.",
+          "file": "docs/src/security/tutorial005.py",
+          "line": "155",
+          "severity": "major",
+          "category": "security",
+          "recommendation": "Validate that the requested scopes are within a predefined set of allowed scopes before including them in the token. Implement a whitelist of valid scopes and reject requests with invalid scopes."
+        },
+        {
+          "title": "Unvalidated User Input in OAuth2 Flow",
+          "description": "In tutorial005.py, the username and password are used directly in the token creation without input validation. This could potentially lead to injection attacks if the values contain malicious characters that could be exploited in subsequent operations.",
+          "file": "docs/src/security/tutorial005.py",
+          "line": "155",
+          "severity": "major",
+          "category": "security",
+          "recommendation": "Implement proper input validation for username and password fields, including length limits and character sanitization, before using them in token creation."
+        },
+        {
+          "title": "Missing Error Handling for JWT Decoding",
+          "description": "In tutorial004.py, the JWT decoding logic doesn't handle all possible error cases that could occur during decoding, such as expired tokens or malformed tokens with invalid signatures. This could lead to unexpected behavior or security vulnerabilities.",
+          "file": "docs/src/security/tutorial004.py",
+          "line": "97",
+          "severity": "major",
+          "category": "security",
+          "recommendation": "Implement comprehensive error handling for JWT decoding that explicitly checks for expired tokens, invalid signatures, and other common JWT errors, returning appropriate HTTP error codes for each case."
+        }
+      ],
+      "nitpicks": [
+        {
+          "title": "Inconsistent Naming Conventions",
+          "description": "The codebase uses inconsistent naming conventions for variables and functions. Some functions use snake_case (get_current_user), while others use camelCase (fake_decode_token). This inconsistency makes the code harder to read and maintain.",
+          "file": "docs/src/security/tutorial003.py",
+          "line": "24, 50, 75",
+          "recommendation": "Standardize on snake_case for all function and variable names throughout the codebase to maintain consistency and adhere to Python's PEP 8 style guide."
+        },
+        {
+          "title": "Redundant Comments in Authentication Tutorials",
+          "description": "Many authentication tutorials contain redundant comments like 'This doesn't provide any security at all' or 'Check the next version'. These comments are unhelpful and could be misleading to developers who might think the code is being updated soon.",
+          "file": "docs/src/security/tutorial003.py",
+          "line": "52",
+          "recommendation": "Remove redundant comments that don't provide value. Instead, focus on explaining the security implications and best practices in a more informative way."
+        },
+        {
+          "title": "Inconsistent Use of Type Hints and Annotation",
+          "description": "The codebase shows inconsistent use of type hints. Some functions have complete type annotations while others don't, making the code less readable and maintainable.",
+          "file": "docs/src/security/tutorial003.py",
+          "line": "7, 79",
+          "recommendation": "Apply consistent type hints to all function parameters and return values throughout the codebase to improve code clarity and enable better tooling support."
+        },
+        {
+          "title": "Non-Descriptive Variable Names",
+          "description": "The code uses non-descriptive variable names like 'fake_users_db', 'fake_hash_password', and 'fake_decode_token'. These names suggest the code is for demonstration purposes only but are not clear about the security implications.",
+          "file": "docs/src/security/tutorial003.py",
+          "line": "7, 26, 50",
+          "recommendation": "Use more descriptive names that clearly indicate the purpose and security implications of the code, such as 'in_memory_user_database', 'dummy_password_hasher', and 'mock_token_decoder'."
+        },
+        {
+          "title": "Missing Documentation for Security Patterns",
+          "description": "While the tutorials demonstrate security patterns, they lack comprehensive documentation explaining why certain approaches are secure and others are not. This makes it difficult for developers to understand the security rationale behind the implementation.",
+          "file": "docs/src/security/tutorial005.py",
+          "line": "1, 7",
+          "recommendation": "Add detailed comments and documentation explaining the security benefits of the implemented patterns, such as why proper JWT validation is important and what threats it mitigates."
+        }
+      ],
+      "files_analyzed": 13
+    }
+  }
+}

@@ -1,0 +1,39 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 5
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     5
+
+MISSED BUGS (1)
+   1. spacy/errors.py:476
+      Fix vocabulary management and word vectors...
+      Category: error_handling | Severity: major
+
+FALSE POSITIVES (5)
+   1. fabfile.py:00026
+      Command Injection Vulnerability in fabfile.py
+   2. fabfile.py:00015
+      Unsafe Path Construction in fabfile.py
+   3. spacy/cli/train.py:00115
+      Inadequate Error Handling in Training Workflow
+   4. spacy/cli/train.py:00487
+      Potential Race Condition in Model Saving
+   5. spacy/cli/train.py:00023
+      Missing Input Validation in CLI Arguments
+
+============================================================

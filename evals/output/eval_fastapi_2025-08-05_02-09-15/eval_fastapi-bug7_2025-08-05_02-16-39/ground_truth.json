@@ -1,0 +1,18 @@
+{
+  "project": "fastapi",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "fastapi-7",
+      "project": "fastapi",
+      "file_path": "fastapi/exception_handlers.py",
+      "line_start": 1,
+      "line_end": 4,
+      "description": "Fix exception handler import and registration",
+      "category": "validation",
+      "severity": "major",
+      "commit_buggy": "cc4c13e4ae3f65fc76c23962b316df4a60e0c7e0",
+      "commit_fixed": "19c77e35bdde33aeec1eb2cfa680f95016492b69"
+    }
+  ]
+}

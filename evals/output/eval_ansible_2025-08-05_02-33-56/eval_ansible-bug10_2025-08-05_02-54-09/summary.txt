@@ -1,0 +1,37 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 4
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     4
+
+MISSED BUGS (1)
+   1. lib/ansible/modules/system/pamd.py:351
+      Fix module execution and return value processing...
+      Category: module | Severity: major
+
+FALSE POSITIVES (4)
+   1. hacking/build_library/build_ansible/announce.py:224
+      Insecure use of `asyncio.run` in synchronous context
+   2. hacking/build_library/build_ansible/announce.py:182
+      Insufficient error handling in asynchronous hash verification
+   3. hacking/build_library/build_ansible/command_plugins/dump_config.py:23
+      Hardcoded URLs in configuration file generation
+   4. hacking/build-ansible.py:63
+      Inadequate input validation in command-line arguments
+
+============================================================

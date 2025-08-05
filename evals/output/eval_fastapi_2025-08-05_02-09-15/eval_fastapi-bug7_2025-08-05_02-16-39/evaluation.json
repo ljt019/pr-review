@@ -1,0 +1,165 @@
+{
+  "summary": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "true_positives": 0,
+    "false_positives": 5,
+    "false_negatives": 1
+  },
+  "analysis": {
+    "total_ground_truth_bugs": 1,
+    "total_detected_bugs": 5,
+    "files_analyzed": 0,
+    "files_with_bugs": 1
+  },
+  "matches": [],
+  "false_positives": [
+    {
+      "title": "Hardcoded SECRET_KEY in plaintext",
+      "description": "The authentication system uses a hardcoded SECRET_KEY in the tutorial code that is meant to be a secret. This is a critical security vulnerability that exposes the application to token spoofing attacks if the code is ever exposed. The key should be loaded from environment variables or a secrets manager.",
+      "file": "docs/src/security/tutorial004.py",
+      "line": "13",
+      "severity": "critical",
+      "category": "security",
+      "recommendation": "Replace the hardcoded SECRET_KEY with environment variable loading using os.getenv('SECRET_KEY'). Ensure the key is properly rotated and managed through environment variables or a secrets manager."
+    },
+    {
+      "title": "Inadequate error handling for JWT token decoding",
+      "description": "The JWT token decoding does not properly handle token expiration or invalid signatures, which could lead to security issues. The current implementation raises the same credentials exception for all JWT errors, making it difficult to distinguish between different failure modes.",
+      "file": "docs/src/security/tutorial004.py",
+      "line": "97",
+      "severity": "major",
+      "category": "security",
+      "recommendation": "Implement specific error handling for JWT token expiration (PyJWTError) and invalid signatures. Return more specific error messages to distinguish between different authentication failures."
+    },
+    {
+      "title": "Potential SQL injection in database queries",
+      "description": "Although the code uses SQLAlchemy ORM in the tutorials, the pattern of string formatting in queries could lead to SQL injection if the application uses raw SQL queries. The codebase shows examples of string building that could be vulnerable to injection.",
+      "file": "docs/src/sql_databases/sql_app/crud.py",
+      "line": "6",
+      "severity": "major",
+      "category": "security",
+      "recommendation": "Always use parameterized queries or ORM methods with proper escaping, never concatenate user input directly into SQL strings."
+    },
+    {
+      "title": "Missing input validation for optional parameters",
+      "description": "The application allows certain parameters to be optional but doesn't validate their presence when required by business logic. This could lead to unexpected behavior or data integrity issues.",
+      "file": "docs/src/body_multiple_params/tutorial001.py",
+      "line": "15",
+      "severity": "major",
+      "category": "validation",
+      "recommendation": "Implement proper validation for all parameters, particularly those that are conditionally required based on other parameter values."
+    },
+    {
+      "title": "Inconsistent exception handling for authentication",
+      "description": "The authentication system uses different HTTP status codes for similar failure types (e.g., 401 for incorrect credentials vs 400 for inactive users). This inconsistency makes it difficult to handle authentication failures predictably.",
+      "file": "docs/src/security/tutorial004.py",
+      "line": "120",
+      "severity": "major",
+      "category": "error-handling",
+      "recommendation": "Use consistent HTTP status codes for related failure types and provide clear, standardized error messages in the response body."
+    }
+  ],
+  "false_negatives": [
+    {
+      "bug_id": "fastapi-7",
+      "file": "fastapi/exception_handlers.py",
+      "line_range": "1-4",
+      "description": "Fix exception handler import and registration",
+      "category": "validation",
+      "severity": "major"
+    }
+  ],
+  "metadata": {
+    "evaluation_timestamp": "2025-08-05T02:17:49.409051",
+    "model_response": {
+      "summary": "The codebase is a FastAPI application with comprehensive documentation and tutorial examples. The core security implementation in the JWT authentication workflow is solid, but contains a critical security flaw: a hardcoded SECRET_KEY in plaintext within the code. This exposes the application to potential compromise if the code is leaked. The code quality is generally good with proper use of Pydantic models and dependency injection, but there are areas for improvement in error handling and maintainability. Performance is adequate for typical use cases, though the application doesn't implement connection pooling or caching for database operations. Error handling is implemented but could be more robust with better logging and user feedback.",
+      "bugs": [
+        {
+          "title": "Hardcoded SECRET_KEY in plaintext",
+          "description": "The authentication system uses a hardcoded SECRET_KEY in the tutorial code that is meant to be a secret. This is a critical security vulnerability that exposes the application to token spoofing attacks if the code is ever exposed. The key should be loaded from environment variables or a secrets manager.",
+          "file": "docs/src/security/tutorial004.py",
+          "line": "13",
+          "severity": "critical",
+          "category": "security",
+          "recommendation": "Replace the hardcoded SECRET_KEY with environment variable loading using os.getenv('SECRET_KEY'). Ensure the key is properly rotated and managed through environment variables or a secrets manager."
+        },
+        {
+          "title": "Inadequate error handling for JWT token decoding",
+          "description": "The JWT token decoding does not properly handle token expiration or invalid signatures, which could lead to security issues. The current implementation raises the same credentials exception for all JWT errors, making it difficult to distinguish between different failure modes.",
+          "file": "docs/src/security/tutorial004.py",
+          "line": "97",
+          "severity": "major",
+          "category": "security",
+          "recommendation": "Implement specific error handling for JWT token expiration (PyJWTError) and invalid signatures. Return more specific error messages to distinguish between different authentication failures."
+        },
+        {
+          "title": "Potential SQL injection in database queries",
+          "description": "Although the code uses SQLAlchemy ORM in the tutorials, the pattern of string formatting in queries could lead to SQL injection if the application uses raw SQL queries. The codebase shows examples of string building that could be vulnerable to injection.",
+          "file": "docs/src/sql_databases/sql_app/crud.py",
+          "line": "6",
+          "severity": "major",
+          "category": "security",
+          "recommendation": "Always use parameterized queries or ORM methods with proper escaping, never concatenate user input directly into SQL strings."
+        },
+        {
+          "title": "Missing input validation for optional parameters",
+          "description": "The application allows certain parameters to be optional but doesn't validate their presence when required by business logic. This could lead to unexpected behavior or data integrity issues.",
+          "file": "docs/src/body_multiple_params/tutorial001.py",
+          "line": "15",
+          "severity": "major",
+          "category": "validation",
+          "recommendation": "Implement proper validation for all parameters, particularly those that are conditionally required based on other parameter values."
+        },
+        {
+          "title": "Inconsistent exception handling for authentication",
+          "description": "The authentication system uses different HTTP status codes for similar failure types (e.g., 401 for incorrect credentials vs 400 for inactive users). This inconsistency makes it difficult to handle authentication failures predictably.",
+          "file": "docs/src/security/tutorial004.py",
+          "line": "120",
+          "severity": "major",
+          "category": "error-handling",
+          "recommendation": "Use consistent HTTP status codes for related failure types and provide clear, standardized error messages in the response body."
+        }
+      ],
+      "nitpicks": [
+        {
+          "title": "Missing type hints for function parameters",
+          "description": "Several functions in the codebase are missing explicit type annotations for their parameters, which reduces code readability and can lead to type-related issues during refactoring.",
+          "file": "docs/src/security/tutorial004.py",
+          "line": "117",
+          "recommendation": "Add explicit type annotations for all function parameters to improve code clarity and enable better IDE support."
+        },
+        {
+          "title": "Redundant imports",
+          "description": "The file imports both jwt and PyJWTError, but only uses jwt for the encode function. The PyJWTError import is not used in this file.",
+          "file": "docs/src/security/tutorial004.py",
+          "line": "6",
+          "recommendation": "Remove unused imports to reduce code clutter and potential confusion about what is being used."
+        },
+        {
+          "title": "Inconsistent naming of security scheme",
+          "description": "The security scheme is referred to as both 'oauth2_scheme' and 'reusable_oauth2' in different parts of the codebase, which could lead to confusion about the proper way to use the authentication system.",
+          "file": "docs/src/security/tutorial004.py",
+          "line": "51",
+          "recommendation": "Standardize on one naming convention for the authentication scheme across the codebase to improve consistency and maintainability."
+        },
+        {
+          "title": "Missing docstrings for utility functions",
+          "description": "Several utility functions like get_password_hash, verify_password, and create_access_token lack docstrings that explain their purpose, parameters, and return values.",
+          "file": "docs/src/security/tutorial004.py",
+          "line": "56",
+          "recommendation": "Add comprehensive docstrings to all utility functions to improve code documentation and maintainability."
+        },
+        {
+          "title": "Hardcoded token expiration time",
+          "description": "The access token expiration time is hardcoded as 30 minutes in the tutorial code, which may not be appropriate for all production scenarios.",
+          "file": "docs/src/security/tutorial004.py",
+          "line": "15",
+          "recommendation": "Make the token expiration time configurable through environment variables to allow for different security requirements in different deployment environments."
+        }
+      ],
+      "files_analyzed": 1
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "project": "black",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "black-16",
+      "project": "black",
+      "file_path": "black.py",
+      "line_start": 2941,
+      "line_end": 2964,
+      "description": "Fix bracket matching in complex expressions",
+      "category": "error_handling",
+      "severity": "major",
+      "commit_buggy": "fb34c9e19589d05f92084a28940837151251ebd6",
+      "commit_fixed": "42a3fe53319a8c02858c2a96989ed1339f84515a"
+    }
+  ]
+}

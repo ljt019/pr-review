@@ -1,0 +1,18 @@
+{
+  "project": "fastapi",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "fastapi-8",
+      "project": "fastapi",
+      "file_path": "fastapi/routing.py",
+      "line_start": 348,
+      "line_end": 357,
+      "description": "Fix route matching and parameter extraction",
+      "category": "http",
+      "severity": "major",
+      "commit_buggy": "fdb6d43e103bcf7a7325d796e37c9435c9460e4c",
+      "commit_fixed": "dd963511d699b463b416408a0ad705b3dda0d067"
+    }
+  ]
+}

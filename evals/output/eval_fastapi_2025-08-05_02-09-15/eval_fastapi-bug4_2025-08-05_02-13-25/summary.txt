@@ -1,0 +1,33 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 2
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     2
+
+MISSED BUGS (1)
+   1. fastapi/openapi/utils.py:180
+      Fix OpenAPI schema generation for request models...
+      Category: http | Severity: major
+
+FALSE POSITIVES (2)
+   1. docs/src/sql_databases/sql_app/crud.py:19-20
+      Critical Security Vulnerability: Fake Password Hashing
+   2. docs/src/sql_databases/sql_app/database.py:6
+      Security Misconfiguration: Hardcoded Database URL
+
+============================================================

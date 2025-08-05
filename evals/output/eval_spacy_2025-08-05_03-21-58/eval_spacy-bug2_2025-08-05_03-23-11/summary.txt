@@ -1,0 +1,39 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 5
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     5
+
+MISSED BUGS (1)
+   1. spacy/util.py:208
+      Fix model loading and serialization issues...
+      Category: model | Severity: major
+
+FALSE POSITIVES (5)
+   1. spacy/tokens/token.pyx:549-560
+      Potential Memory Leak in Token.rights Property
+   2. spacy/tokens/token.pyx:536-537, 557-558
+      Infinite Loop Protection in Token.lefts and Token.rights
+   3. spacy/tokens/token.pyx:487-495
+      Incomplete Input Validation in Token.is_sent_start Setter
+   4. spacy/tokens/token.pyx:171-172
+      Potential Security Vulnerability in Token._ Extension Access
+   5. spacy/tokens/token.pyx:648-726
+      Missing Error Handling in Token.head Property Set
+
+============================================================

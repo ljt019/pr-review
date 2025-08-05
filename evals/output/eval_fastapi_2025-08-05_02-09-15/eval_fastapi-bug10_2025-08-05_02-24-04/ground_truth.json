@@ -1,0 +1,18 @@
+{
+  "project": "fastapi",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "fastapi-10",
+      "project": "fastapi",
+      "file_path": "fastapi/routing.py",
+      "line_start": 52,
+      "line_end": 59,
+      "description": "Fix route initialization and middleware setup",
+      "category": "validation",
+      "severity": "major",
+      "commit_buggy": "b77a43bcac3ec8e7edbe82543e777c60ae85c178",
+      "commit_fixed": "38495fffa560fa57a8f0e6437d8e43c36c8e5612"
+    }
+  ]
+}

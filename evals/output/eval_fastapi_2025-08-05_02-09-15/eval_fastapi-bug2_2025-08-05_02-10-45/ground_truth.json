@@ -1,0 +1,18 @@
+{
+  "project": "fastapi",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "fastapi-2",
+      "project": "fastapi",
+      "file_path": "fastapi/routing.py",
+      "line_start": 498,
+      "line_end": 509,
+      "description": "Fix route parameter validation and handling",
+      "category": "logic",
+      "severity": "major",
+      "commit_buggy": "210af1fd3dc0f612a08fa02a0cb3f5adb81e5bfb",
+      "commit_fixed": "02441ff0313d5b471b662293244c53e712f1243f"
+    }
+  ]
+}

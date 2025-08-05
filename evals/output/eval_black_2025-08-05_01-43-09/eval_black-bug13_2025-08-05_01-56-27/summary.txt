@@ -1,0 +1,41 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 6
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     6
+
+MISSED BUGS (1)
+   1. blib2to3/pgen2/tokenize.py:516
+      Fix tokenization of complex string patterns...
+      Category: logic | Severity: major
+
+FALSE POSITIVES (6)
+   1. black.py:01007-01016
+      Missing error handling for file access in cache operations
+   2. black.py:00304-00312
+      Incomplete error handling in CLI argument parsing
+   3. black.py:00133-00164
+      Inconsistent use of type hints in function signatures
+   4. black.py:00380-00408
+      Redundant try-except blocks in error handling
+   5. black.py:001185-001267
+      Missing type hints for local variables in complex functions
+   6. black.py:00407-00488
+      Inconsistent handling of file paths in error messages
+
+============================================================

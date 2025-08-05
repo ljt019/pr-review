@@ -1,0 +1,18 @@
+{
+  "project": "fastapi",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "fastapi-14",
+      "project": "fastapi",
+      "file_path": "fastapi/openapi/models.py",
+      "line_start": 99,
+      "line_end": 105,
+      "description": "Fix OpenAPI model schema definitions",
+      "category": "http",
+      "severity": "major",
+      "commit_buggy": "2ddb804940bbcad4ed730b2a910c8fd3c1167127",
+      "commit_fixed": "b7d184363fad5f6b55d15ec3a3a844aa81092bbd"
+    }
+  ]
+}

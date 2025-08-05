@@ -1,0 +1,39 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 5
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     5
+
+MISSED BUGS (1)
+   1. fastapi/routing.py:48
+      Fix async route execution and error handling...
+      Category: validation | Severity: major
+
+FALSE POSITIVES (5)
+   1. docs_src/security/tutorial005.py:00017
+      Hardcoded secrets in security implementation
+   2. docs_src/security/tutorial005.py:00076
+      Insecure password hashing implementation
+   3. docs_src/security/tutorial005.py:00149
+      Inadequate error handling in authentication
+   4. docs_src/security/tutorial005.py:00123
+      Missing input validation for token scope
+   5. docs_src/security/tutorial005.py:00127
+      Potential race condition in user authentication
+
+============================================================

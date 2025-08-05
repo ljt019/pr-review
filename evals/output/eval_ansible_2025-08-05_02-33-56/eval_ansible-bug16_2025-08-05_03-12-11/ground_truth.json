@@ -1,0 +1,18 @@
+{
+  "project": "ansible",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "ansible-16",
+      "project": "ansible",
+      "file_path": "lib/ansible/module_utils/facts/hardware/linux.py",
+      "line_start": 242,
+      "line_end": 250,
+      "description": "Fix role dependency resolution and loading",
+      "category": "automation_logic",
+      "severity": "major",
+      "commit_buggy": "2a9964ede8b2b77a62a005f6f5abc964b2819b0e",
+      "commit_fixed": "93d9d640380252084855885ad27873b4377898ec"
+    }
+  ]
+}

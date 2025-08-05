@@ -1,0 +1,39 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 5
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     5
+
+MISSED BUGS (1)
+   1. fastapi/exception_handlers.py:1
+      Fix exception handler import and registration...
+      Category: validation | Severity: major
+
+FALSE POSITIVES (5)
+   1. docs/src/security/tutorial004.py:13
+      Hardcoded SECRET_KEY in plaintext
+   2. docs/src/security/tutorial004.py:97
+      Inadequate error handling for JWT token decoding
+   3. docs/src/sql_databases/sql_app/crud.py:6
+      Potential SQL injection in database queries
+   4. docs/src/body_multiple_params/tutorial001.py:15
+      Missing input validation for optional parameters
+   5. docs/src/security/tutorial004.py:120
+      Inconsistent exception handling for authentication
+
+============================================================

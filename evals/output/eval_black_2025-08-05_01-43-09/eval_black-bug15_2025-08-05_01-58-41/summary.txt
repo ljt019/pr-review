@@ -1,0 +1,37 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 4
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     4
+
+MISSED BUGS (1)
+   1. black.py:29
+      Add error handling for encoding detection...
+      Category: error_handling | Severity: major
+
+FALSE POSITIVES (4)
+   1. black.py:00415-00430
+      Potential race condition in caching with concurrent execution
+   2. black.py:00522
+      Inefficient file reading in large files
+   3. black.py:00432-00433
+      Unnecessary exception re-raising with missing context
+   4. black.py:00566
+      Potential memory leak in long-running processes
+
+============================================================

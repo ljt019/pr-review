@@ -1,0 +1,18 @@
+{
+  "project": "ansible",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "ansible-10",
+      "project": "ansible",
+      "file_path": "lib/ansible/modules/system/pamd.py",
+      "line_start": 351,
+      "line_end": 358,
+      "description": "Fix module execution and return value processing",
+      "category": "module",
+      "severity": "major",
+      "commit_buggy": "e368f788f71c338cd3f049d5d6bdc643a51c0514",
+      "commit_fixed": "a4b59d021368285490f7cda50c11ac4f7a8030b5"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "project": "ansible",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "ansible-7",
+      "project": "ansible",
+      "file_path": "lib/ansible/module_utils/network/eos/config/vlans/vlans.py",
+      "line_start": 208,
+      "line_end": 224,
+      "description": "Fix YAML parsing and configuration validation",
+      "category": "automation_logic",
+      "severity": "major",
+      "commit_buggy": "cd146b836e032df785ecd9eb711c6ef23c2228b8",
+      "commit_fixed": "4ec1437212b2fb3c313e44ed5a76b105f2151622"
+    }
+  ]
+}

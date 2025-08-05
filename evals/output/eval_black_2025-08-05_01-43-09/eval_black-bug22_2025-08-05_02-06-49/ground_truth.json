@@ -1,0 +1,18 @@
+{
+  "project": "black",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "black-22",
+      "project": "black",
+      "file_path": "black.py",
+      "line_start": 3,
+      "line_end": 27,
+      "description": "Fix file encoding detection and handling",
+      "category": "error_handling",
+      "severity": "major",
+      "commit_buggy": "728c56c986bc5aea4d9897d3fce3159f89991b8e",
+      "commit_fixed": "c55d08d0b96c8de8bd867ca315e380d9e9d2d7ec"
+    }
+  ]
+}

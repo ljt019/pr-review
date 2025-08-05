@@ -1,0 +1,37 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 4
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     4
+
+MISSED BUGS (1)
+   1. lib/ansible/galaxy/collection.py:668
+      Fix module parameter validation and type checking...
+      Category: error_handling | Severity: major
+
+FALSE POSITIVES (4)
+   1. ./hacking/build-ansible.py:150-165
+      Incomplete configuration validation in build scripts
+   2. ./hacking/backport/backport_of_line_adder.py:78-85
+      Missing error handling in file operations
+   3. ./hacking/build-ansible.py:92-100
+      Potential path traversal vulnerability in file operations
+   4. ./hacking/build-ansible.py:125-135
+      Missing logging in critical utility functions
+
+============================================================

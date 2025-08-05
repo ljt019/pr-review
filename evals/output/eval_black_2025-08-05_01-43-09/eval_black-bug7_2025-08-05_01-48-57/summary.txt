@@ -1,0 +1,33 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 2
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     2
+
+MISSED BUGS (1)
+   1. black.py:2726
+      Fix test case logic for formatting validation...
+      Category: logic | Severity: major
+
+FALSE POSITIVES (2)
+   1. blackd.py:00105
+      Potential memory leak in blackd.py with large inputs
+   2. blackd.py:00119
+      Inconsistent error handling in blackd.py
+
+============================================================

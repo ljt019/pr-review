@@ -1,0 +1,39 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 5
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     5
+
+MISSED BUGS (1)
+   1. spacy/language.py:402
+      Fix dependency parsing accuracy and edge cases...
+      Category: pipeline | Severity: major
+
+FALSE POSITIVES (5)
+   1. spacy/cli/train.py:376-523
+      Insecure input handling in CLI utilities
+   2. spacy/cli/download.py:138
+      Insufficient input validation in command-line interface
+   3. spacy/tokens/token.pyx:00001-00200
+      Potential memory leaks in Cython components
+   4. spacy/util.py:18-85
+      Inconsistent error handling patterns across modules
+   5. spacy/errors.py:593-595
+      Improper use of environment variables for sensitive operations
+
+============================================================

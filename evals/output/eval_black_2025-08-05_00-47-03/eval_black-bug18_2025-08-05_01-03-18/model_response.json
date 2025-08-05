@@ -1,6 +1,0 @@
-{
-  "summary": "The codebase appears to be Black, a popular Python code formatter tool. The project structure is well-organized with clear separation of source code, tests, documentation, and configuration files. The codebase follows modern Python packaging standards with Pipfile for dependency management, pre-commit hooks, and continuous integration setup. The project appears to be mature with comprehensive test coverage and documentation.",
-  "bugs": [],
-  "nitpicks": [],
-  "files_analyzed": 0
-}
