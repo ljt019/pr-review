@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from agent.agent import SniffAgent
 from agent.agent import ModelOptions
 
-from src.paths import get_assets_path
+from paths import get_assets_path
 
 # Load environment variables from .env file
 load_dotenv()

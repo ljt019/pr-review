@@ -61,10 +61,10 @@ class BugReportContainer(Widget):
                     f"### {severity_marker} {bug_data.get('title', 'Untitled Bug')}"
                 )
                 md_lines.append("")
-                location_line = f"**Severity:** `{severity}` • **Location:** `{bug_data.get('file_path', 'Unknown')}`"
+                location_line = f"**Severity:** `{severity}` • **Location:** `{bug_data.get('file', 'Unknown')}`"
                 
-                if bug_data.get("line_number"):
-                    location_line += f" • **Line:** `{bug_data.get('line_number')}`"
+                if bug_data.get("line"):
+                    location_line += f" • **Line:** `{bug_data.get('line')}`"
                 
                 md_lines.append(location_line)
 
@@ -85,10 +85,10 @@ class BugReportContainer(Widget):
                     f"### {nitpick_data.get('title', 'Untitled Issue')}"
                 )
                 md_lines.append("")
-                location_line = f"**Location:** `{nitpick_data.get('file_path', 'Unknown')}`"
+                location_line = f"**Location:** `{nitpick_data.get('file', 'Unknown')}`"
                 
-                if nitpick_data.get("line_number"):
-                    location_line += f" • **Line:** `{nitpick_data.get('line_number')}`"
+                if nitpick_data.get("line"):
+                    location_line += f" • **Line:** `{nitpick_data.get('line')}`"
                 
                 md_lines.append(location_line)
 

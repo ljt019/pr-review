@@ -2,7 +2,7 @@ from textual.widgets import OptionList
 from textual.widgets.option_list import Option
 
 from agent.agent import ModelOptions
-from src.paths import get_widget_path
+from paths import get_widget_path
 
 
 class ModelOptionsWidget(OptionList):

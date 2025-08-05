@@ -7,7 +7,7 @@ from typing import Callable, Iterator, Optional
 from agent import SniffAgent
 from agent.agent import ModelOptions
 from agent.messages import BotMessage
-from src.paths import get_assets_path
+from paths import get_assets_path
 
 logger = logging.getLogger(__name__)
 

@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional
 
 import json5
 
-from src.paths import EVALS_DIR
+from paths import EVALS_DIR
 
 
 def save_response(

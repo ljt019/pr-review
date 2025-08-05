@@ -30,7 +30,7 @@ from agent.utils.response_saver import save_response_with_summary
 
 # ruff: noqa: F401
 from agent.tools import cat, glob, grep, load_prompt, ls, run_in_container, todo
-from src.paths import PROJECT_ROOT
+from paths import PROJECT_ROOT
 
 load_dotenv()
 

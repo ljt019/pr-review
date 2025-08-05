@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from textual.app import App
 from textual.binding import Binding
 
-from src.paths import get_tui_path
+from paths import get_tui_path
 
 from .screens import APIKeyScreen, ModelSelectScreen, StartScreen
 

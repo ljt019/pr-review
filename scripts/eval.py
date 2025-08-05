@@ -5,7 +5,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from src.paths import get_assets_path, EVALS_DIR, get_eval_path
+from paths import get_assets_path, EVALS_DIR, get_eval_path
 
 # Add src to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
