@@ -1,0 +1,18 @@
+{
+  "project": "black",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "black-3",
+      "project": "black",
+      "file_path": "unknown",
+      "line_start": 0,
+      "line_end": 0,
+      "description": "Bug #3 from BugsInPy dataset",
+      "category": "unknown",
+      "severity": "major",
+      "commit_buggy": "8126b4f6a9342290de4655e6a8a78cd288ce7daa",
+      "commit_fixed": "7a14a37981862ef418f3cdb4a7e2375856f97529"
+    }
+  ]
+}

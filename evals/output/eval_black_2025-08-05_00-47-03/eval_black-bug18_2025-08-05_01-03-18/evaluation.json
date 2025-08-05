@@ -1,0 +1,37 @@
+{
+  "summary": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "true_positives": 0,
+    "false_positives": 0,
+    "false_negatives": 1
+  },
+  "analysis": {
+    "total_ground_truth_bugs": 1,
+    "total_detected_bugs": 0,
+    "files_analyzed": 0,
+    "files_with_bugs": 1
+  },
+  "matches": [],
+  "false_positives": [],
+  "false_negatives": [
+    {
+      "bug_id": "black-18",
+      "file": "unknown",
+      "line_range": "0-0",
+      "description": "Bug #18 from BugsInPy dataset",
+      "category": "unknown",
+      "severity": "major"
+    }
+  ],
+  "metadata": {
+    "evaluation_timestamp": "2025-08-05T01:03:24.915283",
+    "model_response": {
+      "summary": "The codebase appears to be Black, a popular Python code formatter tool. The project structure is well-organized with clear separation of source code, tests, documentation, and configuration files. The codebase follows modern Python packaging standards with Pipfile for dependency management, pre-commit hooks, and continuous integration setup. The project appears to be mature with comprehensive test coverage and documentation.",
+      "bugs": [],
+      "nitpicks": [],
+      "files_analyzed": 0
+    }
+  }
+}

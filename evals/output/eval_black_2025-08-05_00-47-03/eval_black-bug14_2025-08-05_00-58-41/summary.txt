@@ -1,0 +1,39 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 5
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     5
+
+MISSED BUGS (1)
+   1. unknown:0
+      Bug #14 from BugsInPy dataset...
+      Category: unknown | Severity: major
+
+FALSE POSITIVES (5)
+   1. black.py:00483-00524
+      Inconsistent Error Handling Across Functions
+   2. black.py:00302-00308
+      Security Risk in Regex Pattern Compilation
+   3. black.py:00437-00438
+      Memory Leaks in Multiprocessing with Manager
+   4. black.py:00613-00619
+      Inefficient String Concatenation in Format Functions
+   5. black.py:00388-00392, 00426-00428
+      Race Condition in Cache Management
+
+============================================================

@@ -1,0 +1,39 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 5
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     5
+
+MISSED BUGS (1)
+   1. unknown:0
+      Bug #23 from BugsInPy dataset...
+      Category: unknown | Severity: major
+
+FALSE POSITIVES (5)
+   1. black.py:0218-0225
+      Potential memory leak in recursive formatting
+   2. black.py:00621-00633
+      Inefficient string concatenation in line generation
+   3. black.py:0088-0089
+      Missing input validation for file paths
+   4. black.py:00169-00170
+      Unbounded file reading in format_file_in_place
+   5. black.py:00016-00017
+      Incomplete exception handling for external dependencies
+
+============================================================

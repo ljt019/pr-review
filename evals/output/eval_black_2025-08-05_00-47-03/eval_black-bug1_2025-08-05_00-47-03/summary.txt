@@ -1,0 +1,33 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 2
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     2
+
+MISSED BUGS (1)
+   1. unknown:0
+      Bug #1 from BugsInPy dataset...
+      Category: unknown | Severity: major
+
+FALSE POSITIVES (2)
+   1. tests/data/evaluate.py:2
+      Insecure use of eval() in testing code
+   2. black.py:727
+      Potential resource leak in file parsing
+
+============================================================

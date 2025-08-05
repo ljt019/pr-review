@@ -67,6 +67,10 @@ class SniffAgent:
 
         self.messages: list[dict] = []
         self.container = Sandbox(zipped_codebase)
+        
+        # Import file tracker
+        from agent.utils.file_tracker import FileTracker
+        self.file_tracker = FileTracker()
         self.container.start()
         self._wait_for_workspace_ready()
 
@@ -89,6 +93,10 @@ class SniffAgent:
             for responses in self.agent.run(messages=self.messages):
                 if not responses:
                     continue
+                
+                # Track tool calls and results for file counting
+                self._track_tools_in_responses(responses)
+                
                 content = self._extract_last_assistant_content(responses)
                 if content:
                     last_assistant_content = content
@@ -101,6 +109,10 @@ class SniffAgent:
                     # Response and summary saved successfully
                     pass
 
+            # Inject files_analyzed count into JSON response if it's valid JSON
+            if last_assistant_content:
+                last_assistant_content = self._inject_files_analyzed(last_assistant_content)
+            
             return last_assistant_content
         finally:
             # Ensure we don't accumulate messages across runs
@@ -260,3 +272,65 @@ class SniffAgent:
 
         content = last.get("content")
         return content or None
+    
+    def _track_tools_in_responses(self, responses) -> None:
+        """Track tool calls and results for file counting."""
+        if not isinstance(responses, list):
+            responses = [responses]
+        
+        for response in responses:
+            if not isinstance(response, dict):
+                continue
+                
+            role = response.get("role")
+            
+            # Track tool calls
+            if role == "assistant":
+                tool_calls = response.get("tool_calls", [])
+                for tool_call in tool_calls:
+                    if tool_call.get("function", {}).get("name") == "cat":
+                        # Create a simple tool call message for tracking
+                        from agent.messages import ToolCallMessage
+                        call_msg = ToolCallMessage(
+                            tool_name="cat",
+                            arguments=tool_call.get("function", {}).get("arguments", ""),
+                            call_id=tool_call.get("id")
+                        )
+                        self.file_tracker.track_tool_call(call_msg)
+            
+            # Track tool results
+            elif role == "function":
+                tool_name = response.get("name")
+                content = response.get("content", "")
+                if tool_name == "cat":
+                    from agent.messages import ToolResultMessage
+                    result_msg = ToolResultMessage(
+                        tool_name=tool_name,
+                        result=content
+                    )
+                    self.file_tracker.track_tool_result(result_msg)
+    
+    def _inject_files_analyzed(self, content: str) -> str:
+        """Inject files_analyzed count into JSON response."""
+        try:
+            import json
+            import re
+            
+            # Try to find JSON in the response (may be mixed with text)
+            json_match = re.search(r'\{.*\}', content, re.DOTALL)
+            if json_match:
+                json_str = json_match.group(0)
+                data = json.loads(json_str)
+                data["files_analyzed"] = self.file_tracker.get_files_count()
+                
+                # Replace the JSON part in the original content
+                updated_json = json.dumps(data, indent=2, ensure_ascii=False)
+                return content.replace(json_str, updated_json)
+            else:
+                # Try parsing the entire content as JSON
+                data = json.loads(content)
+                data["files_analyzed"] = self.file_tracker.get_files_count()
+                return json.dumps(data, indent=2, ensure_ascii=False)
+        except (json.JSONDecodeError, TypeError):
+            # If it's not valid JSON, return as-is
+            return content

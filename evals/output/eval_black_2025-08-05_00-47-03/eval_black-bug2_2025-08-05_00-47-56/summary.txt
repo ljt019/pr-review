@@ -1,0 +1,35 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 3
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     3
+
+MISSED BUGS (1)
+   1. unknown:0
+      Bug #2 from BugsInPy dataset...
+      Category: unknown | Severity: major
+
+FALSE POSITIVES (3)
+   1. black.py:609-649
+      Potential race condition in multiprocessing cache handling
+   2. black.py:879-888
+      Inconsistent error handling in file parsing
+   3. black.py:684-693
+      Incomplete handling of empty files in diff mode
+
+============================================================

@@ -1,0 +1,6 @@
+{
+  "summary": "The provided codebase appears to be Black, a popular Python code formatter. The project structure is well-organized with standard directories for source code, tests, documentation, and configuration files. The codebase follows modern Python packaging practices with Pyproject.toml, Pipfile, and setup.py. The review will focus on security, code quality, performance, error handling, and best practices, with particular attention to the formatter's core logic and configuration system.",
+  "bugs": [],
+  "nitpicks": [],
+  "files_analyzed": 0
+}

@@ -1,0 +1,35 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 3
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     3
+
+MISSED BUGS (1)
+   1. unknown:0
+      Bug #19 from BugsInPy dataset...
+      Category: unknown | Severity: major
+
+FALSE POSITIVES (3)
+   1. black.py:365-376
+      Missing input validation for stdin handling
+   2. black.py:2483-2485
+      Inadequate error message for unpickling cache
+   3. black.py:2420-2428
+      Potential memory exhaustion in diff output
+
+============================================================

@@ -1,0 +1,37 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 4
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     4
+
+MISSED BUGS (1)
+   1. unknown:0
+      Bug #5 from BugsInPy dataset...
+      Category: unknown | Severity: major
+
+FALSE POSITIVES (4)
+   1. black.py:210-243
+      Security Flaw in Configuration Loading
+   2. black.py:3794-3845
+      Potential Memory Leak in Cache Handling
+   3. black.py:419-427, 619-623
+      Inconsistent Error Handling for Input Validation
+   4. black.py:2684-2757, 2759-2792
+      Inefficient String Operations in Format Processing
+
+============================================================

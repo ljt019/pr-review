@@ -37,6 +37,8 @@ def run_in_container(command: str) -> str:
             capture_output=True,
             text=True,
             timeout=60,
+            encoding="utf-8",
+            errors="replace",
         )
 
         if result.returncode == 0:

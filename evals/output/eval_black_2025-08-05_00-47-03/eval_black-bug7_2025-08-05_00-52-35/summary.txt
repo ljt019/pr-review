@@ -1,0 +1,39 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 5
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     5
+
+MISSED BUGS (1)
+   1. unknown:0
+      Bug #7 from BugsInPy dataset...
+      Category: unknown | Severity: major
+
+FALSE POSITIVES (5)
+   1. black.py:401-409
+      Improper handling of malformed input in regex patterns
+   2. black.py:486, 563
+      Potential race condition in cache file writing
+   3. black.py:707
+      Inefficient string processing in format_str function
+   4. black.py:1680-1908
+      Unnecessary string manipulation in whitespace function
+   5. black.py:583, 624, 591
+      Inadequate error handling for file operations
+
+============================================================

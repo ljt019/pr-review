@@ -1,0 +1,126 @@
+{
+  "project": "spacy",
+  "version": "1.0",
+  "bugs": [
+    {
+      "bug_id": "spacy-1",
+      "project": "spacy",
+      "file_path": "spacy/errors.py",
+      "line_start": 7,
+      "line_end": 17,
+      "description": "Fix tokenization of special characters and punctuation",
+      "category": "error_handling",
+      "severity": "major",
+      "commit_buggy": "9ce059dd067ecc3f097d04023e3cfa0d70d35bb8",
+      "commit_fixed": "a987e9e45d4084f30964a4cec9914ae6ed25a73c"
+    },
+    {
+      "bug_id": "spacy-2",
+      "project": "spacy",
+      "file_path": "spacy/util.py",
+      "line_start": 208,
+      "line_end": 214,
+      "description": "Fix model loading and serialization issues",
+      "category": "model",
+      "severity": "major",
+      "commit_buggy": "efec28ce70a0ff69471cc379867deebe7eb881e0",
+      "commit_fixed": "cfdaf99b8029d6762730c5d5bd2b6f6c173c1241"
+    },
+    {
+      "bug_id": "spacy-3",
+      "project": "spacy",
+      "file_path": "bin/wiki_entity_linking/wikipedia_processor.py",
+      "line_start": 30,
+      "line_end": 37,
+      "description": "Fix pipeline component initialization and ordering",
+      "category": "nlp_logic",
+      "severity": "major",
+      "commit_buggy": "dac70f29eb3b1f21ae9e2c6346666bf6a46307b6",
+      "commit_fixed": "663333c3b2bad90915d1a48a626ca1275b7ef077"
+    },
+    {
+      "bug_id": "spacy-4",
+      "project": "spacy",
+      "file_path": "spacy/cli/converters/conllu2json.py",
+      "line_start": 70,
+      "line_end": 76,
+      "description": "Fix memory management in large document processing",
+      "category": "nlp_logic",
+      "severity": "major",
+      "commit_buggy": "abd5c06374eab5db0cf897b73543b1f3eb007e12",
+      "commit_fixed": "9fa9d7f2cb52ce6a70c264d4e57c7f190d7686bf"
+    },
+    {
+      "bug_id": "spacy-5",
+      "project": "spacy",
+      "file_path": "spacy/language.py",
+      "line_start": 678,
+      "line_end": 684,
+      "description": "Fix unicode handling in text preprocessing",
+      "category": "pipeline",
+      "severity": "major",
+      "commit_buggy": "bdfb696677a7591ced018e7597c00929e97c6837",
+      "commit_fixed": "3bd15055ce74b04dcaf3b9abe2adeb01fb595776"
+    },
+    {
+      "bug_id": "spacy-6",
+      "project": "spacy",
+      "file_path": "spacy/language.py",
+      "line_start": 402,
+      "line_end": 411,
+      "description": "Fix dependency parsing accuracy and edge cases",
+      "category": "pipeline",
+      "severity": "major",
+      "commit_buggy": "6b874ef09611ac32ad038203423d44087cbeb3ae",
+      "commit_fixed": "afe4a428f78abe45d6104d74ef42a066570fa43d"
+    },
+    {
+      "bug_id": "spacy-7",
+      "project": "spacy",
+      "file_path": "examples/information_extraction/entity_relations.py",
+      "line_start": 7,
+      "line_end": 13,
+      "description": "Fix named entity recognition boundary detection",
+      "category": "model",
+      "severity": "major",
+      "commit_buggy": "da6e0de34f4947fdebc839df3969c641014cfa97",
+      "commit_fixed": "6f54e59fe7ccb3bacce896ed33d36b39f11cbfaf"
+    },
+    {
+      "bug_id": "spacy-8",
+      "project": "spacy",
+      "file_path": "spacy/errors.py",
+      "line_start": 498,
+      "line_end": 504,
+      "description": "Fix part-of-speech tagging consistency",
+      "category": "error_handling",
+      "severity": "major",
+      "commit_buggy": "fa95c030a511337935d1a2e930cb954c7a4cd376",
+      "commit_fixed": "5efae495f18f37316bd641a05ca26e62cb78e242"
+    },
+    {
+      "bug_id": "spacy-9",
+      "project": "spacy",
+      "file_path": "spacy/errors.py",
+      "line_start": 88,
+      "line_end": 100,
+      "description": "Fix sentence segmentation logic",
+      "category": "model",
+      "severity": "major",
+      "commit_buggy": "bc7e7db208d351fae2982afbcdff7633f9636779",
+      "commit_fixed": "3297a19545027c8d8550b1ae793ce290567eff32"
+    },
+    {
+      "bug_id": "spacy-10",
+      "project": "spacy",
+      "file_path": "spacy/errors.py",
+      "line_start": 476,
+      "line_end": 483,
+      "description": "Fix vocabulary management and word vectors",
+      "category": "error_handling",
+      "severity": "major",
+      "commit_buggy": "38de08c7a99d5d8c490223126071afe7dd4f4b67",
+      "commit_fixed": "52904b72700a3f301a26563d3f94493bad96a446"
+    }
+  ]
+}

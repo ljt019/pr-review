@@ -1,0 +1,35 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 3
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     3
+
+MISSED BUGS (1)
+   1. unknown:0
+      Bug #13 from BugsInPy dataset...
+      Category: unknown | Severity: major
+
+FALSE POSITIVES (3)
+   1. black.py:488
+      Complex function with high cyclomatic complexity
+   2. black.py:1265
+      Inefficient string concatenation in line formatting
+   3. black.py:485
+      Potential race condition in cache update
+
+============================================================

@@ -1,0 +1,31 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 1
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     1
+
+MISSED BUGS (1)
+   1. unknown:0
+      Bug #15 from BugsInPy dataset...
+      Category: unknown | Severity: major
+
+FALSE POSITIVES (1)
+   1. tests/test_black.py:1023
+      Inconsistent use of context managers for patch decorators
+
+============================================================

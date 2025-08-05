@@ -1,0 +1,37 @@
+
+============================================================
+BUG DETECTION EVALUATION RESULTS
+============================================================
+
+OVERALL PERFORMANCE
+   Precision: 0.000
+   Recall:    0.000
+   F1-Score:  0.000
+
+DETECTION BREAKDOWN
+   True Positives:  0
+   False Positives: 4
+   False Negatives: 1
+
+ANALYSIS SCOPE
+   Files Analyzed:    0
+   Files with Bugs:   1
+   Ground Truth Bugs: 1
+   Detected Bugs:     4
+
+MISSED BUGS (1)
+   1. unknown:0
+      Bug #22 from BugsInPy dataset...
+      Category: unknown | Severity: major
+
+FALSE POSITIVES (4)
+   1. black.py:146-188
+      Excessive complexity and nested functions
+   2. black.py:770-780
+      Overuse of exceptions for control flow
+   3. black.py:1797-1823
+      Memory-intensive operations for large files
+   4. black.py:430-667
+      Inconsistent error handling and messages
+
+============================================================
