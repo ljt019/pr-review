@@ -173,3 +173,34 @@ ScrollBar {
     width: 85;  /* Wider content maintaining 5 unit scrollbar spacing */
     max-width: 85;
 }
+
+/* Bug report markdown display */
+.bug-report-markdown {
+    height: auto;
+    overflow-y: hidden;
+    background: transparent;
+    padding: 0 2 0 2;  /* Remove bottom padding, keep horizontal */
+}
+
+/* Override MarkdownFence for bug reports */
+.bug-report-markdown MarkdownFence {
+    max-height: 100vh;
+    overflow: hidden;
+    background: transparent;
+    margin: 0;  /* Remove top/bottom margins */
+}
+
+/* Override the Static widget inside bug report MarkdownFence */
+.bug-report-markdown MarkdownFence > Static {
+    height: auto;  /* Don't expand */
+}
+
+/* Loading message styling */
+.loading-message {
+    background: transparent;
+    color: #585b70;
+    text-style: italic;
+    padding: 1;
+    height: auto;
+    text-align: center;
+}

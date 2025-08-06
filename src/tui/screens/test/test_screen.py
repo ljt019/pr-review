@@ -59,7 +59,41 @@ class TestMessagesContainer(VerticalScroll):
         yield CenterWidget(AgentReadTodoMessage(todo_list))
         yield CenterWidget(GrepToolMessage({"pattern": "password.*="}))
         yield CenterWidget(CatToolMessage({"file": "src/auth/login.py"}))
-        yield CenterWidget(AgentMessage("Generating bug report..."))
+        # Add combined bug report widget with loading state
+        example_bug_report = {
+            "summary": "The codebase is Black, a popular Python code formatter. The code is well-structured and follows modern Python best practices with proper type hints, dataclasses, and dependency management. Security vulnerabilities are minimal as it's not a web application, with input validation handled appropriately. Code quality is generally excellent with only minor issues in function length and a few edge cases. Performance is efficient for its purpose, though there's a potential optimization in configuration parsing. Error handling is adequate but could be improved with more specific exception types and better edge case handling.",
+            "bugs": [
+                {
+                    "title": "Inadequate error handling in format_file_in_place",
+                    "description": "The format_file_in_place function catches NothingChanged exception but doesn't properly handle it, potentially leading to unexpected behavior when formatting code that hasn't changed.",
+                    "file": "black.py",
+                    "line": "672",
+                    "severity": "major",
+                    "category": "error-handling",
+                    "recommendation": "Refactor the error handling to properly propagate NothingChanged exceptions or handle them with appropriate logging and status reporting."
+                },
+                {
+                    "title": "Generic exception handling in format_file_contents",
+                    "description": "The format_file_contents function uses a broad try-except block that catches general Exception, which could mask important errors and make debugging difficult.",
+                    "file": "black.py",
+                    "line": "744",
+                    "severity": "major",
+                    "category": "error-handling",
+                    "recommendation": "Replace the general Exception catch with more specific exception types to improve error visibility and debugging capabilities."
+                },
+                {
+                    "title": "Missing validation in format_stdin_to_stdout",
+                    "description": "The format_stdin_to_stdout function doesn't validate the write_back parameter value, which could lead to unexpected behavior if an invalid value is passed.",
+                    "file": "black.py",
+                    "line": "720",
+                    "severity": "major",
+                    "category": "validation",
+                    "recommendation": "Add validation for the write_back parameter to ensure it contains a valid value from the WriteBack enum before proceeding with formatting."
+                }
+            ],
+            "files_analyzed": 3
+        }
+        yield CenterWidget(BugReportWithLoadingMessage(example_bug_report))
 
 
 ############ In-Progress Widget 1 ############
@@ -445,6 +479,222 @@ class LsToolMessage(Static):
                 classes="tool-horizontal",
             ),
             Static(tree_content, classes="file-tree"),
+        )
+
+
+############################################
+
+
+############ In-Progress Widget 9 - Bug Report with Loading ############
+
+from textual.widgets import Static  # noqa
+from textual.containers import Horizontal, Vertical  # noqa
+from textual.widgets import Markdown  # noqa
+
+
+class BugReportWithLoadingMessage(Static):
+    """Combined widget that shows loading state then bug report"""
+
+    def __init__(self, bug_report: dict):
+        super().__init__("", classes="agent-tool-message")
+        self.bug_report = bug_report
+        self.is_loading = True
+
+    def on_mount(self) -> None:
+        """Start the loading timer when widget mounts"""
+        self.set_timer(10.0, self.show_bug_report)
+
+    def show_bug_report(self) -> None:
+        """Switch from loading to bug report display"""
+        self.is_loading = False
+        self.refresh(recompose=True)
+
+    def compose(self) -> ComposeResult:
+        if self.is_loading:
+            # Show loading state
+            yield Vertical(
+                Static("Generating bug report...", classes="loading-message"),
+            )
+        else:
+            # Show actual bug report
+            # Extract report data
+            summary = self.bug_report.get("summary", "No summary available")
+            bugs = self.bug_report.get("bugs", [])
+            files_analyzed = self.bug_report.get("files_analyzed", 0)
+            
+            # Build markdown content
+            md_lines = [
+                f"## Summary",
+                f"",
+                f"{summary}",
+                f"",
+                f"**Files analyzed:** {files_analyzed}",
+                f"**Issues found:** {len(bugs)}",
+                f"",
+            ]
+            
+            # Add bugs section
+            if bugs:
+                md_lines.append("## Issues")
+                md_lines.append("")
+                
+                # Group bugs by severity for better organization
+                severity_groups = {"major": [], "minor": [], "critical": [], "low": []}
+                for bug in bugs:
+                    severity = bug.get("severity", "unknown").lower()
+                    if severity in severity_groups:
+                        severity_groups[severity].append(bug)
+                    else:
+                        severity_groups["minor"].append(bug)
+                
+                # Display bugs by severity (critical -> major -> minor -> low)
+                for severity in ["critical", "major", "minor", "low"]:
+                    if severity_groups[severity]:
+                        severity_emoji = {
+                            "critical": "🔴",
+                            "major": "🟡", 
+                            "minor": "🟢",
+                            "low": "⚪"
+                        }
+                        
+                        md_lines.append(f"### {severity_emoji[severity]} {severity.title()} Issues")
+                        md_lines.append("")
+                        
+                        for bug in severity_groups[severity]:
+                            title = bug.get("title", "Unknown issue")
+                            description = bug.get("description", "No description")
+                            file_path = bug.get("file", "unknown")
+                            line = bug.get("line", "unknown")
+                            category = bug.get("category", "unknown")
+                            recommendation = bug.get("recommendation", "No recommendation")
+                            
+                            md_lines.extend([
+                                f"#### {title}",
+                                f"",
+                                f"**Location:** `{file_path}:{line}`",
+                                f"**Category:** {category}",
+                                f"",
+                                f"{description}",
+                                f"",
+                                f"**Recommendation:** {recommendation}",
+                                f"",
+                                "---",
+                                "",
+                            ])
+            else:
+                md_lines.append("**No issues found** ✅")
+                
+            markdown_content = '\n'.join(md_lines)
+            
+            # Create the markdown widget with bug report styling
+            markdown_widget = Markdown(markdown_content, classes="bug-report-markdown")
+            markdown_widget.code_dark_theme = "catppuccin-mocha"
+            
+            yield Vertical(
+                Horizontal(
+                    Label("🐛 Bug Report", classes="tool-title"),
+                    Label(f" {len(bugs)} issues found", classes="tool-content"),
+                    classes="tool-horizontal",
+                ),
+                markdown_widget,
+            )
+
+
+############ In-Progress Widget 10 - Original Bug Report ############
+
+from textual.widgets import Static  # noqa
+from textual.containers import Horizontal, Vertical  # noqa
+from textual.widgets import Markdown  # noqa
+
+
+class BugReportMessage(Static):
+    """Tool message displaying a structured bug report with markdown formatting"""
+
+    def __init__(self, bug_report: dict):
+        super().__init__("", classes="agent-tool-message")
+        self.bug_report = bug_report
+
+    def compose(self) -> ComposeResult:
+        # Extract report data
+        summary = self.bug_report.get("summary", "No summary available")
+        bugs = self.bug_report.get("bugs", [])
+        files_analyzed = self.bug_report.get("files_analyzed", 0)
+        
+        # Build markdown content
+        md_lines = [
+            f"## Summary",
+            f"",
+            f"{summary}",
+            f"",
+            f"**Files analyzed:** {files_analyzed}",
+            f"**Issues found:** {len(bugs)}",
+            f"",
+        ]
+        
+        # Add bugs section
+        if bugs:
+            md_lines.append("## Issues")
+            md_lines.append("")
+            
+            # Group bugs by severity for better organization
+            severity_groups = {"major": [], "minor": [], "critical": [], "low": []}
+            for bug in bugs:
+                severity = bug.get("severity", "unknown").lower()
+                if severity in severity_groups:
+                    severity_groups[severity].append(bug)
+                else:
+                    severity_groups["minor"].append(bug)
+            
+            # Display bugs by severity (critical -> major -> minor -> low)
+            for severity in ["critical", "major", "minor", "low"]:
+                if severity_groups[severity]:
+                    severity_emoji = {
+                        "critical": "🔴",
+                        "major": "🟡", 
+                        "minor": "🟢",
+                        "low": "⚪"
+                    }
+                    
+                    md_lines.append(f"### {severity_emoji[severity]} {severity.title()} Issues")
+                    md_lines.append("")
+                    
+                    for bug in severity_groups[severity]:
+                        title = bug.get("title", "Unknown issue")
+                        description = bug.get("description", "No description")
+                        file_path = bug.get("file", "unknown")
+                        line = bug.get("line", "unknown")
+                        category = bug.get("category", "unknown")
+                        recommendation = bug.get("recommendation", "No recommendation")
+                        
+                        md_lines.extend([
+                            f"#### {title}",
+                            f"",
+                            f"**Location:** `{file_path}:{line}`",
+                            f"**Category:** {category}",
+                            f"",
+                            f"{description}",
+                            f"",
+                            f"**Recommendation:** {recommendation}",
+                            f"",
+                            "---",
+                            "",
+                        ])
+        else:
+            md_lines.append("**No issues found** ✅")
+            
+        markdown_content = '\n'.join(md_lines)
+        
+        # Create the markdown widget with bug report styling
+        markdown_widget = Markdown(markdown_content, classes="bug-report-markdown")
+        markdown_widget.code_dark_theme = "catppuccin-mocha"
+        
+        yield Vertical(
+            Horizontal(
+                Label("🐛 Bug Report", classes="tool-title"),
+                Label(f" {len(bugs)} issues found", classes="tool-content"),
+                classes="tool-horizontal",
+            ),
+            markdown_widget,
         )
 
 
