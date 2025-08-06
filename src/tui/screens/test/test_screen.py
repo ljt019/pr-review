@@ -132,18 +132,65 @@ from textual.containers import Horizontal  # noqa
 
 
 class GrepToolMessage(Static):
-    """Tool call made by the agent to *grep* files / patterns"""
+    """Tool call made by the agent to *grep* files / patterns with polished search results"""
 
-    def __init__(self, tool_args: dict):
+    # Example grep output for styling
+    example_matches = [
+        ("src/agent/agent.py", 15, "def run_analysis(self):"),
+        ("src/agent/agent.py", 28, "    analysis_results = []"),
+        ("src/tui/services/message_renderer.py", 45, "def render_analysis_message(self):"),
+        ("src/tui/services/message_renderer.py", 67, "    self.analysis_count += 1"),
+        ("README.md", 12, "## Analysis Features"),
+        ("README.md", 34, "Run analysis with: `sniff analyze`"),
+        ("pyproject.toml", 8, "name = \"analysis-tool\""),
+        ("src/utils/helpers.py", 23, "def analyze_code_quality():"),
+    ]
+
+    def __init__(self, tool_args: dict, search_results=None):
         super().__init__("", classes="agent-tool-message")
         self.tool_args = tool_args
+        self.search_results = search_results or self.example_matches
 
     def compose(self) -> ComposeResult:
-        # Build a horizontal container
-        yield Horizontal(
-            Label("⌕ Grep", classes="tool-title"),
-            Label(f" {self.tool_args['pattern']}", classes="tool-content"),
-            classes="tool-horizontal",
+        pattern = self.tool_args.get('pattern', '')
+        match_count = len(self.search_results)
+        
+        # Group results by file for better organization
+        files_dict = {}
+        for file_path, line_num, content in self.search_results:
+            if file_path not in files_dict:
+                files_dict[file_path] = []
+            files_dict[file_path].append((line_num, content.strip()))
+        
+        # Build markdown content
+        md_lines = [
+            f"\n**{match_count} matches** found across **{len(files_dict)} files**",
+            f"",
+        ]
+        
+        # Add results as a structured markdown list
+        for file_path, matches in files_dict.items():
+            # File as top-level list item
+            md_lines.append(f"- **{file_path}**")
+            for line_num, content in matches:
+                md_lines.append(f"  - Line **{line_num}**: `{content}`")
+            md_lines.append("")  # Space between files
+        
+        markdown_content = '\n'.join(md_lines)
+        
+        # Create the markdown widget with custom bullets
+        markdown_widget = Markdown(markdown_content, classes="search-markdown")
+        markdown_widget.code_dark_theme = "catppuccin-mocha"
+        # Override bullet symbols to use file icon for top level
+        markdown_widget.BULLETS = ["🖹 ", "• ", "‣ ", "⭑ ", "⭑ "]
+        
+        yield Vertical(
+            Horizontal(
+                Label("⌕ Grep", classes="tool-title"),
+                Label(f" \"{pattern}\"", classes="tool-content"),
+                classes="tool-horizontal",
+            ),
+            markdown_widget,
         )
 
 
@@ -157,18 +204,61 @@ from textual.containers import Horizontal  # noqa
 
 
 class GlobToolMessage(Static):
-    """Tool call made by the agent to *glob* files / patterns"""
+    """Tool call made by the agent to *glob* files / patterns with polished file matches display"""
 
-    def __init__(self, tool_args: dict):
+    # Example glob output for styling
+    example_files = [
+        "src/agent/__init__.py",
+        "src/agent/agent.py", 
+        "src/agent/messages.py",
+        "src/tui/__init__.py",
+        "src/tui/services/__init__.py",
+        "src/tui/services/agent_service.py",
+        "src/tui/services/message_renderer.py",
+        "src/tui/screens/analysis_screen/analysis_screen.py",
+        "src/tui/screens/api_key/api_key_screen.py",
+        "src/tui/screens/model_select/model_select_screen.py",
+        "src/tui/widgets/ascii_art.py",
+        "src/tui/widgets/instruction_text.py",
+    ]
+
+    def __init__(self, tool_args: dict, matched_files=None):
         super().__init__("", classes="agent-tool-message")
         self.tool_args = tool_args
+        self.matched_files = matched_files or self.example_files
 
     def compose(self) -> ComposeResult:
-        # Build a horizontal container
-        yield Horizontal(
-            Label("⌕ Glob", classes="tool-title"),
-            Label(f" {self.tool_args['pattern']}", classes="tool-content"),
-            classes="tool-horizontal",
+        pattern = self.tool_args.get('pattern', '')
+        file_count = len(self.matched_files)
+        
+        # Build markdown content
+        md_lines = [
+            f"**{file_count} files** matched pattern",
+            "",
+        ]
+        
+        # Add files as a markdown list
+        for file_path in self.matched_files:
+            md_lines.append(f"- **{file_path}**")
+        
+        if not self.matched_files:
+            md_lines = ["**No files matched** the pattern"]
+            
+        markdown_content = '\n'.join(md_lines)
+        
+        # Create the markdown widget with custom file icon bullets
+        markdown_widget = Markdown(markdown_content, classes="search-markdown")
+        markdown_widget.code_dark_theme = "catppuccin-mocha"
+        # Use file icon for all matched files
+        markdown_widget.BULLETS = ["🖹 ", "🖹 ", "🖹 ", "🖹 ", "🖹 "]
+        
+        yield Vertical(
+            Horizontal(
+                Label("⌕ Glob", classes="tool-title"),
+                Label(f" \"{pattern}\"", classes="tool-content"),
+                classes="tool-horizontal",
+            ),
+            markdown_widget,
         )
 
 
@@ -272,18 +362,62 @@ from textual.containers import Horizontal  # noqa
 
 
 class LsToolMessage(Static):
-    """Tool call made by the agent to *ls* files"""
+    """Tool call made by the agent to *ls* files with file tree display"""
 
-    def __init__(self, tool_args: dict):
+    # Example directory output for styling
+    example_output = [
+        ("src/", "directory"),
+        ("src/agent/", "directory"),
+        ("src/agent/__init__.py", "file"),
+        ("src/agent/agent.py", "file"),
+        ("src/agent/messages.py", "file"),
+        ("src/tui/", "directory"),
+        ("src/tui/screens/", "directory"),
+        ("src/tui/screens/analysis_screen/", "directory"),
+        ("src/tui/screens/analysis_screen/analysis_screen.py", "file"),
+        ("src/tui/screens/test/", "directory"),
+        ("src/tui/screens/test/test_screen.py", "file"),
+        ("src/tui/widgets/", "directory"),
+        ("src/tui/widgets/ascii_art.py", "file"),
+        ("src/tui/widgets/instruction_text.py", "file"),
+        ("README.md", "file"),
+        ("pyproject.toml", "file"),
+    ]
+
+    def __init__(self, tool_args: dict, directory_output=None):
         super().__init__("", classes="agent-tool-message")
         self.tool_args = tool_args
+        self.directory_output = directory_output or self.example_output
 
     def compose(self) -> ComposeResult:
-        # Build a horizontal container
-        yield Horizontal(
-            Label("☰ Ls", classes="tool-title"),
-            Label(f" {self.tool_args['pattern']}", classes="tool-content"),
-            classes="tool-horizontal",
+        # Create the file tree display
+        tree_lines = []
+        for path, item_type in self.directory_output:
+            # Get the depth based on path separators
+            depth = path.count("/") - (1 if path.endswith("/") else 0)
+            indent = "  " * depth
+
+            # Choose icon and styling based on type
+            if item_type == "directory":
+                icon = "🗀"
+                name = path.rstrip("/").split("/")[-1] + "/"
+            else:
+                icon = "🖹"
+                name = path.split("/")[-1]
+
+            # Create the tree line
+            tree_lines.append(f"{indent}{icon} {name}")
+
+        # Join all lines into a single text block
+        tree_content = "\n".join(tree_lines)
+
+        yield Vertical(
+            Horizontal(
+                Label("☰ Ls", classes="tool-title"),
+                Label(f" {self.tool_args.get('path', '.')}", classes="tool-content"),
+                classes="tool-horizontal",
+            ),
+            Static(tree_content, classes="file-tree"),
         )
 
 

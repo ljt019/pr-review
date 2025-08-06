@@ -51,5 +51,37 @@
 .code-markdown MarkdownFence {
     max-height: 100vh;  /* Allow it to be as tall as needed */
     overflow: hidden;   /* No internal scrolling */
-    background: transparent;  /* Transparent background for code block */
+    background: transparent  /* Force transparent background */
+}
+
+/* File tree display */
+.file-tree {
+    background: transparent;
+    color: #cdd6f4;
+    padding: 1;
+    height: auto;
+    width: 100%;
+}
+
+/* Search markdown display */
+.search-markdown {
+    height: auto;
+    overflow-y: hidden;
+    background: transparent;
+}
+
+/* Override MarkdownFence for search results */
+.search-markdown MarkdownFence {
+    max-height: 100vh;
+    overflow: hidden;
+    background: transparent;
+}
+
+/* File list display */
+.file-list {
+    background: transparent;
+    color: #cdd6f4;
+    padding: 1;
+    height: auto;
+    width: 100%;
 }
