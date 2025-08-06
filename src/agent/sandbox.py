@@ -59,10 +59,9 @@ class Sandbox:
             if exit_code != 0:
                 raise Exception(f"Unzip failed: {output.decode()}")
 
-            # Move contents from the extracted subdirectory to workspace root
+            # Move contents from the extracted subdirectory to workspace root, preserving structure
             self.container.exec_run(
-                "sh -c 'cd /tmp && find . -mindepth 2 -maxdepth 2 -exec mv {} /workspace/ \\; 2>/dev/null || "
-                "(cd /tmp/* && cp -r . /workspace/) 2>/dev/null || true'"
+                "sh -c 'cd /tmp && if [ -d */ ]; then cd */ && cp -r . /workspace/; else cp -r . /workspace/; fi'"
             )
 
             # Expose container ID to BashTool via environment variable

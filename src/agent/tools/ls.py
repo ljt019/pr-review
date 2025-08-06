@@ -45,13 +45,13 @@ class LsTool(BaseTool):
         {
             "name": "path",
             "type": "string",
-            "description": "Absolute path to list (defaults to root /)",
+            "description": "Directory to list (defaults to current directory)",
             "required": False,
         },
         {
             "name": "ignore",
             "type": "array",
-            "description": "Array of glob patterns to ignore",
+            "description": "Patterns to exclude (e.g., [\"*.log\", \"temp\"])",
             "required": False,
         },
     ]

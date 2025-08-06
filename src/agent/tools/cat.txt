@@ -1,12 +1,5 @@
-Reads a file from the workspace. You can access any file directly by using this tool.
-Assume this tool is able to read all files in the workspace. If the User provides a path to a file assume that path is valid. It is okay to read a file that does not exist; an error will be returned.
-
-Usage:
-- Use relative paths from the workspace root (e.g., "src/main.py", "app.py", "server/auth.py")
-- The tool automatically works from the /workspace directory context
-- By default, it outputs up to 2000 lines starting from the beginning of the file
-- You can optionally specify a line offset and limit (especially handy for long files), but it's recommended to read the whole file by not providing these parameters
-- Any lines longer than 2000 characters will be truncated
-- Results are returned using cat -n format, with line numbers starting at 1
-- You have the capability to call multiple tools in a single response. It is always better to speculatively read multiple files as a batch that are potentially useful
-- If you read a file that exists but has empty contents you will receive a system reminder warning in place of file contents
+Reads file contents with line numbers.
+Examples: cat app.py, cat src/main.py, cat server/auth.py.
+Returns up to 2000 lines by default (use offset/limit for large files).
+Shows line numbers and truncates long lines at 2000 characters.
+Batch multiple reads for efficiency when exploring related files.

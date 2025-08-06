@@ -1,0 +1,24 @@
+.agent-message {
+    margin: 0;
+    padding: 1;
+    border: wide #313244;
+    background: #181825;
+    color: #cdd6f4;
+}
+
+.agent-tool-message {
+    margin: 0;
+    padding: 1;
+    border: wide #313244;
+    background: #181825;
+    color: #cdd6f4;
+}
+
+.tool-title {
+    color: #cdd6f4;
+}
+
+.tool-content {
+    color: #585b70;
+    text-style: italic;
+}

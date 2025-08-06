@@ -1,5 +1,5 @@
-Lists files and directories in a given path within the workspace.
-Use relative paths from the workspace root (e.g., ".", "src", "server/routes").
-It defaults to the workspace root if no path parameter is specified or if you use ".".
-You can optionally provide an array of glob patterns to ignore with the ignore parameter.
-You should generally prefer the Glob and Grep tools if you know which directories to search.
+Lists files and directories in a tree structure.
+Defaults to current directory if no path is specified.
+Examples: ls (current dir), ls src, ls server/auth.py (specific file).
+Use ignore parameter to exclude files (e.g., ["*.log", "node_modules"]).
+For searching specific patterns, prefer Glob and Grep tools.

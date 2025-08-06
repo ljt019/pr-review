@@ -30,6 +30,7 @@ dependencies = [
 
 [project.scripts]
 sniff = "tui.app:app"
+test = "pytest:main"
 
 [tool.uv.build-backend]
 module-name = ["agent", "tui"]
@@ -41,5 +42,6 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "pytest>=8.4.1",
     "textual-dev>=1.7.0",
 ]

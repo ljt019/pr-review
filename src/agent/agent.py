@@ -29,7 +29,7 @@ from agent.sandbox import Sandbox
 from agent.utils.response_saver import save_response_with_summary
 
 # ruff: noqa: F401
-from agent.tools import cat, glob, grep, load_prompt, ls, run_in_container, todo
+from agent.tools import cat, glob, grep, load_prompt, ls, run_in_container, todowrite, todoread
 from paths import PROJECT_ROOT
 
 load_dotenv()

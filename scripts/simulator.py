@@ -24,7 +24,8 @@ from agent.tools.cat import CatTool
 from agent.tools.grep import GrepTool
 from agent.tools.ls import LsTool
 from agent.tools.glob import GlobTool
-from agent.tools.todo import TodoWriteTool, TodoReadTool
+from agent.tools.todowrite import TodoWriteTool
+from agent.tools.todoread import TodoReadTool
 from agent.sandbox import Sandbox
 
 class ToolSimulator:

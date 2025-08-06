@@ -19,7 +19,8 @@ from agent.tools.cat import CatTool
 from agent.tools.grep import GrepTool
 from agent.tools.ls import LsTool
 from agent.tools.glob import GlobTool
-from agent.tools.todo import TodoWriteTool, TodoReadTool
+from agent.tools.todowrite import TodoWriteTool
+from agent.tools.todoread import TodoReadTool
 from agent.sandbox import Sandbox
 
 
@@ -288,10 +289,13 @@ class TestAuth(unittest.TestCase):
         print("\n[17b] Glob - No matches")
         self.run_tool("Glob", {"pattern": "*.xyz", "path": "."})
         
-        print("\n[17c] Grep - Pattern not found")
+        print("\n[17c] Grep - Complex regex pattern (pipe characters)")
+        self.run_tool("Grep", {"pattern": "TODO|FIXME", "directory": "."})
+        
+        print("\n[17d] Grep - Pattern not found")
         self.run_tool("Grep", {"pattern": "NONEXISTENT", "directory": "."})
         
-        print("\n[17d] Bash - Command with error")
+        print("\n[17e] Bash - Command with error")
         self.run_tool("Bash", {"command": "cat /nonexistent/file"})
         
         print("\n" + "="*60)

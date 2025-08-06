@@ -75,7 +75,6 @@ def main(
 
     # Run the TUI
     if ctx.invoked_subcommand is None:
-        # Install screens
         tui = SnifferTUI()
         tui.install_screen(APIKeyScreen(), name="api_key")
         tui.install_screen(ModelSelectScreen(), name="model_select")

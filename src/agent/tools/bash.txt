@@ -1,1 +1,0 @@
-Execute bash commands in the codebase container. Use this tool to run commands like installing dependencies, running tests, or executing scripts.

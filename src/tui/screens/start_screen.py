@@ -56,11 +56,11 @@ class StartScreen(Screen):
         """Run the sniff agent analysis in a worker thread"""
         # Get model option
         model_option = AgentService.map_model_name_to_option(self.selected_model)
-        
+
         # Create services
         agent_service = AgentService(model_option)
         renderer = MessageRenderer(self.app, self.messages_container)
-        
+
         # Validate codebase
         is_valid, error_msg = agent_service.validate_codebase()
         if not is_valid:
@@ -72,25 +72,24 @@ class StartScreen(Screen):
             for message in agent_service.run_analysis():
                 if isinstance(message, ToolCallMessage):
                     renderer.render_tool_call(message)
-                    
+
                 elif isinstance(message, ToolResultMessage):
                     renderer.render_tool_result(message)
-                    
+
                 elif isinstance(message, TodoStateMessage):
                     renderer.render_todo_state(message)
-                    
+
                 elif isinstance(message, MessageStart):
                     renderer.render_message_start(message)
-                    
+
                 elif isinstance(message, MessageToken):
                     renderer.render_message_token(message)
-                    
+
                 elif isinstance(message, MessageEnd):
                     renderer.render_message_end(message)
 
         except Exception as e:
             renderer.render_error(f"Error during analysis: {str(e)}")
-
 
     def action_back_to_model_select(self) -> None:
         """Go back to model selection screen"""

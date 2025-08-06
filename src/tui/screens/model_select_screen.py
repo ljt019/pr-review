@@ -16,6 +16,7 @@ class ModelSelectScreen(Screen):
     BINDINGS = [
         Binding("ctrl+c", "quit", "Quit", priority=True),
         Binding("enter", "select_model", "Select", priority=True),
+        Binding("t", "open_test_screen", show=False),
     ]
     
     def compose(self) -> ComposeResult:
@@ -44,3 +45,8 @@ class ModelSelectScreen(Screen):
         """Handle option selection via mouse/enter"""
         self.app.selected_model = event.option.id
         self.app.push_screen("main")
+    
+    def action_open_test_screen(self) -> None:
+        """Open the test screen"""
+        from .test_screen import TestScreen
+        self.app.push_screen(TestScreen())
