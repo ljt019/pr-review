@@ -15,9 +15,9 @@ from agent.messages import (
     ToolResultMessage,
 )
 from tui.utils.json_detector import json_detector
-from tui.widgets.bug_report_widgets import BugReportContainer
-from tui.widgets.message_box import BotMessage, MessageBox
-from tui.widgets.tool_indicator import ToolIndicator
+from tui.screens.analysis_screen._widgets.bug_report_widgets import BugReportContainer
+from tui.screens.analysis_screen._widgets.message_box import BotMessage, MessageBox
+from tui.screens.analysis_screen._widgets.tool_indicator import ToolIndicator
 
 logger = logging.getLogger(__name__)
 
