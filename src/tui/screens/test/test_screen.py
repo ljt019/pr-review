@@ -27,7 +27,7 @@ class TestScreen(Screen):
         yield CenterWidget(AgentReadTodoMessage(self.todo_list))
         yield CenterWidget(GrepToolMessage({"pattern": "*.py"}))
         yield CenterWidget(GlobToolMessage({"pattern": "src/**/*.py"}))
-        yield CenterWidget(CatToolMessage({"file": "src/tui/screens/test_screen.py"}))
+        yield CenterWidget(CatToolMessage({"file": "src/tasks/cleanup.py"}))
         yield CenterWidget(LsToolMessage({"pattern": "src/**/*.py"}))
 
     def action_back(self) -> None:
@@ -175,24 +175,90 @@ class GlobToolMessage(Static):
 ############################################
 
 ############ In-Progress Widget 7 ############
-
 from textual.widgets import Static  # noqa
-from textual.containers import Horizontal  # noqa
+from textual.containers import Horizontal, Vertical  # noqa
+from textual.widgets import Markdown  # noqa
 
 
 class CatToolMessage(Static):
-    """Tool call made by the agent to *cat* files"""
+    """Tool call made by the agent to *cat* files using Markdown code fencing"""
+
+    file_content: str = """import os
+import shutil
+import time
+
+def cleanup_tmp():
+    # Bug: Deletes entire /tmp subdirs without filtering (security/resource_management)
+    base = "/tmp"
+    for name in os.listdir(base):
+        path = os.path.join(base, name)
+        try:
+            if os.path.isdir(path):
+                shutil.rmtree(path)
+            else:
+                os.remove(path)
+        except Exception:
+            # Bug: Swallowing exceptions hides failures (error_handling)
+            pass
+
+def rotate_logs():
+    # Bug: Inefficient rotation copies entire file repeatedly (performance)
+    log = "/tmp/app.log"
+    if not os.path.exists(log):
+        return
+    ts = int(time.time())
+    shutil.copy(log, f"/tmp/app.{ts}.log")"""
 
     def __init__(self, tool_args: dict):
         super().__init__("", classes="agent-tool-message")
         self.tool_args = tool_args
 
     def compose(self) -> ComposeResult:
-        # Build a horizontal container
-        yield Horizontal(
-            Label("⚯ Cat", classes="tool-title"),
-            Label(f" {self.tool_args['file']}", classes="tool-content"),
-            classes="tool-horizontal",
+        # Get file extension for syntax highlighting
+        file_path = self.tool_args.get("file", "")
+        file_ext = file_path.split(".")[-1] if "." in file_path else "text"
+
+        # Add line numbers to the content and truncate long lines
+        lines = self.file_content.split("\n")
+        line_count = len(lines)
+        line_num_width = len(str(line_count))
+        max_line_width = 80  # Maximum width for code lines
+
+        numbered_lines = []
+        for i, line in enumerate(lines, 1):
+            line_num = str(i).rjust(line_num_width)
+
+            # Truncate line if too long to prevent horizontal scrolling
+            available_width = (
+                max_line_width - line_num_width - 3
+            )  # Account for line number and separator
+            if len(line) > available_width and available_width > 0:
+                truncated_line = line[: available_width - 3] + "..."
+            else:
+                truncated_line = line
+
+            numbered_lines.append(f"{line_num}  {truncated_line}")
+
+        numbered_content = "\n".join(numbered_lines)
+
+        # Create markdown with code fence for syntax highlighting
+        markdown_content = f"```{file_ext}\n{numbered_content}\n```"
+
+        # Create the markdown widget with Catppuccin theme
+        markdown_widget = Markdown(markdown_content, classes="code-markdown")
+        markdown_widget.code_dark_theme = (
+            "catppuccin-mocha"  # Set Catppuccin Mocha theme
+        )
+
+        yield Vertical(
+            Horizontal(
+                Label("⚯ Cat", classes="tool-title"),
+                Label(
+                    f" {self.tool_args.get('file', 'unknown')}", classes="tool-content"
+                ),
+                classes="tool-horizontal",
+            ),
+            markdown_widget,
         )
 
 

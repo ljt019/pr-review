@@ -39,3 +39,17 @@
 .current-todo-list {
     width: auto;
 }
+
+/* Code markdown display - override defaults */
+.code-markdown {
+    height: auto;
+    overflow-y: hidden;  /* No scrolling on the Markdown widget itself */
+    background: transparent;  /* Transparent background */
+}
+
+/* Override MarkdownFence's default max-height limit and background */
+.code-markdown MarkdownFence {
+    max-height: 100vh;  /* Allow it to be as tall as needed */
+    overflow: hidden;   /* No internal scrolling */
+    background: transparent;  /* Transparent background for code block */
+}
