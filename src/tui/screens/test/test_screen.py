@@ -18,21 +18,48 @@ class TestScreen(Screen):
     todo_list: list[str] = ["Analyze the codebase", "Write the code"]
 
     def compose(self) -> ComposeResult:
-        """Compose the test screen with centered widget"""
-        # Create sample message string
-        sample_message = "Time to start my analysis"
-
-        yield CenterWidget(AgentMessage(sample_message))
-        yield CenterWidget(AgentWriteTodoMessage({"todo": "Analyze the codebase"}))
-        yield CenterWidget(AgentReadTodoMessage(self.todo_list))
-        yield CenterWidget(GrepToolMessage({"pattern": "*.py"}))
-        yield CenterWidget(GlobToolMessage({"pattern": "src/**/*.py"}))
-        yield CenterWidget(CatToolMessage({"file": "src/tasks/cleanup.py"}))
-        yield CenterWidget(LsToolMessage({"pattern": "src/**/*.py"}))
+        """Compose the test screen with realistic chat-style scrollable interface"""
+        from textual.widgets import Static
+        from textual.containers import Container, Center
+        
+        # Create layout like analysis screen
+        yield Container(
+            Static("qwen/qwen3-480b-a35b-coder", classes="header"),
+            Center(TestMessagesContainer(), classes="messages-center"),
+            classes="main-container",
+        )
 
     def action_back(self) -> None:
         """Go back to previous screen"""
         self.app.pop_screen()
+
+
+############ Test Messages Container ############
+
+from textual.containers import VerticalScroll  # noqa
+
+
+class TestMessagesContainer(VerticalScroll):
+    """Scrollable container for test messages that mimics analysis screen"""
+    
+    def __init__(self):
+        super().__init__(id="test-messages-container", classes="scrollbar_styles")
+    
+    def compose(self) -> ComposeResult:
+        """Compose the container with realistic message sequence"""
+        # Access the TestScreen's todo_list through the screen  
+        todo_list = ["Analyze authentication mechanisms", "Check for SQL injection"]
+        
+        # Start with simple test
+        yield CenterWidget(GrepToolMessage({"pattern": "import.*requests"}))
+        yield CenterWidget(CatToolMessage({"file": "src/network/client.py"}))
+        yield CenterWidget(LsToolMessage({"path": "src/vulnerabilities/"}))
+        yield CenterWidget(GlobToolMessage({"pattern": "**/*.py"}))
+        yield CenterWidget(AgentWriteTodoMessage({"todo": "Analyze authentication mechanisms"}))
+        yield CenterWidget(AgentReadTodoMessage(todo_list))
+        yield CenterWidget(GrepToolMessage({"pattern": "password.*="}))
+        yield CenterWidget(CatToolMessage({"file": "src/auth/login.py"}))
+        yield CenterWidget(AgentMessage("Generating bug report..."))
 
 
 ############ In-Progress Widget 1 ############

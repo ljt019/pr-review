@@ -104,3 +104,72 @@
     height: auto;
     width: 100%;
 }
+
+/* Main container to match analysis screen */
+.main-container {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    align-vertical: top;
+}
+
+/* Header styling to match analysis screen */
+.header {
+    width: 100%;
+    height: auto;
+    padding: 1 0;
+    background: transparent;
+    color: $text;
+    text-align: center;
+    text-style: bold;
+    margin: 0 0 2 0;
+}
+
+/* Messages container styling */
+.messages-center {
+    width: 100%;
+    height: 1fr;
+}
+
+/* Scrollbar styling */
+.scrollbar_styles {
+    scrollbar-color: #585b70;
+    scrollbar-color-hover: #7f849c;
+    scrollbar-color-active: #9399b2;
+    scrollbar-background: #1e1e2e;
+    scrollbar-background-hover: #313244;
+    scrollbar-background-active: #45475a;
+    scrollbar-size-vertical: 1;
+    margin-right: 3;  /* Move entire container away from right edge */
+}
+
+#test-messages-container {
+    width: 90;  /* Even wider container */
+    height: 100%;
+    background: transparent;
+    border-right: solid $background;  /* Invisible border using background color */
+    margin: 0;
+    padding: 0;
+}
+
+/* Try targeting scrollbar widgets directly */
+ScrollBar {
+    margin-left: 2;
+}
+
+/* Try targeting system scrollbar components */
+.-textual-system {
+    margin-left: 2;
+}
+
+/* Force all content to be wider but leave space for scrollbar */
+#test-messages-container .agent-tool-message {
+    width: 85;  /* Wider content maintaining 5 unit scrollbar spacing */
+    max-width: 85;
+}
+
+/* Also constrain agent messages */
+#test-messages-container .agent-message {
+    width: 85;  /* Wider content maintaining 5 unit scrollbar spacing */
+    max-width: 85;
+}
