@@ -60,15 +60,6 @@ After completing your analysis, you MUST provide your review in the following JS
       "category": "security|performance|validation|etc",
       "recommendation": "Specific fix or improvement suggestion"
     }
-  ],
-  "nitpicks": [
-    {
-      "title": "Short descriptive title", 
-      "description": "Detailed description of the minor issue",
-      "file": "path/to/file.py",
-      "line": "line number or range",
-      "recommendation": "Suggested improvement"
-    }
   ]
 }
 

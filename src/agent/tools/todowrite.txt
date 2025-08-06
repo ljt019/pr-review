@@ -1,117 +1,116 @@
-Use this tool to create and manage a structured task list for your code review session. This helps you track progress, organize complex analyses, and demonstrate thoroughness to the user.
+Use this tool to create and manage a structured task list for your current bug review session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user.
+It also helps the user understand the progress of the task and overall progress of the bug report.
 
 ## When to Use This Tool
-
 Use this tool proactively in these scenarios:
 
-1. Complex multi-area reviews - When you need to analyze security, performance, architecture, and code quality
-2. Systematic analysis - When reviewing requires examining multiple subsystems or layers
-3. Large codebases - When you need to ensure comprehensive coverage across many files
-4. Multiple bug categories - When looking for different types of issues (security, performance, logic errors)
+1. Complex multi-step tasks - When a task requires 3 or more distinct steps or actions
+2. Non-trivial and complex tasks - Tasks that require careful planning or multiple operations
+3. After completing a task - Mark it complete and add any new follow-up tasks
 
 ## When NOT to Use This Tool
 
 Skip using this tool when:
-1. The codebase is very small (under 10 files)
-2. The review focus is narrow and specific 
-3. The analysis can be completed in a single pass
-4. You're examining a single component or function
+1. There is only a single, straightforward task
+2. The task is trivial and tracking it provides no organizational benefit
+3. The task can be completed in less than 3 trivial steps
+4. The task is purely conversational or informational
+
+NOTE that you should not use this tool if there is only one trivial task to do. In this case you are better off just doing the task directly.
 
 ## Examples of When to Use the Todo List
 
 <example>
-User: Review this e-commerce application for security vulnerabilities and code quality issues
-Assistant: I'll conduct a comprehensive review of your e-commerce application. Let me create a structured todo list to ensure thorough coverage of all critical areas.
-*Creates todo list with items like:*
-- "Analyze authentication and session management for security vulnerabilities"
-- "Review payment processing and PCI compliance"
-- "Examine input validation and SQL injection risks"
-- "Check API endpoints for authorization bypass issues"
-- "Review error handling and information disclosure"
-*Begins systematic analysis*
-
+User: I've received a codebase for review. Please perform a comprehensive code review focusing on security vulnerabilities, code quality, performance issues, error handling, and best practices.
+Assistant (tool call - todo_write):
+{"todos": [
+  "Analyze project structure and architecture",
+  "Review security vulnerabilities (SQL injection, XSS, authentication issues)",
+  "Identify code quality issues (code smells and anti-patterns)",
+  "Assess performance issues (inefficient algorithms and memory leaks)",
+  "Evaluate error handling and edge cases (exception flows)",
+  "Check best practices and language conventions"
+]}
+Assistant: Updated todo list: 6 total, 6 incomplete.
 <reasoning>
 The assistant used the todo list because:
-1. E-commerce applications have multiple critical security areas
-2. Systematic coverage is essential for security reviews
-3. The review spans multiple architectural layers
-4. This demonstrates thoroughness and professionalism to the user
+1. The code review spans multiple focus areas.
+2. Each area requires a separate investigation step.
+3. Tracking ensures all review tasks are completed systematically.
+4. Immediate status updates reflect progress in each review area.
 </reasoning>
 </example>
 
 <example>
-User: Find performance bottlenecks in our API backend
-Assistant: I'll analyze your API backend for performance issues. Let me organize this into key areas to ensure comprehensive coverage.
-*Creates todo list:*
-- "Analyze database queries for N+1 problems and missing indexes"
-- "Review caching implementation and cache hit rates"
-- "Check for inefficient algorithms and data structures"
-- "Examine API response payload sizes and serialization"
-- "Review concurrency handling and connection pooling"
-
+User: (after completing the security vulnerability review)
+Assistant (tool call - todo_write):
+{"todos": [
+  {"id": "todo_XXXXXXX", "content": "Review security vulnerabilities (SQL injection, XSS, authentication issues)", "status": "complete"}
+]}
+Assistant: Updated todo list: 6 total, 5 incomplete.
 <reasoning>
-The assistant used the todo list because:
-1. Performance analysis requires examining multiple system aspects
-2. Different bottlenecks require different investigation techniques
-3. Structured approach ensures no performance aspect is overlooked
-4. Shows the user a professional, methodical approach
+The assistant used the todo list to mark the security vulnerability review as complete immediately after finishing that area.
 </reasoning>
 </example>
 
 ## Examples of When NOT to Use the Todo List
 
 <example>
-User: Is there a SQL injection vulnerability in this login function?
-Assistant: I'll examine the login function for SQL injection vulnerabilities.
-*Directly reads the relevant file and analyzes the code*
+User: Is this a bug or expected behavior? The error message says "Invalid email format" when I enter "user@domain"
+Assistant: This appears to be expected behavior, not a bug. The email validation is correctly rejecting "user@domain" because it lacks a top-level domain (TLD) like .com, .org, etc. A valid email format requires the structure "user@domain.tld". The error message is working as intended to ensure proper email formatting.
 
 <reasoning>
-The assistant did not use the todo list because this is a specific, focused request about a single function and vulnerability type.
+The assistant did not use the todo list because this is a simple validation question that can be answered immediately. No investigation or multiple steps are required - just explaining the expected email format behavior.
 </reasoning>
 </example>
 
 <example>
-User: Review this utility file for code quality
-Assistant: I'll review your utility file for code quality issues.
-*Proceeds to read and analyze the file directly*
+User: What's causing this TypeScript error in the bug report: "Property 'name' does not exist on type 'User | null'"?
+Assistant: This TypeScript error occurs because the User type can be null, but the code is trying to access the 'name' property without checking if the User object exists first. You need to add a null check before accessing the property, like: `if (user) { console.log(user.name); }` or use optional chaining: `user?.name`. This is a type safety feature, not a bug.
 
 <reasoning>
-The assistant did not use the todo list because this is a single file review that can be completed in one pass.
+The assistant did not use the todo list because this is an informational request about a specific error message. The user is asking for an explanation of a TypeScript compile-time error, which requires a single, direct answer rather than a multi-step investigation.
 </reasoning>
 </example>
 
-## Task Management
+<example>
+User: Review this bug fix PR that changes line 42 from `if (count = 0)` to `if (count === 0)`
+Assistant: This is a good bug fix. The original code had an assignment operator (=) instead of a comparison operator, which would always set count to 0 and evaluate to false. The fix correctly uses the strict equality operator (===) to compare the value. This was likely causing the conditional block to never execute.
+* Reviews the single-line change and confirms it fixes the assignment vs comparison bug *
 
-1. **Creating todos**: Pass an array of strings for initial todo creation
-   ```json
-   {"todos": ["Analyze authentication system", "Review database security", "Check input validation"]}
-   ```
+<reasoning>
+The assistant did not use the todo list because this is a single-line bug fix review. The change is straightforward and can be evaluated immediately without requiring multiple investigation steps or tracking.
+</reasoning>
+</example>
 
-2. **Updating status INCREMENTALLY**: Update each todo as you complete it
-   ```json
-   // After finishing authentication review:
-   {"todos": [
-     {"content": "Analyze authentication system", "status": "complete"},
-     {"content": "Review database security", "status": "incomplete"},
-     {"content": "Check input validation", "status": "incomplete"}
-   ]}
-   
-   // After finishing database review:
-   {"todos": [
-     {"content": "Analyze authentication system", "status": "complete"},
-     {"content": "Review database security", "status": "complete"},
-     {"content": "Check input validation", "status": "incomplete"}
-   ]}
-   ```
-   
-   IMPORTANT: Do NOT wait until the end to mark all todos complete at once!
+<example>
+User: Can you verify if bug #1234 about the missing footer on mobile devices has been fixed in the latest deployment?
+Assistant: I'll check if the footer display bug on mobile devices has been resolved.
 
-3. **Best practices**:
-   - Keep todos high-level and meaningful (5-10 maximum)
-   - Focus on analysis phases, not individual file operations
-   - CRITICAL: Update status IMMEDIATELY as you complete each phase - do NOT batch all updates at the end
-   - Mark each todo as "complete" RIGHT AFTER finishing that review area, before moving to the next
-   - Always check todos before final review
-   - Incremental updates show progress and professional workflow
+*Examines the mobile CSS and viewport settings*
 
-When in doubt, use this tool. Being proactive with task management demonstrates attentiveness and ensures you deliver a comprehensive, well-organized review.
+The bug has been fixed. The footer now includes the correct CSS media query for mobile viewports and the display property is properly set. The fix was deployed in commit abc123 which added `@media (max-width: 768px)` styling for the footer component.
+
+<reasoning>
+The assistant did not use the todo list because this is a single verification task. Checking if a specific bug has been fixed in one component requires only examining the relevant code or deployment, not tracking multiple complex steps.
+</reasoning>
+</example>
+
+## Task States and Management
+
+1. **Task States**: Use these states to track progress:
+   - complete
+   - incomplete 
+
+2. **Task Management**:
+   - Update task status in real-time as you work
+   - Mark tasks complete IMMEDIATELY after finishing (don't batch completions)
+   - Only work on one incomplete task at a time
+   - Complete current tasks before starting new ones
+
+3. **Task Breakdown**:
+   - Create specific, actionable items
+   - Break complex tasks into smaller, manageable steps
+   - Use clear, descriptive task names
+
+When in doubt, use this tool. Being proactive with task management demonstrates attentiveness and ensures you complete all requirements successfully.

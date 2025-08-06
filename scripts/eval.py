@@ -46,8 +46,11 @@ def parse_model_response(raw: str) -> Dict[str, Any]:
         import ijson  # type: ignore
     except ImportError:
         # Install ijson on the fly (mirrors behaviour elsewhere in this script)
-        subprocess.run([sys.executable, "-m", "pip", "install", "ijson"], 
-                      check=True, capture_output=True)
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "ijson"],
+            check=True,
+            capture_output=True,
+        )
         import ijson  # type: ignore
 
     try:
@@ -133,8 +136,9 @@ def checkout_bug_to_zip(project: str, bug_id: int, output_path: Path) -> bool:
                 import git
             except ImportError:
                 subprocess.run(
-                    [sys.executable, "-m", "pip", "install", "GitPython"], check=True, 
-                    capture_output=True
+                    [sys.executable, "-m", "pip", "install", "GitPython"],
+                    check=True,
+                    capture_output=True,
                 )
                 import git
 
@@ -330,11 +334,11 @@ def run_single_evaluation(
                 f.write(evaluator.get_summary(evaluation_result))
 
             # Print compact results
-            precision = evaluation_dict['summary']['precision']
-            recall = evaluation_dict['summary']['recall']
-            f1 = evaluation_dict['summary']['f1_score']
-            files = model_response.get('files_analyzed', 0)
-            
+            precision = evaluation_dict["summary"]["precision"]
+            recall = evaluation_dict["summary"]["recall"]
+            f1 = evaluation_dict["summary"]["f1_score"]
+            files = model_response.get("files_analyzed", 0)
+
             print(f"P:{precision:.2f} R:{recall:.2f} F1:{f1:.2f} Files:{files}")
 
             return evaluation_dict
@@ -398,10 +402,10 @@ def run_project_evaluation(
             json.dump(aggregate_results, f, indent=2)
 
         # Print compact summary
-        avg_p = aggregate_results['aggregate_metrics']['avg_precision']
-        avg_r = aggregate_results['aggregate_metrics']['avg_recall'] 
-        avg_f1 = aggregate_results['aggregate_metrics']['avg_f1_score']
-        
+        avg_p = aggregate_results["aggregate_metrics"]["avg_precision"]
+        avg_r = aggregate_results["aggregate_metrics"]["avg_recall"]
+        avg_f1 = aggregate_results["aggregate_metrics"]["avg_f1_score"]
+
         print(f"\nSUMMARY: {successful_evals}/{len(bug_ids)} successful")
         print(f"Average P:{avg_p:.2f} R:{avg_r:.2f} F1:{avg_f1:.2f}")
         print(f"Results: {project_output_dir.name}")
@@ -459,7 +463,7 @@ def main():
         projects_to_evaluate = sorted(available_projects.keys())
     else:
         projects_to_evaluate = [p.strip() for p in args.project.split(",")]
-    
+
     # Validate projects
     invalid_projects = [p for p in projects_to_evaluate if p not in available_projects]
     if invalid_projects:
@@ -470,9 +474,11 @@ def main():
     # Handle multiple projects case
     if len(projects_to_evaluate) > 1:
         total_bugs = sum(available_projects[p] for p in projects_to_evaluate)
-        print(f"\nEvaluating {len(projects_to_evaluate)} projects ({total_bugs} total bugs)")
+        print(
+            f"\nEvaluating {len(projects_to_evaluate)} projects ({total_bugs} total bugs)"
+        )
         print(f"Model: {model_option.value}")
-        
+
         for project_name in projects_to_evaluate:
             # Determine bugs for this project
             if args.all or (args.bugs and args.bugs.lower() == "all"):
@@ -490,13 +496,15 @@ def main():
                         bug_ids.extend(range(start, end + 1))
                     else:
                         bug_ids.append(int(part))
-                
+
                 # Validate bug IDs for this project (only if not "all")
                 if not (args.bugs and args.bugs.lower() == "all"):
                     max_bugs = available_projects[project_name]
                     invalid_bugs = [b for b in bug_ids if b < 1 or b > max_bugs]
                     if invalid_bugs:
-                        print(f"Warning: Invalid bug IDs for {project_name}: {invalid_bugs} (max: {max_bugs})")
+                        print(
+                            f"Warning: Invalid bug IDs for {project_name}: {invalid_bugs} (max: {max_bugs})"
+                        )
                         bug_ids = [b for b in bug_ids if 1 <= b <= max_bugs]
                         if not bug_ids:
                             print(f"No valid bugs for {project_name}, skipping...")
@@ -504,26 +512,31 @@ def main():
             else:
                 print(f"Error: Must specify --bugs or --all for {project_name}")
                 continue
-            
+
             run_project_evaluation(
                 project_name, bug_ids, model_option, Path(args.output), args.keep_zips
             )
-        
-        print(f"\n" + "="*60)
+
+        print(f"\n" + "=" * 60)
         print(f"Completed {len(projects_to_evaluate)} projects")
-        print("="*60)
+        print("=" * 60)
         return
 
     # Single project evaluation
     project = projects_to_evaluate[0]
-    
+
     # Determine which bugs to evaluate
     if args.all:
         bug_ids = list(range(1, available_projects[project] + 1))
     elif args.bugs:
         bug_ids = []
         for part in args.bugs.split(","):
-            if "-" in part:
+            part = part.strip()
+            if part.lower() == "all":
+                # Handle "all" in comma-separated list
+                bug_ids = list(range(1, available_projects[project] + 1))
+                break
+            elif "-" in part:
                 start, end = map(int, part.split("-"))
                 bug_ids.extend(range(start, end + 1))
             else:

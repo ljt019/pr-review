@@ -77,13 +77,11 @@ def create_eval_summary(response_data: Dict[str, Any]) -> Dict[str, Any]:
 
     # For dict responses, extract what we can
     bugs = response_data.get("bugs", [])
-    nitpicks = response_data.get("nitpicks", [])
 
     return {
         "response_type": "structured",
         "total_bugs": len(bugs),
-        "total_nitpicks": len(nitpicks),
-        "total_issues": len(bugs) + len(nitpicks),
+        "total_issues": len(bugs),
         "timestamp": datetime.now().isoformat(),
     }
 

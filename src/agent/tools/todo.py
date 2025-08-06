@@ -12,7 +12,7 @@ class TodoWriteTool(BaseTool):
         {
             "name": "todos",
             "type": "string",
-            "description": 'JSON array of todo objects with content and status, e.g. [{"content": "task 1", "status": "incomplete"}, {"content": "task 2", "status": "complete"}]',
+            "description": 'JSON array for todo management. For initial creation: ["task 1", "task 2"]. For updates: [{"content": "task 1", "status": "complete"}, {"content": "task 2", "status": "incomplete"}]',
             "required": True,
         }
     ]
@@ -26,6 +26,7 @@ class TodoWriteTool(BaseTool):
             if isinstance(todos_param, str):
                 try:
                     import json5
+
                     todos_list = json5.loads(todos_param)
                 except Exception:
                     return "Error: todos must be a valid JSON array"
@@ -55,9 +56,21 @@ class TodoWriteTool(BaseTool):
 @register_tool("todo_read")
 class TodoReadTool(BaseTool):
     description = load_tool_description("todoRead")
-    parameters = []  # No parameters needed
+    parameters = []  # No parameters needed - input should be left blank
 
     def call(self, params: str, **kwargs) -> str:
-        """Read and display current todos"""
+        """Read and display current todos. Takes no parameters - input should be blank."""
+        # Handle completely empty input as specified in todoread.txt
+        if params and params.strip() and params.strip() not in ["", "{}", "[]", "null"]:
+            return (
+                "Error: This tool takes no parameters. Leave the input blank or empty."
+            )
+
         todo_manager = get_todo_manager()
+        todos = todo_manager.get_all_todos()
+
+        # Return empty list if no todos exist
+        if not todos:
+            return "No todos currently exist."
+
         return todo_manager.format_todos()

@@ -1,6 +1,6 @@
 from qwen_agent.tools.base import BaseTool, register_tool
 
-from agent.tools import load_tool_description, run_in_container
+from agent.tools import load_tool_description, run_in_container, normalize_path
 from agent.utils.param_parser import ParameterParser
 
 # Common development directories to ignore for cleaner output
@@ -43,25 +43,42 @@ class LsTool(BaseTool):
     description = load_tool_description("ls")
     parameters = [
         {
-            "name": "directory",
+            "name": "path",
             "type": "string",
-            "description": "Directory path to list (defaults to current directory)",
+            "description": "Absolute path to list (defaults to root /)",
             "required": False,
-        }
+        },
+        {
+            "name": "ignore",
+            "type": "array",
+            "description": "Array of glob patterns to ignore",
+            "required": False,
+        },
     ]
 
     def call(self, params: str, **kwargs) -> str:
         try:
             # Handle empty params case
             if not params or params.strip() == "":
-                directory = "."
+                # Default to workspace root when no path is provided
+                path = "/workspace"
+                original_path = "."
+                ignore_patterns = []
             else:
                 parsed_params = ParameterParser.parse_params(params)
-                directory = ParameterParser.get_optional_param(parsed_params, "directory", ".")
+                original_path = ParameterParser.get_optional_param(parsed_params, "path", ".")
+                # Normalize the path to handle relative paths
+                path = normalize_path(original_path)
+                ignore_patterns = ParameterParser.get_optional_param(
+                    parsed_params, "ignore", []
+                )
+
+            # Combine default ignore patterns with user-provided ones
+            all_ignore_patterns = IGNORE_PATTERNS + ignore_patterns
 
             # Use find to get all files recursively, excluding ignored patterns
             ignore_conditions = []
-            for pattern in IGNORE_PATTERNS:
+            for pattern in all_ignore_patterns:
                 if pattern.endswith("/"):
                     # Directory pattern
                     ignore_conditions.append(f'-path "*/{pattern}*" -prune -o')
@@ -70,25 +87,29 @@ class LsTool(BaseTool):
                     ignore_conditions.append(f'-name "{pattern}" -prune -o')
 
             ignore_clause = " ".join(ignore_conditions) if ignore_conditions else ""
-            find_cmd = f'find "{directory}" {ignore_clause} -type f -print 2>/dev/null | head -{LIMIT}'
+            find_cmd = f'find "{path}" {ignore_clause} -type f -print 2>/dev/null | head -{LIMIT}'
 
             result = run_in_container(find_cmd)
 
             if result.startswith("Error:"):
-                return f"Error listing directory '{directory}': {result}"
+                return f"Error listing path '{original_path}': {result}"
 
             files = [line.strip() for line in result.split("\n") if line.strip()]
 
             if not files:
-                # Try a simpler ls command to see if directory exists
-                simple_check = run_in_container(f'ls -la "{directory}" 2>/dev/null || echo "DIRECTORY_NOT_FOUND"')
-                if "DIRECTORY_NOT_FOUND" in simple_check:
-                    return f"Directory '{directory}' does not exist. Use '.' for current directory or provide a valid path."
+                # Try a simpler ls command to see if path exists
+                simple_check = run_in_container(
+                    f'ls -la "{path}" 2>/dev/null || echo "PATH_NOT_FOUND"'
+                )
+                if "PATH_NOT_FOUND" in simple_check:
+                    return (
+                        f"Path '{original_path}' does not exist. Provide a valid path."
+                    )
                 else:
-                    return f"Directory '{directory}' exists but contains no files (all files may be filtered out by ignore patterns)"
+                    return f"Path '{original_path}' exists but contains no files (all files may be filtered out by ignore patterns)"
 
             # Build directory tree structure
-            tree_structure = self._build_tree_structure(files, directory)
+            tree_structure = self._build_tree_structure(files, path, original_path)
 
             # Check if results were truncated
             if len(files) >= LIMIT:
@@ -99,17 +120,17 @@ class LsTool(BaseTool):
         except Exception as e:
             return f"Error: {str(e)}"
 
-    def _build_tree_structure(self, files, base_dir):
+    def _build_tree_structure(self, files, base_path, display_path):
         """Build a hierarchical tree structure from file paths"""
         # Organize files by directory
         dirs = {}
 
         for file_path in files:
-            # Remove base directory prefix for cleaner display
-            if file_path.startswith(base_dir + "/"):
-                rel_path = file_path[len(base_dir) + 1 :]
-            elif file_path.startswith("./"):
-                rel_path = file_path[2:]
+            # Remove base path prefix for cleaner display
+            if base_path != "/" and file_path.startswith(base_path + "/"):
+                rel_path = file_path[len(base_path) + 1 :]
+            elif base_path == "/" and file_path.startswith("/"):
+                rel_path = file_path[1:] if file_path != "/" else ""
             else:
                 rel_path = file_path
 
@@ -117,7 +138,7 @@ class LsTool(BaseTool):
                 dir_part = "/".join(rel_path.split("/")[:-1])
                 file_part = rel_path.split("/")[-1]
             else:
-                dir_part = "."
+                dir_part = ""
                 file_part = rel_path
 
             if dir_part not in dirs:
@@ -131,15 +152,14 @@ class LsTool(BaseTool):
         # Build tree output
         output = []
 
-        # Show base directory
-        display_base = base_dir if base_dir != "." else "current directory"
-        output.append(f"{display_base}/")
+        # Show base path (use display path for user-friendly output)
+        output.append(f"{display_path}")
 
         # Sort directories by depth and name
         sorted_dirs = sorted(dirs.keys(), key=lambda x: (x.count("/"), x))
 
         for dir_path in sorted_dirs:
-            if dir_path == ".":
+            if dir_path == "":
                 # Files in root directory
                 for file_name in dirs[dir_path]:
                     output.append(f"  {file_name}")

@@ -1,6 +1,6 @@
 from qwen_agent.tools.base import BaseTool, register_tool
 
-from agent.tools import load_tool_description, run_in_container
+from agent.tools import load_tool_description, run_in_container, normalize_path
 from agent.utils.param_parser import ParameterParser
 
 
@@ -26,7 +26,9 @@ class GlobTool(BaseTool):
         try:
             parsed_params = ParameterParser.parse_params(params)
             pattern = ParameterParser.get_required_param(parsed_params, "pattern")
-            search_path = ParameterParser.get_optional_param(parsed_params, "path", ".")
+            original_path = ParameterParser.get_optional_param(parsed_params, "path", ".")
+            # Normalize the path to handle relative paths
+            search_path = normalize_path(original_path)
 
             # Build an appropriate find command
             # Special-case patterns that mean "all files"
@@ -46,11 +48,20 @@ class GlobTool(BaseTool):
             lines = [line.strip() for line in result.split("\n") if line.strip()]
 
             if not lines:
-                return f"No files found matching pattern '{pattern}' in {search_path}"
+                return f"No files found matching pattern '{pattern}' in {original_path}"
+            
+            # Convert absolute paths back to relative for display
+            display_lines = []
+            for line in lines:
+                if line.startswith("/workspace/"):
+                    display_lines.append(line[11:])  # Remove "/workspace/"
+                elif line == "/workspace":
+                    display_lines.append(".")
+                else:
+                    display_lines.append(line)
 
             # Check if we hit the limit
-            file_count = len(lines)
-            output_lines = lines.copy()
+            file_count = len(display_lines)
 
             if file_count == 50:
                 # Check if there are more files
@@ -59,14 +70,14 @@ class GlobTool(BaseTool):
                 try:
                     total_count = int(count_result.strip())
                     if total_count > 50:
-                        output_lines.append("")
-                        output_lines.append(
+                        display_lines.append("")
+                        display_lines.append(
                             f"(Showing 50 of {total_count} files. Consider using a more specific pattern.)"
                         )
                 except Exception:
                     pass
 
-            return "\n".join(output_lines)
+            return "\n".join(display_lines)
 
         except Exception as e:
             return f"Error: {str(e)}"

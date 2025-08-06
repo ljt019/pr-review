@@ -2,7 +2,7 @@ from typing import Optional
 
 from qwen_agent.tools.base import BaseTool, register_tool
 
-from agent.tools import load_tool_description, run_in_container
+from agent.tools import load_tool_description, run_in_container, normalize_path
 from agent.utils.param_parser import ParameterParser
 
 
@@ -13,7 +13,7 @@ class GrepTool(BaseTool):
         {
             "name": "pattern",
             "type": "string",
-            "description": "Search pattern (literal text or regex)",
+            "description": "Search pattern (supports full regex syntax)",
             "required": True,
         },
         {
@@ -23,39 +23,9 @@ class GrepTool(BaseTool):
             "required": False,
         },
         {
-            "name": "include_files",
+            "name": "include",
             "type": "string",
-            "description": 'File patterns to include (e.g., "*.py", "*.{js,ts}")',
-            "required": False,
-        },
-        {
-            "name": "exclude_files",
-            "type": "string",
-            "description": 'File patterns to exclude (e.g., "*.pyc", "node_modules/*")',
-            "required": False,
-        },
-        {
-            "name": "case_sensitive",
-            "type": "boolean",
-            "description": "Case sensitive search",
-            "required": False,
-        },
-        {
-            "name": "use_regex",
-            "type": "boolean",
-            "description": "Treat pattern as regex",
-            "required": False,
-        },
-        {
-            "name": "max_results",
-            "type": "integer",
-            "description": "Max results to return (default: 100)",
-            "required": False,
-        },
-        {
-            "name": "context_lines",
-            "type": "integer",
-            "description": "Number of context lines before/after matches",
+            "description": 'File patterns to include (e.g., "*.py", "*.{ts,tsx}")',
             "required": False,
         },
     ]
@@ -65,61 +35,35 @@ class GrepTool(BaseTool):
             parsed_params = ParameterParser.parse_params(params)
             pattern = ParameterParser.get_required_param(parsed_params, "pattern")
 
-            directory = ParameterParser.get_optional_param(parsed_params, "directory", ".")
-            include_files = ParameterParser.get_optional_param(parsed_params, "include_files")
-            exclude_files = ParameterParser.get_optional_param(parsed_params, "exclude_files")
-            case_sensitive = ParameterParser.get_optional_param(parsed_params, "case_sensitive", False)
-            use_regex = ParameterParser.get_optional_param(parsed_params, "use_regex", False)
-            max_results = ParameterParser.get_optional_param(parsed_params, "max_results", 100)
-            context_lines = ParameterParser.get_optional_param(parsed_params, "context_lines", 0)
-
-            return self._ripgrep_search(
-                pattern,
-                directory,
-                include_files,
-                exclude_files,
-                case_sensitive,
-                use_regex,
-                max_results,
-                context_lines,
+            original_directory = ParameterParser.get_optional_param(
+                parsed_params, "directory", "."
             )
+            # Normalize the directory path
+            directory = normalize_path(original_directory)
+            include = ParameterParser.get_optional_param(parsed_params, "include")
+
+            return self._search_files(pattern, directory, original_directory, include)
 
         except Exception as e:
             return f"Error: {str(e)}"
 
-    def _ripgrep_search(
-        self,
-        pattern: str,
-        directory: str = ".",
-        include_files: Optional[str] = None,
-        exclude_files: Optional[str] = None,
-        case_sensitive: bool = False,
-        use_regex: bool = False,
-        max_results: int = 100,
-        context_lines: int = 0,
+    def _search_files(
+        self, pattern: str, directory: str, original_directory: str, include: Optional[str] = None
     ) -> str:
-        """Fast ripgrep search in container."""
-        cmd = ["rg", "--line-number", "--with-filename", "--no-heading"]
+        """Search for files containing pattern and return file paths sorted by modification time."""
+        cmd = ["rg", "--files-with-matches", "--sort", "modified"]
 
-        # Add flags
-        if not case_sensitive:
-            cmd.append("--ignore-case")
-        if max_results > 0:
-            cmd.extend(["--max-count", str(max_results)])
-        if context_lines > 0:
-            cmd.extend(["--context", str(context_lines)])
-        if use_regex:
-            cmd.append("--regex")
-
-        # Handle file patterns
-        if include_files:
-            if include_files.startswith("*."):
+        # Handle file patterns for filtering
+        if include:
+            if include.startswith("*."):
                 # Simple extension like *.py
-                ext = include_files[2:]
+                ext = include[2:]
                 if ext in [
                     "py",
                     "js",
                     "ts",
+                    "tsx",
+                    "jsx",
                     "java",
                     "cpp",
                     "c",
@@ -128,15 +72,15 @@ class GrepTool(BaseTool):
                     "rb",
                     "php",
                     "sh",
+                    "html",
+                    "css",
+                    "md",
                 ]:
                     cmd.extend(["--type", ext])
                 else:
-                    cmd.extend(["--glob", include_files])
+                    cmd.extend(["--glob", include])
             else:
-                cmd.extend(["--glob", include_files])
-
-        if exclude_files:
-            cmd.extend(["--glob", f"!{exclude_files}"])
+                cmd.extend(["--glob", include])
 
         # Add pattern and directory
         cmd.append(pattern)
@@ -146,4 +90,21 @@ class GrepTool(BaseTool):
         command = " ".join(
             f'"{part}"' if " " in str(part) else str(part) for part in cmd
         )
-        return run_in_container(command)
+        result = run_in_container(command)
+
+        # If no matches found, provide a helpful message
+        if not result.strip():
+            return f"No files found containing pattern: {pattern}"
+
+        # Convert absolute paths back to relative for display
+        lines = result.strip().split("\n")
+        display_lines = []
+        for line in lines:
+            if line.startswith("/workspace/"):
+                display_lines.append(line[11:])  # Remove "/workspace/"
+            elif line == "/workspace":
+                display_lines.append(".")
+            else:
+                display_lines.append(line)
+        
+        return "\n".join(display_lines)

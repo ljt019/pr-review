@@ -23,6 +23,36 @@ def load_prompt(prompt_name: str) -> str:
     return content
 
 
+def normalize_path(path: str) -> str:
+    """
+    Normalize a path to be absolute within the container workspace.
+    
+    Converts relative paths to absolute paths rooted at /workspace.
+    Examples:
+        "." -> "/workspace"
+        "src/main.py" -> "/workspace/src/main.py"  
+        "/workspace/src/main.py" -> "/workspace/src/main.py" (unchanged)
+        "/other/path" -> "/other/path" (unchanged - allows absolute paths)
+    """
+    if not path:
+        return "/workspace"
+    
+    # Handle special case of current directory
+    if path == "." or path == "./":
+        return "/workspace"
+    
+    # If it's already an absolute path, return as-is
+    if path.startswith("/"):
+        return path
+    
+    # Remove leading ./ if present
+    if path.startswith("./"):
+        path = path[2:]
+    
+    # Prepend /workspace/ to relative paths
+    return f"/workspace/{path}"
+
+
 def run_in_container(command: str) -> str:
     """Run a command inside the analysis container."""
     container_id = os.environ.get("SNIFF_CONTAINER_ID")
