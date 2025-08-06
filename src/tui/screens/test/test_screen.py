@@ -232,7 +232,7 @@ class GrepToolMessage(Static):
         # Build markdown content
         md_lines = [
             f"\n**{match_count} matches** found across **{len(files_dict)} files**",
-            f"",
+            "",
         ]
 
         # Add results as a structured markdown list
@@ -566,12 +566,6 @@ class BugReportContent(Static):
         if bugs:
             # Group bugs by severity for better organization
             severity_groups = {"critical": [], "major": [], "minor": [], "low": []}
-            severity_colors = {
-                "critical": "Red",
-                "major": "Peach",
-                "minor": "Yellow",
-                "low": "Green",
-            }
 
             for bug in bugs:
                 severity = bug.get("severity", "unknown").lower()
@@ -590,7 +584,6 @@ class BugReportContent(Static):
             # Display bugs by severity (critical -> major -> minor -> low)
             for severity in ["critical", "major", "minor", "low"]:
                 if severity_groups[severity]:
-                    color = severity_colors.get(severity, "Text")
                     count = len(severity_groups[severity])
 
                     md_lines.extend(
@@ -608,16 +601,21 @@ class BugReportContent(Static):
                         category = bug.get("category", "unknown")
                         recommendation = bug.get("recommendation", "No recommendation")
 
+                        # Create compact bullet list
+                        bullet_info = f"- **Location**: `{file_path}:{line}`\n- **Category**: *{category}*\n- **Severity**: **{severity.upper()}**"
+
                         md_lines.extend(
                             [
                                 f"#### {i}. {title}",
                                 "",
-                                f"**Location:** `{file_path}:{line}` • *{category}*",
+                                bullet_info,
                                 "",
-                                f"> **Problem:**  ",
-                                f"> {description}",
+                                "**Problem**",
                                 "",
-                                f"**Recommended Fix:**  ",
+                                f"{description}",
+                                "",
+                                "**Recommendation**",
+                                "",
                                 f"{recommendation}",
                                 "",
                                 "---",
@@ -642,6 +640,8 @@ class BugReportContent(Static):
             markdown_content, classes="clean-bug-report-markdown"
         )
         markdown_widget.code_dark_theme = "catppuccin-mocha"
+        # Use smaller bullet characters
+        markdown_widget.BULLETS = ["• ", "‣ ", "⁃ ", "◦ ", "▪ "]
 
         yield markdown_widget
 
@@ -703,13 +703,13 @@ class BugReportMessage(Static):
 
         # Build markdown content
         md_lines = [
-            f"## Summary",
-            f"",
+            "## Summary",
+            "",
             f"{summary}",
-            f"",
+            "",
             f"**Files analyzed:** {files_analyzed}",
             f"**Issues found:** {len(bugs)}",
-            f"",
+            "",
         ]
 
         # Add bugs section
@@ -752,14 +752,14 @@ class BugReportMessage(Static):
                         md_lines.extend(
                             [
                                 f"#### {title}",
-                                f"",
+                                "",
                                 f"**Location:** `{file_path}:{line}`",
                                 f"**Category:** {category}",
-                                f"",
+                                "",
                                 f"{description}",
-                                f"",
+                                "",
                                 f"**Recommendation:** {recommendation}",
-                                f"",
+                                "",
                                 "---",
                                 "",
                             ]

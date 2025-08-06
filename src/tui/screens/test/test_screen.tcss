@@ -249,10 +249,26 @@ ScrollBar {
     margin: 1 0 1 0;
 }
 
+/* Additional bug report styling */
 .clean-bug-report-markdown MarkdownH4 {
     color: #cdd6f4;  /* Normal text color */
     text-style: bold;
     margin: 1 0 0 0;
+}
+
+/* Enhance bullet list readability */
+.clean-bug-report-markdown MarkdownBulletList,
+.clean-bug-report-markdown MarkdownOrderedList {
+    color: #cdd6f4;  /* Text */
+    margin: 0;
+    padding: 0 0 0 1;
+}
+
+/* Tighter spacing for bullet list items */
+.clean-bug-report-markdown MarkdownUnorderedListItem,
+.clean-bug-report-markdown MarkdownOrderedListItem {
+    margin: 0;
+    padding: 0;
 }
 
 /* Table styling */
