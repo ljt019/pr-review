@@ -19,7 +19,7 @@ from agent.messages import (
 from tui.services import AgentService, MessageRenderer
 
 
-class StartScreen(Screen):
+class AnalysisScreen(Screen):
     """Main application screen"""
 
     BINDINGS = [

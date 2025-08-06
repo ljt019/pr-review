@@ -22,3 +22,20 @@
     color: #585b70;
     text-style: italic;
 }
+
+/* Tool message containers */
+.agent-tool-message {
+    width: auto;
+    height: auto;
+}
+
+/* Horizontal containers for tool messages */
+.tool-horizontal {
+    width: auto;
+    height: auto;
+}
+
+/* Current todo list sizing */
+.current-todo-list {
+    width: auto;
+}

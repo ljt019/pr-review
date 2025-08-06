@@ -13,7 +13,7 @@ from textual.binding import Binding
 
 from paths import get_tui_path
 
-from .screens import APIKeyScreen, ModelSelectScreen, StartScreen
+from .screens import APIKeyScreen, ModelSelectScreen, AnalysisScreen
 
 # Load .env file
 load_dotenv()
@@ -78,7 +78,7 @@ def main(
         tui = SnifferTUI()
         tui.install_screen(APIKeyScreen(), name="api_key")
         tui.install_screen(ModelSelectScreen(), name="model_select")
-        tui.install_screen(StartScreen(), name="main")
+        tui.install_screen(AnalysisScreen(), name="main")
         tui.run()
 
 

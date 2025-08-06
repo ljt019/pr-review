@@ -115,8 +115,6 @@ class CurrentTodoList(Static):
     def __init__(self, todo_list: list[str]):
         super().__init__("", classes="current-todo-list")
         self.todo_list = todo_list
-        # Keep width to content size instead of stretching full screen
-        self.styles.width = "auto"
 
     def compose(self) -> ComposeResult:
         yield Label(f"  └ ○ {self.todo_list[0]}", classes="tool-content")
@@ -139,19 +137,14 @@ class GrepToolMessage(Static):
     def __init__(self, tool_args: dict):
         super().__init__("", classes="agent-tool-message")
         self.tool_args = tool_args
-        # Prevent the entire widget from stretching across the terminal
-        self.styles.width = "auto"
-        self.styles.height = "auto"
 
     def compose(self) -> ComposeResult:
-        # Build a horizontal container but also keep its width to content
-        container = Horizontal(
+        # Build a horizontal container
+        yield Horizontal(
             Label("⌕ Grep", classes="tool-title"),
             Label(f" {self.tool_args['pattern']}", classes="tool-content"),
+            classes="tool-horizontal",
         )
-        container.styles.width = "auto"
-        container.styles.height = "auto"
-        yield container
 
 
 ############################################
@@ -169,19 +162,14 @@ class GlobToolMessage(Static):
     def __init__(self, tool_args: dict):
         super().__init__("", classes="agent-tool-message")
         self.tool_args = tool_args
-        # Prevent the entire widget from stretching across the terminal
-        self.styles.width = "auto"
-        self.styles.height = "auto"
 
     def compose(self) -> ComposeResult:
-        # Build a horizontal container but also keep its width to content
-        container = Horizontal(
+        # Build a horizontal container
+        yield Horizontal(
             Label("⌕ Glob", classes="tool-title"),
             Label(f" {self.tool_args['pattern']}", classes="tool-content"),
+            classes="tool-horizontal",
         )
-        container.styles.width = "auto"
-        container.styles.height = "auto"
-        yield container
 
 
 ############################################
@@ -198,19 +186,14 @@ class CatToolMessage(Static):
     def __init__(self, tool_args: dict):
         super().__init__("", classes="agent-tool-message")
         self.tool_args = tool_args
-        # Prevent the entire widget from stretching across the terminal
-        self.styles.width = "auto"
-        self.styles.height = "auto"
 
     def compose(self) -> ComposeResult:
-        # Build a horizontal container but also keep its width to content
-        container = Horizontal(
+        # Build a horizontal container
+        yield Horizontal(
             Label("⚯ Cat", classes="tool-title"),
             Label(f" {self.tool_args['file']}", classes="tool-content"),
+            classes="tool-horizontal",
         )
-        container.styles.width = "auto"
-        container.styles.height = "auto"
-        yield container
 
 
 ############################################
@@ -228,19 +211,14 @@ class LsToolMessage(Static):
     def __init__(self, tool_args: dict):
         super().__init__("", classes="agent-tool-message")
         self.tool_args = tool_args
-        # Prevent the entire widget from stretching across the terminal
-        self.styles.width = "auto"
-        self.styles.height = "auto"
 
     def compose(self) -> ComposeResult:
-        # Build a horizontal container but also keep its width to content
-        container = Horizontal(
+        # Build a horizontal container
+        yield Horizontal(
             Label("☰ Ls", classes="tool-title"),
             Label(f" {self.tool_args['pattern']}", classes="tool-content"),
+            classes="tool-horizontal",
         )
-        container.styles.width = "auto"
-        container.styles.height = "auto"
-        yield container
 
 
 ############################################
