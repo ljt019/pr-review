@@ -556,6 +556,8 @@ class BugReportContent(Static):
         md_lines = [
             "---",
             "",
+            "## Summary",
+            "",
             f"{summary}",
             "",
         ]

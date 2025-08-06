@@ -236,15 +236,9 @@ ScrollBar {
 }
 
 
-/* Header styling with subtle hierarchy */
-.clean-bug-report-markdown MarkdownH1 {
-    color: #cdd6f4;  /* Normal text color */
-    text-style: bold;
-    margin-bottom: 0;
-}
-
+/* Header styling with Catppuccin colors */
 .clean-bug-report-markdown MarkdownH2 {
-    color: #cdd6f4;  /* Normal text color */
+    color: #94e2d5;  /* Catppuccin Teal - sub headings */
     text-style: bold;
     margin: 2 0 1 0;
 }
@@ -323,7 +317,7 @@ ScrollBar {
 }
 
 .bug-report-title {
-    color: #cdd6f4;
+    color: #cba6f7;  /* Catppuccin Mauve - main header */
     text-style: bold;
     text-align: center;
     background: transparent;
