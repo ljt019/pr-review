@@ -19,9 +19,9 @@ class TestScreen(Screen):
 
     def compose(self) -> ComposeResult:
         """Compose the test screen with realistic chat-style scrollable interface"""
+        from textual.containers import Center, Container
         from textual.widgets import Static
-        from textual.containers import Container, Center
-        
+
         # Create layout like analysis screen
         yield Container(
             Static("qwen/qwen3-480b-a35b-coder", classes="header"),
@@ -41,21 +41,23 @@ from textual.containers import VerticalScroll  # noqa
 
 class TestMessagesContainer(VerticalScroll):
     """Scrollable container for test messages that mimics analysis screen"""
-    
+
     def __init__(self):
         super().__init__(id="test-messages-container", classes="scrollbar_styles")
-    
+
     def compose(self) -> ComposeResult:
         """Compose the container with realistic message sequence"""
-        # Access the TestScreen's todo_list through the screen  
+        # Access the TestScreen's todo_list through the screen
         todo_list = ["Analyze authentication mechanisms", "Check for SQL injection"]
-        
+
         # Start with simple test
         yield CenterWidget(GrepToolMessage({"pattern": "import.*requests"}))
         yield CenterWidget(CatToolMessage({"file": "src/network/client.py"}))
         yield CenterWidget(LsToolMessage({"path": "src/vulnerabilities/"}))
         yield CenterWidget(GlobToolMessage({"pattern": "**/*.py"}))
-        yield CenterWidget(AgentWriteTodoMessage({"todo": "Analyze authentication mechanisms"}))
+        yield CenterWidget(
+            AgentWriteTodoMessage({"todo": "Analyze authentication mechanisms"})
+        )
         yield CenterWidget(AgentReadTodoMessage(todo_list))
         yield CenterWidget(GrepToolMessage({"pattern": "password.*="}))
         yield CenterWidget(CatToolMessage({"file": "src/auth/login.py"}))
@@ -70,7 +72,7 @@ class TestMessagesContainer(VerticalScroll):
                     "line": "672",
                     "severity": "major",
                     "category": "error-handling",
-                    "recommendation": "Refactor the error handling to properly propagate NothingChanged exceptions or handle them with appropriate logging and status reporting."
+                    "recommendation": "Refactor the error handling to properly propagate NothingChanged exceptions or handle them with appropriate logging and status reporting.",
                 },
                 {
                     "title": "Generic exception handling in format_file_contents",
@@ -79,7 +81,7 @@ class TestMessagesContainer(VerticalScroll):
                     "line": "744",
                     "severity": "major",
                     "category": "error-handling",
-                    "recommendation": "Replace the general Exception catch with more specific exception types to improve error visibility and debugging capabilities."
+                    "recommendation": "Replace the general Exception catch with more specific exception types to improve error visibility and debugging capabilities.",
                 },
                 {
                     "title": "Missing validation in format_stdin_to_stdout",
@@ -88,10 +90,10 @@ class TestMessagesContainer(VerticalScroll):
                     "line": "720",
                     "severity": "major",
                     "category": "validation",
-                    "recommendation": "Add validation for the write_back parameter to ensure it contains a valid value from the WriteBack enum before proceeding with formatting."
-                }
+                    "recommendation": "Add validation for the write_back parameter to ensure it contains a valid value from the WriteBack enum before proceeding with formatting.",
+                },
             ],
-            "files_analyzed": 3
+            "files_analyzed": 3,
         }
         yield CenterWidget(BugReportWithLoadingMessage(example_bug_report))
 
@@ -199,11 +201,15 @@ class GrepToolMessage(Static):
     example_matches = [
         ("src/agent/agent.py", 15, "def run_analysis(self):"),
         ("src/agent/agent.py", 28, "    analysis_results = []"),
-        ("src/tui/services/message_renderer.py", 45, "def render_analysis_message(self):"),
+        (
+            "src/tui/services/message_renderer.py",
+            45,
+            "def render_analysis_message(self):",
+        ),
         ("src/tui/services/message_renderer.py", 67, "    self.analysis_count += 1"),
         ("README.md", 12, "## Analysis Features"),
         ("README.md", 34, "Run analysis with: `sniff analyze`"),
-        ("pyproject.toml", 8, "name = \"analysis-tool\""),
+        ("pyproject.toml", 8, 'name = "analysis-tool"'),
         ("src/utils/helpers.py", 23, "def analyze_code_quality():"),
     ]
 
@@ -213,22 +219,22 @@ class GrepToolMessage(Static):
         self.search_results = search_results or self.example_matches
 
     def compose(self) -> ComposeResult:
-        pattern = self.tool_args.get('pattern', '')
+        pattern = self.tool_args.get("pattern", "")
         match_count = len(self.search_results)
-        
+
         # Group results by file for better organization
         files_dict = {}
         for file_path, line_num, content in self.search_results:
             if file_path not in files_dict:
                 files_dict[file_path] = []
             files_dict[file_path].append((line_num, content.strip()))
-        
+
         # Build markdown content
         md_lines = [
             f"\n**{match_count} matches** found across **{len(files_dict)} files**",
             f"",
         ]
-        
+
         # Add results as a structured markdown list
         for file_path, matches in files_dict.items():
             # File as top-level list item
@@ -236,19 +242,19 @@ class GrepToolMessage(Static):
             for line_num, content in matches:
                 md_lines.append(f"  - Line **{line_num}**: `{content}`")
             md_lines.append("")  # Space between files
-        
-        markdown_content = '\n'.join(md_lines)
-        
+
+        markdown_content = "\n".join(md_lines)
+
         # Create the markdown widget with custom bullets
         markdown_widget = Markdown(markdown_content, classes="search-markdown")
         markdown_widget.code_dark_theme = "catppuccin-mocha"
         # Override bullet symbols to use file icon for top level
         markdown_widget.BULLETS = ["🖹 ", "• ", "‣ ", "⭑ ", "⭑ "]
-        
+
         yield Vertical(
             Horizontal(
                 Label("⌕ Grep", classes="tool-title"),
-                Label(f" \"{pattern}\"", classes="tool-content"),
+                Label(f' "{pattern}"', classes="tool-content"),
                 classes="tool-horizontal",
             ),
             markdown_widget,
@@ -270,7 +276,7 @@ class GlobToolMessage(Static):
     # Example glob output for styling
     example_files = [
         "src/agent/__init__.py",
-        "src/agent/agent.py", 
+        "src/agent/agent.py",
         "src/agent/messages.py",
         "src/tui/__init__.py",
         "src/tui/services/__init__.py",
@@ -289,34 +295,34 @@ class GlobToolMessage(Static):
         self.matched_files = matched_files or self.example_files
 
     def compose(self) -> ComposeResult:
-        pattern = self.tool_args.get('pattern', '')
+        pattern = self.tool_args.get("pattern", "")
         file_count = len(self.matched_files)
-        
+
         # Build markdown content
         md_lines = [
             f"**{file_count} files** matched pattern",
             "",
         ]
-        
+
         # Add files as a markdown list
         for file_path in self.matched_files:
             md_lines.append(f"- **{file_path}**")
-        
+
         if not self.matched_files:
             md_lines = ["**No files matched** the pattern"]
-            
-        markdown_content = '\n'.join(md_lines)
-        
+
+        markdown_content = "\n".join(md_lines)
+
         # Create the markdown widget with custom file icon bullets
         markdown_widget = Markdown(markdown_content, classes="search-markdown")
         markdown_widget.code_dark_theme = "catppuccin-mocha"
         # Use file icon for all matched files
         markdown_widget.BULLETS = ["🖹 ", "🖹 ", "🖹 ", "🖹 ", "🖹 "]
-        
+
         yield Vertical(
             Horizontal(
                 Label("⌕ Glob", classes="tool-title"),
-                Label(f" \"{pattern}\"", classes="tool-content"),
+                Label(f' "{pattern}"', classes="tool-content"),
                 classes="tool-horizontal",
             ),
             markdown_widget,
@@ -485,11 +491,157 @@ class LsToolMessage(Static):
 ############################################
 
 
-############ In-Progress Widget 9 - Bug Report with Loading ############
+############ In-Progress Widget 9 - Bug Report Components ############
 
 from textual.widgets import Static  # noqa
 from textual.containers import Horizontal, Vertical  # noqa
 from textual.widgets import Markdown  # noqa
+
+
+class BugReportHeader(Static):
+    """Bug report header with title"""
+
+    def __init__(self):
+        super().__init__("", classes="bug-report-header")
+
+    def compose(self) -> ComposeResult:
+        yield Static("Bug Report", classes="bug-report-title")
+
+
+class BugReportStats(Static):
+    """Bug report statistics"""
+
+    def __init__(self, issues_count: int, files_analyzed: int):
+        super().__init__("", classes="bug-report-stats-container")
+        self.issues_count = issues_count
+        self.files_analyzed = files_analyzed
+
+    def compose(self) -> ComposeResult:
+        yield Static(
+            f"{self.issues_count} issues found | {self.files_analyzed} files analyzed",
+            classes="bug-report-stats",
+        )
+
+
+class BugReportContent(Static):
+    """Bug report main content with issues"""
+
+    def __init__(self, bug_report: dict):
+        super().__init__("", classes="bug-report-content")
+        self.bug_report = bug_report
+
+    def _get_severity_breakdown(self, bugs):
+        """Generate a severity breakdown string"""
+        if not bugs:
+            return "None"
+
+        severity_counts = {"critical": 0, "major": 0, "minor": 0, "low": 0}
+        for bug in bugs:
+            severity = bug.get("severity", "unknown").lower()
+            if severity in severity_counts:
+                severity_counts[severity] += 1
+
+        breakdown_parts = []
+        for severity, count in severity_counts.items():
+            if count > 0:
+                breakdown_parts.append(f"{count} {severity}")
+
+        return ", ".join(breakdown_parts) if breakdown_parts else "None"
+
+    def compose(self) -> ComposeResult:
+        summary = self.bug_report.get("summary", "No summary available")
+        bugs = self.bug_report.get("bugs", [])
+
+        # Build markdown content with separator at top
+        md_lines = [
+            "---",
+            "",
+            f"{summary}",
+            "",
+        ]
+
+        # Add bugs section with rich formatting
+        if bugs:
+            # Group bugs by severity for better organization
+            severity_groups = {"critical": [], "major": [], "minor": [], "low": []}
+            severity_colors = {
+                "critical": "Red",
+                "major": "Peach",
+                "minor": "Yellow",
+                "low": "Green",
+            }
+
+            for bug in bugs:
+                severity = bug.get("severity", "unknown").lower()
+                if severity in severity_groups:
+                    severity_groups[severity].append(bug)
+                else:
+                    severity_groups["minor"].append(bug)
+
+            md_lines.extend(
+                [
+                    "## Findings",
+                    "",
+                ]
+            )
+
+            # Display bugs by severity (critical -> major -> minor -> low)
+            for severity in ["critical", "major", "minor", "low"]:
+                if severity_groups[severity]:
+                    color = severity_colors.get(severity, "Text")
+                    count = len(severity_groups[severity])
+
+                    md_lines.extend(
+                        [
+                            f"### {severity.title()} Severity Issues ({count})",
+                            "",
+                        ]
+                    )
+
+                    for i, bug in enumerate(severity_groups[severity], 1):
+                        title = bug.get("title", "Unknown issue")
+                        description = bug.get("description", "No description")
+                        file_path = bug.get("file", "unknown")
+                        line = bug.get("line", "unknown")
+                        category = bug.get("category", "unknown")
+                        recommendation = bug.get("recommendation", "No recommendation")
+
+                        md_lines.extend(
+                            [
+                                f"#### {i}. {title}",
+                                "",
+                                f"**Location:** `{file_path}:{line}` • *{category}*",
+                                "",
+                                f"> **Problem:**  ",
+                                f"> {description}",
+                                "",
+                                f"**Recommended Fix:**  ",
+                                f"{recommendation}",
+                                "",
+                                "---",
+                                "",
+                            ]
+                        )
+        else:
+            md_lines.extend(
+                [
+                    "## Result",
+                    "",
+                    "> **✓ No security issues found**",
+                    "",
+                    "The analyzed codebase appears to be free of common security vulnerabilities.",
+                ]
+            )
+
+        markdown_content = "\n".join(md_lines)
+
+        # Create the markdown widget
+        markdown_widget = Markdown(
+            markdown_content, classes="clean-bug-report-markdown"
+        )
+        markdown_widget.code_dark_theme = "catppuccin-mocha"
+
+        yield markdown_widget
 
 
 class BugReportWithLoadingMessage(Static):
@@ -516,87 +668,14 @@ class BugReportWithLoadingMessage(Static):
                 Static("Generating bug report...", classes="loading-message"),
             )
         else:
-            # Show actual bug report
-            # Extract report data
-            summary = self.bug_report.get("summary", "No summary available")
+            # Show actual bug report using components
             bugs = self.bug_report.get("bugs", [])
             files_analyzed = self.bug_report.get("files_analyzed", 0)
-            
-            # Build markdown content
-            md_lines = [
-                f"## Summary",
-                f"",
-                f"{summary}",
-                f"",
-                f"**Files analyzed:** {files_analyzed}",
-                f"**Issues found:** {len(bugs)}",
-                f"",
-            ]
-            
-            # Add bugs section
-            if bugs:
-                md_lines.append("## Issues")
-                md_lines.append("")
-                
-                # Group bugs by severity for better organization
-                severity_groups = {"major": [], "minor": [], "critical": [], "low": []}
-                for bug in bugs:
-                    severity = bug.get("severity", "unknown").lower()
-                    if severity in severity_groups:
-                        severity_groups[severity].append(bug)
-                    else:
-                        severity_groups["minor"].append(bug)
-                
-                # Display bugs by severity (critical -> major -> minor -> low)
-                for severity in ["critical", "major", "minor", "low"]:
-                    if severity_groups[severity]:
-                        severity_emoji = {
-                            "critical": "🔴",
-                            "major": "🟡", 
-                            "minor": "🟢",
-                            "low": "⚪"
-                        }
-                        
-                        md_lines.append(f"### {severity_emoji[severity]} {severity.title()} Issues")
-                        md_lines.append("")
-                        
-                        for bug in severity_groups[severity]:
-                            title = bug.get("title", "Unknown issue")
-                            description = bug.get("description", "No description")
-                            file_path = bug.get("file", "unknown")
-                            line = bug.get("line", "unknown")
-                            category = bug.get("category", "unknown")
-                            recommendation = bug.get("recommendation", "No recommendation")
-                            
-                            md_lines.extend([
-                                f"#### {title}",
-                                f"",
-                                f"**Location:** `{file_path}:{line}`",
-                                f"**Category:** {category}",
-                                f"",
-                                f"{description}",
-                                f"",
-                                f"**Recommendation:** {recommendation}",
-                                f"",
-                                "---",
-                                "",
-                            ])
-            else:
-                md_lines.append("**No issues found** ✅")
-                
-            markdown_content = '\n'.join(md_lines)
-            
-            # Create the markdown widget with bug report styling
-            markdown_widget = Markdown(markdown_content, classes="bug-report-markdown")
-            markdown_widget.code_dark_theme = "catppuccin-mocha"
-            
+
             yield Vertical(
-                Horizontal(
-                    Label("🐛 Bug Report", classes="tool-title"),
-                    Label(f" {len(bugs)} issues found", classes="tool-content"),
-                    classes="tool-horizontal",
-                ),
-                markdown_widget,
+                BugReportHeader(),
+                BugReportStats(len(bugs), files_analyzed),
+                BugReportContent(self.bug_report),
             )
 
 
@@ -619,7 +698,7 @@ class BugReportMessage(Static):
         summary = self.bug_report.get("summary", "No summary available")
         bugs = self.bug_report.get("bugs", [])
         files_analyzed = self.bug_report.get("files_analyzed", 0)
-        
+
         # Build markdown content
         md_lines = [
             f"## Summary",
@@ -630,12 +709,12 @@ class BugReportMessage(Static):
             f"**Issues found:** {len(bugs)}",
             f"",
         ]
-        
+
         # Add bugs section
         if bugs:
             md_lines.append("## Issues")
             md_lines.append("")
-            
+
             # Group bugs by severity for better organization
             severity_groups = {"major": [], "minor": [], "critical": [], "low": []}
             for bug in bugs:
@@ -644,20 +723,22 @@ class BugReportMessage(Static):
                     severity_groups[severity].append(bug)
                 else:
                     severity_groups["minor"].append(bug)
-            
+
             # Display bugs by severity (critical -> major -> minor -> low)
             for severity in ["critical", "major", "minor", "low"]:
                 if severity_groups[severity]:
                     severity_emoji = {
                         "critical": "🔴",
-                        "major": "🟡", 
+                        "major": "🟡",
                         "minor": "🟢",
-                        "low": "⚪"
+                        "low": "⚪",
                     }
-                    
-                    md_lines.append(f"### {severity_emoji[severity]} {severity.title()} Issues")
+
+                    md_lines.append(
+                        f"### {severity_emoji[severity]} {severity.title()} Issues"
+                    )
                     md_lines.append("")
-                    
+
                     for bug in severity_groups[severity]:
                         title = bug.get("title", "Unknown issue")
                         description = bug.get("description", "No description")
@@ -665,29 +746,31 @@ class BugReportMessage(Static):
                         line = bug.get("line", "unknown")
                         category = bug.get("category", "unknown")
                         recommendation = bug.get("recommendation", "No recommendation")
-                        
-                        md_lines.extend([
-                            f"#### {title}",
-                            f"",
-                            f"**Location:** `{file_path}:{line}`",
-                            f"**Category:** {category}",
-                            f"",
-                            f"{description}",
-                            f"",
-                            f"**Recommendation:** {recommendation}",
-                            f"",
-                            "---",
-                            "",
-                        ])
+
+                        md_lines.extend(
+                            [
+                                f"#### {title}",
+                                f"",
+                                f"**Location:** `{file_path}:{line}`",
+                                f"**Category:** {category}",
+                                f"",
+                                f"{description}",
+                                f"",
+                                f"**Recommendation:** {recommendation}",
+                                f"",
+                                "---",
+                                "",
+                            ]
+                        )
         else:
             md_lines.append("**No issues found** ✅")
-            
-        markdown_content = '\n'.join(md_lines)
-        
+
+        markdown_content = "\n".join(md_lines)
+
         # Create the markdown widget with bug report styling
         markdown_widget = Markdown(markdown_content, classes="bug-report-markdown")
         markdown_widget.code_dark_theme = "catppuccin-mocha"
-        
+
         yield Vertical(
             Horizontal(
                 Label("🐛 Bug Report", classes="tool-title"),

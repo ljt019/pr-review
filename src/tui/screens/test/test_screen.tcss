@@ -204,3 +204,150 @@ ScrollBar {
     height: auto;
     text-align: center;
 }
+
+/* Rich bug report markdown display */
+.clean-bug-report-markdown {
+    height: auto;
+    overflow-y: hidden;
+    background: transparent;
+    padding: 0 2 0 2;
+}
+
+/* Override MarkdownFence for rich bug reports */
+.clean-bug-report-markdown MarkdownFence {
+    max-height: 100vh;
+    overflow: hidden;
+    background: #313244;  /* Surface 0 from Catppuccin */
+    border: solid #45475a;  /* Surface 1 */
+    margin: 1 0;
+    padding: 1;
+}
+
+/* Override the Static widget inside clean bug report MarkdownFence */
+.clean-bug-report-markdown MarkdownFence > Static {
+    height: auto;
+    color: #a6e3a1;  /* Green for code */
+}
+
+/* Rich styling for different elements */
+.clean-bug-report-markdown MarkdownParagraph {
+    color: #cdd6f4;  /* Text */
+    margin: 0 0 1 0;
+}
+
+
+/* Header styling with subtle hierarchy */
+.clean-bug-report-markdown MarkdownH1 {
+    color: #cdd6f4;  /* Normal text color */
+    text-style: bold;
+    margin-bottom: 0;
+}
+
+.clean-bug-report-markdown MarkdownH2 {
+    color: #cdd6f4;  /* Normal text color */
+    text-style: bold;
+    margin: 2 0 1 0;
+}
+
+.clean-bug-report-markdown MarkdownH3 {
+    color: #cdd6f4;  /* Normal text color */
+    text-style: bold;
+    margin: 1 0 1 0;
+}
+
+.clean-bug-report-markdown MarkdownH4 {
+    color: #cdd6f4;  /* Normal text color */
+    text-style: bold;
+    margin: 1 0 0 0;
+}
+
+/* Table styling */
+.clean-bug-report-markdown MarkdownTable {
+    border: solid #45475a;
+    background: #1e1e2e;  /* Base */
+    margin: 1 0;
+}
+
+.clean-bug-report-markdown MarkdownTHead {
+    background: #313244;  /* Surface 0 */
+    color: #cba6f7;  /* Mauve for headers */
+    text-style: bold;
+}
+
+.clean-bug-report-markdown MarkdownTH,
+.clean-bug-report-markdown MarkdownTD {
+    border: solid #45475a;
+    padding: 0 1;
+    color: #cdd6f4;  /* Text */
+}
+
+/* Blockquote styling */
+.clean-bug-report-markdown MarkdownBlockQuote {
+    border-left: solid #585b70;  /* Subtle border */
+    background: transparent;
+    color: #cdd6f4;  /* Normal text color */
+    padding: 0 0 0 2;
+    margin: 1 0;
+}
+
+/* Horizontal rule styling */
+.clean-bug-report-markdown MarkdownHorizontalRule {
+    border-bottom: heavy #45475a;  /* Surface 1 - subtle gray */
+    margin: 1 0;
+}
+
+/* Code inline styling */
+.clean-bug-report-markdown MarkdownInlineCode {
+    background: #313244;  /* Surface 0 */
+    color: #94e2d5;  /* Teal */
+    padding: 0 1;
+}
+
+/* List styling */
+.clean-bug-report-markdown MarkdownBulletList,
+.clean-bug-report-markdown MarkdownOrderedList {
+    color: #cdd6f4;  /* Text */
+    margin: 0 0 1 0;
+}
+
+/* Links (if any) */
+.clean-bug-report-markdown MarkdownLink {
+    color: #74c7ec;  /* Sapphire */
+    text-style: underline;
+}
+
+/* Bug report component styling */
+.bug-report-header {
+    height: auto;
+    background: transparent;
+}
+
+.bug-report-title {
+    color: #cdd6f4;
+    text-style: bold;
+    text-align: center;
+    background: transparent;
+    height: auto;
+    margin: 0;
+    padding: 0;
+}
+
+.bug-report-stats-container {
+    height: auto;
+    background: transparent;
+    margin: 0;
+}
+
+.bug-report-stats {
+    color: #a6adc8;  /* Subtext 0 - muted */
+    text-align: center;
+    background: transparent;
+    height: auto;
+    margin: 0;
+    padding: 0;
+}
+
+.bug-report-content {
+    height: auto;
+    background: transparent;
+}
