@@ -5,7 +5,7 @@ from textual.binding import Binding
 from textual.screen import Screen
 from textual.widgets import Label
 
-from ..widgets.center_screen import CenterWidget
+from ._widgets.center_screen import CenterWidget
 
 
 class TestScreen(Screen):

@@ -6,9 +6,9 @@ from textual.containers import Container, Vertical, Center
 from textual.widgets import OptionList
 from textual.binding import Binding
 
-from ..widgets.ascii_art import ASCIIArt
-from ..widgets.model_options import ModelOptionsWidget
-from ..widgets.instruction_text import InstructionText
+from ...widgets.ascii_art import ASCIIArt
+from ._widgets.model_options import ModelOptionsWidget
+from ...widgets.instruction_text import InstructionText
 
 class ModelSelectScreen(Screen):
     """Screen for model selection"""
@@ -48,5 +48,5 @@ class ModelSelectScreen(Screen):
     
     def action_open_test_screen(self) -> None:
         """Open the test screen"""
-        from .test_screen import TestScreen
+        from ..test.test_screen import TestScreen
         self.app.push_screen(TestScreen())
