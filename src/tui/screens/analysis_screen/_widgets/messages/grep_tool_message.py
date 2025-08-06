@@ -1,8 +1,11 @@
 """Grep tool message widget"""
 
+import json
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Label, Markdown, Static
+
+from agent.messages import ToolCallMessage
 
 
 class GrepToolMessage(Static):
@@ -23,13 +26,21 @@ class GrepToolMessage(Static):
         ("src/utils/helpers.py", 23, "def analyze_code_quality():"),
     ]
 
-    def __init__(self, tool_args: dict, search_results=None):
+    def __init__(self, tool_message: ToolCallMessage, search_results=None):
         super().__init__("", classes="agent-tool-message")
-        self.tool_args = tool_args
+        self.tool_message = tool_message
         self.search_results = search_results or self.example_matches
 
     def compose(self) -> ComposeResult:
-        pattern = self.tool_args.get("pattern", "")
+        try:
+            args = json.loads(self.tool_message.arguments)
+            pattern = args.get("pattern", args.get("search_pattern", ""))
+        except (json.JSONDecodeError, AttributeError):
+            pattern = ""
+        
+        # If still empty, try to extract from tool_message directly
+        if not pattern and hasattr(self.tool_message, 'arguments'):
+            pattern = str(self.tool_message.arguments)[:50] + "..." if len(str(self.tool_message.arguments)) > 50 else str(self.tool_message.arguments)
         match_count = len(self.search_results)
 
         files_dict = {}

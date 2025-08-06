@@ -18,6 +18,15 @@ from tui.utils.json_detector import json_detector
 from tui.screens.analysis_screen._widgets.bug_report_widgets import BugReportContainer
 from tui.screens.analysis_screen._widgets.message_box import BotMessage, MessageBox
 from tui.screens.analysis_screen._widgets.tool_indicator import ToolIndicator
+from tui.screens.analysis_screen._widgets.center_screen import CenterWidget
+from tui.screens.analysis_screen._widgets.messages.grep_tool_message import GrepToolMessage
+from tui.screens.analysis_screen._widgets.messages.cat_tool_message import CatToolMessage
+from tui.screens.analysis_screen._widgets.messages.ls_tool_message import LsToolMessage
+from tui.screens.analysis_screen._widgets.messages.glob_tool_message import GlobToolMessage
+from tui.screens.analysis_screen._widgets.messages.agent_write_todo_message import AgentWriteTodoMessage
+from tui.screens.analysis_screen._widgets.messages.agent_read_todo_message import AgentReadTodoMessage
+from tui.screens.analysis_screen._widgets.messages.bug_report_with_loading_message import BugReportWithLoadingMessage
+from tui.screens.analysis_screen._widgets.messages.agent_message import AgentMessage
 
 logger = logging.getLogger(__name__)
 
@@ -46,9 +55,31 @@ class MessageRenderer:
         
         # Only create if we haven't seen this call_id before
         if indicator_key not in self.tool_indicators:
-            tool_indicator = ToolIndicator(message.tool_name, message.arguments)
-            self.tool_indicators[indicator_key] = tool_indicator
-            self._add_widget(tool_indicator)
+            # Create appropriate widget based on tool type
+            if message.tool_name == "grep":
+                widget = CenterWidget(GrepToolMessage(message))
+            elif message.tool_name == "cat":
+                widget = CenterWidget(CatToolMessage(message))
+            elif message.tool_name == "ls":
+                widget = CenterWidget(LsToolMessage(message))
+            elif message.tool_name == "glob":
+                widget = CenterWidget(GlobToolMessage(message))
+            elif message.tool_name in ["todo_write", "todo_read"]:
+                # For todo messages, we'll create a placeholder that gets updated later
+                tool_indicator = ToolIndicator(message.tool_name, message.arguments)
+                self.tool_indicators[indicator_key] = tool_indicator
+                self._add_widget(tool_indicator)
+                return
+            else:
+                # Fallback to original ToolIndicator for other tools
+                tool_indicator = ToolIndicator(message.tool_name, message.arguments)
+                self.tool_indicators[indicator_key] = tool_indicator
+                self._add_widget(tool_indicator)
+                return
+            
+            # For the new widgets, we store them but don't need completion tracking
+            self.tool_indicators[indicator_key] = widget
+            self._add_widget(widget)
 
     def render_tool_result(self, message: ToolResultMessage) -> None:
         """Render a tool result message."""
@@ -56,33 +87,61 @@ class MessageRenderer:
         if message.tool_name == "cat" and not message.result.startswith("Error:"):
             self._track_analyzed_file(message)
         
-        # Find and mark the matching tool as completed
+        # Find and update the matching tool widget
         matching_key = self._find_matching_tool_key(message.tool_name)
         
         if matching_key:
-            tool_indicator = self.tool_indicators[matching_key]
-            self.app.call_from_thread(tool_indicator.mark_completed)
+            widget = self.tool_indicators[matching_key]
+            
+            # Handle different widget types
+            if hasattr(widget, 'mark_completed'):
+                # Old ToolIndicator style
+                self.app.call_from_thread(widget.mark_completed)
+            elif message.tool_name == "cat" and hasattr(widget, 'children') and len(widget.children) > 0:
+                # Update CatToolMessage with actual file content
+                cat_widget = widget.children[0]  # Get the CatToolMessage from CenterWidget
+                if hasattr(cat_widget, 'file_content'):
+                    cat_widget.file_content = message.result
+                    # Trigger a recompose to show the new content
+                    self.app.call_from_thread(cat_widget.refresh, recompose=True)
+            elif message.tool_name == "grep" and hasattr(widget, 'children') and len(widget.children) > 0:
+                # Update GrepToolMessage with actual search results
+                grep_widget = widget.children[0]  # Get the GrepToolMessage from CenterWidget  
+                if hasattr(grep_widget, 'search_results'):
+                    # Parse grep results - this would need actual parsing logic
+                    grep_widget.search_results = self._parse_grep_results(message.result)
+                    # Trigger a recompose to show the new content
+                    self.app.call_from_thread(grep_widget.refresh, recompose=True)
 
     def render_todo_state(self, message: TodoStateMessage) -> None:
         """Render todo state update."""
         if not message.todos:
             return
             
-        # Find the most recent todo tool
+        # Find the most recent todo tool indicator and replace it with new widget
         for key in reversed(list(self.tool_indicators.keys())):
-            tool_indicator = self.tool_indicators[key]
-            if tool_indicator.tool_name in ["todo_write", "todo_read"]:
-                self.app.call_from_thread(
-                    tool_indicator.set_todo_data, message.todos
-                )
+            widget = self.tool_indicators[key]
+            if hasattr(widget, 'tool_name') and widget.tool_name in ["todo_write", "todo_read"]:
+                # Remove the old indicator
+                self.app.call_from_thread(widget.remove)
+                
+                # Create new todo widget based on type
+                if widget.tool_name == "todo_write":
+                    new_widget = CenterWidget(AgentWriteTodoMessage(message.todos))
+                else:  # todo_read
+                    new_widget = CenterWidget(AgentReadTodoMessage(message.todos))
+                
+                # Replace in our tracking dict and add to UI
+                self.tool_indicators[key] = new_widget
+                self._add_widget(new_widget)
                 break
 
     def render_message_start(self, message: MessageStart) -> None:
         """Start rendering a streaming message."""
         if message.message_type == "analysis":
             self.analysis_message_count += 1
-            analysis_msg = BotMessage(role="analysis", content="")
-            self.current_streaming_widget = MessageBox(analysis_msg)
+            # Use the new AgentMessage widget wrapped in CenterWidget
+            self.current_streaming_widget = CenterWidget(AgentMessage(""))
             self.current_streaming_widget.add_class("streaming")
             self._add_widget(self.current_streaming_widget)
 
@@ -90,23 +149,27 @@ class MessageRenderer:
         """Render a streaming message token."""
         if not self.current_streaming_widget:
             return
-            
-        # Check if JSON was already detected
-        if self.current_streaming_widget.message.has_json_detected:
-            # Just accumulate content
-            self.current_streaming_widget.message.content += message.token
-        else:
-            # Normal streaming
-            self.app.call_from_thread(
-                self.current_streaming_widget.append_chunk, message.token
-            )
-            
-            # Check if JSON was just detected
-            if (
-                self.current_streaming_widget.message.has_json_detected
-                and not self.report_placeholder
-            ):
-                self._handle_json_detection()
+        
+        # Get the AgentMessage widget from the CenterWidget
+        agent_message = self.current_streaming_widget.children[0]
+        if not hasattr(agent_message, '_content'):
+            agent_message._content = ""
+        
+        # Accumulate content
+        agent_message._content += message.token
+        
+        # Update the widget's renderable content
+        self.app.call_from_thread(
+            agent_message.update, agent_message._content
+        )
+        
+        # Check for JSON detection (simplified - just look for opening brace)
+        if (
+            not self.report_placeholder
+            and "{" in agent_message._content
+            and "summary" in agent_message._content.lower()
+        ):
+            self._handle_json_detection()
 
     def render_message_end(self, message: MessageEnd) -> None:
         """End rendering of a streaming message."""
@@ -118,20 +181,16 @@ class MessageRenderer:
         )
         
         # Process final JSON if detected
-        if (
-            self.current_streaming_widget.message.has_json_detected
-            and self.report_placeholder
-        ):
-            self._process_final_json()
+        if self.report_placeholder:
+            agent_message = self.current_streaming_widget.children[0]
+            if hasattr(agent_message, '_content'):
+                self._process_final_json(agent_message._content)
             
         self.current_streaming_widget = None
 
     def render_error(self, error_message: str) -> None:
         """Render an error message."""
-        error_msg = BotMessage(
-            role="analysis", content=f"❌ Error: {error_message}"
-        )
-        error_widget = MessageBox(error_msg)
+        error_widget = CenterWidget(AgentMessage(f"❌ Error: {error_message}"))
         self._add_widget(error_widget)
 
     def _add_widget(self, widget: Widget) -> None:
@@ -142,13 +201,40 @@ class MessageRenderer:
         )
 
     def _find_matching_tool_key(self, tool_name: str) -> Optional[str]:
-        """Find the most recent uncompleted tool call for a given tool name."""
+        """Find the most recent tool call for a given tool name."""
         for key in reversed(list(self.tool_indicators.keys())):
             if key.startswith(f"{tool_name}_"):
-                tool_indicator = self.tool_indicators[key]
-                if not tool_indicator.completed:
+                widget = self.tool_indicators[key]
+                # For new widgets, always return (they don't track completion)
+                # For old ToolIndicators, check completion status
+                if not hasattr(widget, 'completed') or not widget.completed:
                     return key
         return None
+    
+    def _parse_grep_results(self, grep_output: str) -> list[tuple[str, int, str]]:
+        """Parse grep output into (file_path, line_number, content) tuples."""
+        results = []
+        for line in grep_output.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            
+            # Try to parse grep output format: filename:line_number:content
+            parts = line.split(':', 2)
+            if len(parts) >= 3:
+                try:
+                    file_path = parts[0]
+                    line_number = int(parts[1])
+                    content = parts[2]
+                    results.append((file_path, line_number, content))
+                except ValueError:
+                    # If line number parsing fails, treat as simple match
+                    results.append((line, 0, line))
+            else:
+                # Fallback for non-standard format
+                results.append((line, 0, line))
+        
+        return results
     
     def _track_analyzed_file(self, message: ToolResultMessage) -> None:
         """Extract and track file path from successful cat tool results."""
@@ -180,23 +266,20 @@ class MessageRenderer:
 
     def _handle_json_detection(self) -> None:
         """Handle when JSON is detected in the streaming content."""
-        self.app.call_from_thread(
-            self.current_streaming_widget.extract_json_content
-        )
-        
-        # Add generating report indicator
-        generating_widget = ToolIndicator("generating_report")
-        generating_widget.display_text = "✎ Generating bug report..."
-        generating_widget.add_class("inline-report")
-        generating_widget.mark_completed()
+        # Add generating report indicator using new widget
+        # Create a temporary bug report with loading state
+        temp_bug_report = {
+            "summary": "Generating bug report...",
+            "bugs": [],
+            "files_analyzed": len(self.analyzed_files)
+        }
+        generating_widget = CenterWidget(BugReportWithLoadingMessage(temp_bug_report))
         self._add_widget(generating_widget)
         self.report_placeholder = generating_widget
 
-    def _process_final_json(self) -> None:
+    def _process_final_json(self, content: str) -> None:
         """Process the final JSON content and render the bug report."""
-        split = json_detector.split_content(
-            self.current_streaming_widget.message.content
-        )
+        split = json_detector.split_content(content)
         
         if split.has_json:
             self.app.call_from_thread(
@@ -214,34 +297,27 @@ class MessageRenderer:
                 # Inject files_analyzed count into the JSON data
                 json_data["files_analyzed"] = len(self.analyzed_files)
                 
-                # Create and populate bug report container
-                report_container = BugReportContainer()
-                report_container.load_from_json(json_data)
+                # Create new bug report widget
+                bug_report_widget = CenterWidget(BugReportWithLoadingMessage(json_data))
                 
                 # Replace placeholder
                 if placeholder_widget:
                     placeholder_widget.remove()
                     
                 # Add the report
-                self.messages_container.mount(report_container)
+                self.messages_container.mount(bug_report_widget)
                 self.messages_container.scroll_end(animate=False)
             else:
                 # JSON parsing failed
                 if placeholder_widget:
                     placeholder_widget.remove()
                     
-                error_msg = BotMessage(
-                    role="analysis", content="❌ Error parsing bug report JSON"
-                )
-                error_widget = MessageBox(error_msg)
+                error_widget = CenterWidget(AgentMessage("❌ Error parsing bug report JSON"))
                 self.messages_container.mount(error_widget)
                 
         except Exception as e:
             if placeholder_widget:
                 placeholder_widget.remove()
                 
-            error_msg = BotMessage(
-                role="analysis", content=f"❌ Error processing bug report: {str(e)}"
-            )
-            error_widget = MessageBox(error_msg)
+            error_widget = CenterWidget(AgentMessage(f"❌ Error processing bug report: {str(e)}"))
             self.messages_container.mount(error_widget)

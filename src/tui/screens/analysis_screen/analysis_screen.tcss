@@ -21,21 +21,3 @@
     height: 1fr;
 }
 
-#messages-container {
-    width: 60;
-    height: 100%;
-    background: transparent;
-    border: none;
-    margin: 0;
-    padding: 0;
-    
-    /* Hide scrollbar completely */
-    scrollbar-color: transparent;
-    scrollbar-color-hover: transparent;
-    scrollbar-color-active: transparent;
-    scrollbar-background: transparent;
-    scrollbar-background-hover: transparent;
-    scrollbar-background-active: transparent;
-    scrollbar-size-vertical: 1;
-}
-

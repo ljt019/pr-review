@@ -26,25 +26,25 @@
     text-style: italic;
 }
 
-.bug-report-markdown {
+.search-markdown {
     height: auto;
     overflow-y: hidden;
     background: transparent;
     padding: 0 2 0 2;
 }
 
-.bug-report-markdown MarkdownFence {
+.search-markdown MarkdownFence {
     max-height: 100vh;
     overflow: hidden;
     background: transparent;
     margin: 0;
 }
 
-.bug-report-markdown MarkdownFence > Static {
+.search-markdown MarkdownFence > Static {
     height: auto;
 }
 
-#test-messages-container .agent-tool-message {
+#messages-container .agent-tool-message {
     width: 85;
     max-width: 85;
 }

@@ -3,9 +3,11 @@
 from textual import work
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Center, Container, VerticalScroll
+from textual.containers import Center, Container
 from textual.screen import Screen
 from textual.widgets import Static
+
+from ._widgets.analysis_messages_container import AnalysisMessagesContainer
 
 from agent.agent import ModelOptions
 from agent.messages import (
@@ -16,7 +18,7 @@ from agent.messages import (
     ToolCallMessage,
     ToolResultMessage,
 )
-from tui.services import AgentService, MessageRenderer
+from tui.services.agent_service import AgentService
 
 
 class AnalysisScreen(Screen):
@@ -42,13 +44,13 @@ class AnalysisScreen(Screen):
 
         yield Container(
             Static(f"{model}", classes="header"),
-            Center(VerticalScroll(id="messages-container"), classes="messages-center"),
+            Center(AnalysisMessagesContainer(), classes="messages-center"),
             classes="main-container",
         )
 
     def on_mount(self) -> None:
         """Start the sniff agent analysis when screen mounts"""
-        self.messages_container = self.query_one("#messages-container", VerticalScroll)
+        self.messages_container = self.query_one("#messages-container", AnalysisMessagesContainer)
         self.run_bug_analysis()
 
     @work(thread=True)
@@ -59,6 +61,9 @@ class AnalysisScreen(Screen):
 
         # Create services
         agent_service = AgentService(model_option)
+        
+        # Import MessageRenderer here to avoid circular imports
+        from tui.services.message_renderer import MessageRenderer
         renderer = MessageRenderer(self.app, self.messages_container)
 
         # Validate codebase

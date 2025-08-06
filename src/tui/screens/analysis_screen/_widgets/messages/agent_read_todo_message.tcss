@@ -12,11 +12,6 @@
     height: auto;
 }
 
-.tool-horizontal {
-    width: auto;
-    height: auto;
-}
-
 .tool-title {
     color: #cdd6f4;
 }
@@ -26,15 +21,7 @@
     text-style: italic;
 }
 
-.file-tree {
-    background: transparent;
-    color: #cdd6f4;
-    padding: 0 1;
-    height: auto;
-    width: 100%;
-}
-
-#test-messages-container .agent-tool-message {
+#messages-container .agent-tool-message {
     width: 85;
     max-width: 85;
 }

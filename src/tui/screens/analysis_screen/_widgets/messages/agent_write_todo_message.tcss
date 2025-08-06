@@ -21,7 +21,7 @@
     text-style: italic;
 }
 
-#test-messages-container .agent-tool-message {
+#messages-container .agent-tool-message {
     width: 85;
     max-width: 85;
 }

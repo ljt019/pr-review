@@ -1,14 +1,5 @@
-"""Widget components for Analysis Screen"""
+"""Widgets specific to the Test screen"""
 
-from .bug_report_widgets import BugReportContainer
-from .message_box import BotMessage, MessageBox
-from .todo_message_widget import TodoMessageWidget
-from .tool_indicator import ToolIndicator
+from .center_screen import CenterWidget
 
-__all__ = [
-    "BugReportContainer",
-    "BotMessage",
-    "MessageBox",
-    "TodoMessageWidget",
-    "ToolIndicator",
-]
+__all__ = ["CenterWidget"]

@@ -1,8 +1,11 @@
 """Glob tool message widget"""
 
+import json
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Label, Markdown, Static
+
+from agent.messages import ToolCallMessage
 
 
 class GlobToolMessage(Static):
@@ -23,13 +26,22 @@ class GlobToolMessage(Static):
         "src/tui/widgets/instruction_text.py",
     ]
 
-    def __init__(self, tool_args: dict, matched_files=None):
+    def __init__(self, tool_message: ToolCallMessage, matched_files=None):
         super().__init__("", classes="agent-tool-message")
-        self.tool_args = tool_args
+        self.tool_message = tool_message
         self.matched_files = matched_files or self.example_files
 
     def compose(self) -> ComposeResult:
-        pattern = self.tool_args.get("pattern", "")
+        try:
+            args = json.loads(self.tool_message.arguments)
+            pattern = args.get("pattern", args.get("glob_pattern", args.get("file_pattern", "")))
+        except (json.JSONDecodeError, AttributeError):
+            pattern = ""
+        
+        # If still empty, try to extract from tool_message directly
+        if not pattern and hasattr(self.tool_message, 'arguments'):
+            pattern = str(self.tool_message.arguments)[:50] + "..." if len(str(self.tool_message.arguments)) > 50 else str(self.tool_message.arguments)
+        
         file_count = len(self.matched_files)
 
         md_lines = [

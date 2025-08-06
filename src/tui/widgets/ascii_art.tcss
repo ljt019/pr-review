@@ -1,5 +1,5 @@
 ASCIIArt {
     height: auto;
     text-align: center;
-    background: $background;
+    background: #11111b;
 }

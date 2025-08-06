@@ -1,8 +1,11 @@
 """Cat tool message widget"""
 
+import json
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Label, Markdown, Static
+
+from agent.messages import ToolCallMessage
 
 
 class CatToolMessage(Static):
@@ -34,34 +37,26 @@ def rotate_logs():
     ts = int(time.time())
     shutil.copy(log, f"/tmp/app.{ts}.log")"""
 
-    def __init__(self, tool_args: dict):
+    def __init__(self, tool_message: ToolCallMessage, file_content=None):
         super().__init__("", classes="agent-tool-message")
-        self.tool_args = tool_args
+        self.tool_message = tool_message
+        if file_content is not None:
+            self.file_content = file_content
 
     def compose(self) -> ComposeResult:
-        file_path = self.tool_args.get("file", "")
+        try:
+            args = json.loads(self.tool_message.arguments)
+            file_path = args.get("filePath", args.get("file_path", args.get("file", args.get("path", ""))))
+        except (json.JSONDecodeError, AttributeError):
+            file_path = ""
+        
+        # If still empty, try to extract from tool_message directly  
+        if not file_path and hasattr(self.tool_message, 'arguments'):
+            file_path = str(self.tool_message.arguments)[:50] + "..." if len(str(self.tool_message.arguments)) > 50 else str(self.tool_message.arguments)
         file_ext = file_path.split(".")[-1] if "." in file_path else "text"
 
-        lines = self.file_content.split("\n")
-        line_count = len(lines)
-        line_num_width = len(str(line_count))
-        max_line_width = 80
-
-        numbered_lines = []
-        for i, line in enumerate(lines, 1):
-            line_num = str(i).rjust(line_num_width)
-
-            available_width = max_line_width - line_num_width - 3
-            if len(line) > available_width and available_width > 0:
-                truncated_line = line[: available_width - 3] + "..."
-            else:
-                truncated_line = line
-
-            numbered_lines.append(f"{line_num}  {truncated_line}")
-
-        numbered_content = "\n".join(numbered_lines)
-
-        markdown_content = f"```{file_ext}\n{numbered_content}\n```"
+        # Let Markdown handle the line numbers and syntax highlighting
+        markdown_content = f"```{file_ext}\n{self.file_content}\n```"
 
         markdown_widget = Markdown(markdown_content, classes="code-markdown")
         markdown_widget.code_dark_theme = "catppuccin-mocha"
@@ -70,7 +65,7 @@ def rotate_logs():
             Horizontal(
                 Label("⚯ Cat", classes="tool-title"),
                 Label(
-                    f" {self.tool_args.get('file', 'unknown')}", classes="tool-content"
+                    f" {file_path or 'unknown'}", classes="tool-content"
                 ),
                 classes="tool-horizontal",
             ),

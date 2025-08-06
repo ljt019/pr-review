@@ -6,7 +6,7 @@
     color: #cdd6f4;
 }
 
-#test-messages-container .agent-message {
+#messages-container .agent-message {
     width: 85;
     max-width: 85;
 }

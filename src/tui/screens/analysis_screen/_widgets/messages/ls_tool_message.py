@@ -1,5 +1,6 @@
 """Ls tool message widget"""
 
+import json
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Label, Static
@@ -27,9 +28,9 @@ class LsToolMessage(Static):
         ("pyproject.toml", "file"),
     ]
 
-    def __init__(self, tool_args: dict, directory_output=None):
+    def __init__(self, tool_message: "ToolCallMessage", directory_output=None):
         super().__init__("", classes="agent-tool-message")
-        self.tool_args = tool_args
+        self.tool_message = tool_message
         self.directory_output = directory_output or self.example_output
 
     def compose(self) -> ComposeResult:
@@ -52,8 +53,22 @@ class LsToolMessage(Static):
         yield Vertical(
             Horizontal(
                 Label("☰ Ls", classes="tool-title"),
-                Label(f" {self.tool_args.get('path', '.')}", classes="tool-content"),
+                Label(f" {self._get_path()}", classes="tool-content"),
                 classes="tool-horizontal",
             ),
             Static(tree_content, classes="file-tree"),
         )
+    
+    def _get_path(self) -> str:
+        """Extract path from tool message arguments."""
+        try:
+            args = json.loads(self.tool_message.arguments)
+            path = args.get("path", args.get("directory", args.get("dir", ".")))
+            return path if path else "."
+        except (json.JSONDecodeError, AttributeError):
+            # Try to extract path from arguments string
+            if hasattr(self.tool_message, 'arguments'):
+                args_str = str(self.tool_message.arguments)
+                if args_str and args_str != "{}":
+                    return args_str[:30] + "..." if len(args_str) > 30 else args_str
+            return "."
