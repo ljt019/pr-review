@@ -1,0 +1,104 @@
+.bug-report-content {
+    height: auto;
+    background: transparent;
+}
+
+.clean-bug-report-markdown {
+    height: auto;
+    overflow-y: hidden;
+    background: transparent;
+    padding: 0 2 0 2;
+}
+
+.clean-bug-report-markdown MarkdownFence {
+    max-height: 100vh;
+    overflow: hidden;
+    background: #313244;
+    border: solid #45475a;
+    margin: 1 0;
+    padding: 1;
+}
+
+.clean-bug-report-markdown MarkdownFence > Static {
+    height: auto;
+    color: #a6e3a1;
+}
+
+.clean-bug-report-markdown MarkdownParagraph {
+    color: #cdd6f4;
+    margin: 0 0 1 0;
+}
+
+.clean-bug-report-markdown MarkdownH2 {
+    color: #94e2d5;
+    text-style: bold;
+    margin: 2 0 1 0;
+}
+
+.clean-bug-report-markdown MarkdownH3 {
+    color: #cdd6f4;
+    text-style: bold;
+    margin: 1 0 1 0;
+}
+
+.clean-bug-report-markdown MarkdownH4 {
+    color: #cdd6f4;
+    text-style: bold;
+    margin: 1 0 0 0;
+}
+
+.clean-bug-report-markdown MarkdownBulletList,
+.clean-bug-report-markdown MarkdownOrderedList {
+    color: #cdd6f4;
+    margin: 0 0 1 0;
+    padding: 0 0 0 1;
+}
+
+.clean-bug-report-markdown MarkdownUnorderedListItem,
+.clean-bug-report-markdown MarkdownOrderedListItem {
+    margin: 0;
+    padding: 0;
+}
+
+.clean-bug-report-markdown MarkdownTable {
+    border: solid #45475a;
+    background: #1e1e2e;
+    margin: 1 0;
+}
+
+.clean-bug-report-markdown MarkdownTHead {
+    background: #313244;
+    color: #cba6f7;
+    text-style: bold;
+}
+
+.clean-bug-report-markdown MarkdownTH,
+.clean-bug-report-markdown MarkdownTD {
+    border: solid #45475a;
+    padding: 0 1;
+    color: #cdd6f4;
+}
+
+.clean-bug-report-markdown MarkdownBlockQuote {
+    border-left: solid #585b70;
+    background: transparent;
+    color: #cdd6f4;
+    padding: 0 0 0 2;
+    margin: 1 0;
+}
+
+.clean-bug-report-markdown MarkdownHorizontalRule {
+    border-bottom: heavy #45475a;
+    margin: 1 0;
+}
+
+.clean-bug-report-markdown MarkdownInlineCode {
+    background: #313244;
+    color: #94e2d5;
+    padding: 0 1;
+}
+
+.clean-bug-report-markdown MarkdownLink {
+    color: #74c7ec;
+    text-style: underline;
+}

@@ -1,0 +1,14 @@
+.bug-report-header {
+    height: auto;
+    background: transparent;
+}
+
+.bug-report-title {
+    color: #cba6f7;
+    text-style: bold;
+    text-align: center;
+    background: transparent;
+    height: auto;
+    margin: 0;
+    padding: 0;
+}
