@@ -29,6 +29,11 @@
     height: auto;
 }
 
+/* Prevent Vertical containers in tool messages from expanding unnecessarily */
+.agent-tool-message > Vertical {
+    height: auto;
+}
+
 /* Horizontal containers for tool messages */
 .tool-horizontal {
     width: auto;
@@ -45,20 +50,27 @@
     height: auto;
     overflow-y: hidden;  /* No scrolling on the Markdown widget itself */
     background: transparent;  /* Transparent background */
+    padding: 0 2 0 2;  /* Remove bottom padding, keep horizontal */
 }
 
 /* Override MarkdownFence's default max-height limit and background */
 .code-markdown MarkdownFence {
     max-height: 100vh;  /* Allow it to be as tall as needed */
     overflow: hidden;   /* No internal scrolling */
-    background: transparent  /* Force transparent background */
+    background: transparent;  /* Force transparent background */
+    margin: 0;  /* Remove top/bottom margins */
+}
+
+/* Override the Static widget inside MarkdownFence */
+.code-markdown MarkdownFence > Static {
+    height: auto;  /* Don't expand */
 }
 
 /* File tree display */
 .file-tree {
     background: transparent;
     color: #cdd6f4;
-    padding: 1;
+    padding: 0 1;  /* Only horizontal padding */
     height: auto;
     width: 100%;
 }
@@ -68,6 +80,7 @@
     height: auto;
     overflow-y: hidden;
     background: transparent;
+    padding: 0 2 0 2;  /* Remove bottom padding, keep horizontal */
 }
 
 /* Override MarkdownFence for search results */
@@ -75,6 +88,12 @@
     max-height: 100vh;
     overflow: hidden;
     background: transparent;
+    margin: 0;  /* Remove top/bottom margins */
+}
+
+/* Override the Static widget inside search MarkdownFence */
+.search-markdown MarkdownFence > Static {
+    height: auto;  /* Don't expand */
 }
 
 /* File list display */
