@@ -2,14 +2,11 @@ import shlex
 from pathlib import Path
 
 from qwen_agent.tools.base import BaseTool, register_tool
-from rich.console import Console
-from rich.tree import Tree
 
 from agent.tools import (
     load_tool_description,
     normalize_path,
     run_in_container,
-    to_workspace_relative,
 )
 from agent.utils.param_parser import ParameterParser
 
@@ -121,35 +118,39 @@ class LsTool(BaseTool):
                 else:
                     return f"Path '{original_path}' exists but contains no files (all files may be filtered out by ignore patterns)"
 
-            # Build directory tree structure
-            display_path = to_workspace_relative(original_path)
-            tree_structure = self._build_tree_structure(files, path, display_path)
+            # Build a compact list of directories and files relative to the requested path
+            rel_files = []
+            dir_set = set()
+            base_path = Path(path)
+            for file_path in sorted(files):
+                try:
+                    rel = Path(file_path).relative_to(base_path)
+                except Exception:
+                    # If relative fails, skip this entry
+                    continue
+                rel_files.append(rel)
+                # Accumulate parent directories
+                parent = rel.parent
+                while parent and str(parent) != ".":
+                    dir_set.add(str(parent).replace("\\", "/"))
+                    parent = parent.parent
 
-            # Check if results were truncated
-            if len(files) >= LIMIT:
-                tree_structure += f"\n\n(Results limited to {LIMIT} files. Use glob for more specific searches.)"
+            # Include the immediate path itself if it has subentries
+            # (no explicit entry added for base path)
 
-            return tree_structure
+            dirs = sorted(dir_set)
+            files_rel_str = [str(p).replace("\\", "/") for p in rel_files]
+
+            # Compose entries with trailing slash for directories
+            entries = [f"{d}/" for d in dirs] + files_rel_str
+            if len(entries) > LIMIT:
+                entries = entries[:LIMIT]
+                entries.append("")
+                entries.append(
+                    f"(Results limited to {LIMIT} entries. Use glob for more specific searches.)"
+                )
+
+            return "\n".join(entries)
 
         except Exception as e:
             return f"Error: {str(e)}"
-
-    def _build_tree_structure(self, files, base_path, display_path):
-        """Build a hierarchical tree structure from file paths using rich."""
-        tree = Tree(display_path)
-        nodes = {Path(): tree}
-
-        for file_path in sorted(files):
-            rel_path = Path(file_path).relative_to(base_path)
-            parts = rel_path.parts
-            current = Path()
-            node = tree
-            for part in parts[:-1]:
-                current /= part
-                node = nodes.setdefault(current, nodes[current.parent].add(part))
-            nodes[current / parts[-1]] = node.add(parts[-1])
-
-        console = Console(color_system=None)
-        with console.capture() as capture:
-            console.print(tree)
-        return capture.get().rstrip()

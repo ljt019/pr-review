@@ -39,19 +39,22 @@ class GlobTool(BaseTool):
             # Normalize the path to handle relative paths
             search_path = normalize_path(original_path)
 
-            # Build an appropriate find command
+            # Build ripgrep command to list files with glob filtering
+            # Use --files to list tracked files and --glob for pattern
             search_path_quoted = shlex.quote(search_path)
+
             # Special-case patterns that mean "all files"
             if pattern in ["*", "**", "**/*"]:
-                find_cmd = f"find {search_path_quoted} -type f 2>/dev/null | head -50"
+                rg_cmd = f"rg --files {search_path_quoted} | head -50"
+                count_cmd = f"rg --files {search_path_quoted} | wc -l"
             else:
-                # General pattern: use -path so that wildcards match full path components
-                # Replace any leading "**/" with "*/" because find's wildcard traverses directories by default
-                normalized_pattern = pattern.replace("**/", "*/").replace("**", "*")
-                pattern_quoted = shlex.quote(f"*{normalized_pattern}*")
-                find_cmd = f"find {search_path_quoted} -type f -path {pattern_quoted} 2>/dev/null | head -50"
+                pattern_quoted = shlex.quote(pattern)
+                rg_cmd = f"rg --files --glob {pattern_quoted} {search_path_quoted} | head -50"
+                count_cmd = (
+                    f"rg --files --glob {pattern_quoted} {search_path_quoted} | wc -l"
+                )
 
-            result = run_in_container(find_cmd)
+            result = run_in_container(rg_cmd)
 
             if result.startswith("Error:"):
                 return result
@@ -65,14 +68,10 @@ class GlobTool(BaseTool):
             display_lines = [to_workspace_relative(line) for line in lines]
 
             # Check if we hit the limit
-            file_count = len(display_lines)
-
-            if file_count == 50:
-                # Check if there are more files
-                count_cmd = f"find {search_path_quoted} -name {shlex.quote(pattern)} -type f 2>/dev/null | wc -l"
-                count_result = run_in_container(count_cmd)
+            if len(display_lines) == 50:
+                total_result = run_in_container(count_cmd)
                 try:
-                    total_count = int(count_result.strip())
+                    total_count = int(total_result.strip())
                     if total_count > 50:
                         display_lines.append("")
                         display_lines.append(

@@ -1,11 +1,11 @@
 """Grep tool message widget"""
 
-import json
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Label, Markdown, Static
 
 from agent.messaging import ToolExecutionMessage
+from tui.utils.args import get_arg
 
 
 class GrepToolMessage(Static):
@@ -38,19 +38,9 @@ class GrepToolMessage(Static):
             self.search_results = self.example_matches
 
     def compose(self) -> ComposeResult:
-        try:
-            # Handle dict arguments directly
-            if isinstance(self.tool_message.arguments, dict):
-                args = self.tool_message.arguments
-            else:
-                args = json.loads(self.tool_message.arguments)
-            pattern = args.get("pattern", args.get("search_pattern", ""))
-        except (json.JSONDecodeError, AttributeError, TypeError):
-            pattern = ""
-        
-        # If still empty, try to extract from tool_message directly
-        if not pattern and hasattr(self.tool_message, 'arguments'):
-            pattern = str(self.tool_message.arguments)[:50] + "..." if len(str(self.tool_message.arguments)) > 50 else str(self.tool_message.arguments)
+        pattern = get_arg(
+            self.tool_message.arguments, ["pattern", "search_pattern"], ""
+        )
         match_count = len(self.search_results)
 
         files_dict = {}
@@ -84,17 +74,17 @@ class GrepToolMessage(Static):
             ),
             markdown_widget,
         )
-    
+
     def _parse_grep_output(self, grep_output: str) -> list:
         """Parse grep output into (file_path, line_number, content) tuples."""
         results = []
-        for line in grep_output.strip().split('\n'):
+        for line in grep_output.strip().split("\n"):
             line = line.strip()
             if not line:
                 continue
-            
+
             # Try to parse grep output format: filename:line_number:content
-            parts = line.split(':', 2)
+            parts = line.split(":", 2)
             if len(parts) >= 3:
                 try:
                     file_path = parts[0]
@@ -107,5 +97,5 @@ class GrepToolMessage(Static):
             else:
                 # Fallback for non-standard format
                 results.append((line, 0, line))
-        
+
         return results

@@ -1,11 +1,11 @@
 """Glob tool message widget"""
 
-import json
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Label, Markdown, Static
 
 from agent.messaging import ToolExecutionMessage
+from tui.utils.args import get_arg
 
 
 class GlobToolMessage(Static):
@@ -33,25 +33,17 @@ class GlobToolMessage(Static):
             self.matched_files = matched_files
         elif tool_message.result and tool_message.success:
             # Parse the glob result - simple split by lines
-            self.matched_files = [f.strip() for f in tool_message.result.strip().split('\n') if f.strip()]
+            self.matched_files = [
+                f.strip() for f in tool_message.result.strip().split("\n") if f.strip()
+            ]
         else:
             self.matched_files = self.example_files
 
     def compose(self) -> ComposeResult:
-        try:
-            # Handle dict arguments directly
-            if isinstance(self.tool_message.arguments, dict):
-                args = self.tool_message.arguments
-            else:
-                args = json.loads(self.tool_message.arguments)
-            pattern = args.get("pattern", args.get("glob_pattern", args.get("file_pattern", "")))
-        except (json.JSONDecodeError, AttributeError, TypeError):
-            pattern = ""
-        
-        # If still empty, try to extract from tool_message directly
-        if not pattern and hasattr(self.tool_message, 'arguments'):
-            pattern = str(self.tool_message.arguments)[:50] + "..." if len(str(self.tool_message.arguments)) > 50 else str(self.tool_message.arguments)
-        
+        pattern = get_arg(
+            self.tool_message.arguments, ["pattern", "glob_pattern", "file_pattern"], ""
+        )
+
         file_count = len(self.matched_files)
 
         md_lines = [

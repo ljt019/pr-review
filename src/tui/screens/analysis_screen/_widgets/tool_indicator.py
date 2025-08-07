@@ -1,7 +1,7 @@
 """Minimal tool call indicator widget."""
 
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from rich.text import Text
 from textual.widget import Widget
@@ -10,7 +10,9 @@ from textual.widget import Widget
 class ToolIndicator(Widget):
     """A minimal widget to show tool calls without taking up much space."""
 
-    def __init__(self, tool_name: str, arguments: str = "", **kwargs):
+    def __init__(
+        self, tool_name: str, arguments: Union[str, Dict[str, Any]] = "", **kwargs
+    ):
         super().__init__(**kwargs)
         self.tool_name = tool_name
         self.arguments = arguments
@@ -45,87 +47,41 @@ class ToolIndicator(Widget):
 
         symbol = tool_symbols.get(self.tool_name, "")
 
-        # Try to parse complete JSON first
-        try:
-            if self.arguments and self.arguments.strip().endswith("}"):
+        # Arguments are expected to be a dict; try to parse if provided as JSON string
+        args: Dict[str, Any] = {}
+        if isinstance(self.arguments, str):
+            try:
                 args = json.loads(self.arguments)
+            except Exception:
+                args = {}
+        elif isinstance(self.arguments, dict):
+            args = self.arguments
 
-                # Create descriptive text based on tool name and arguments
-                if self.tool_name == "cat":
-                    file_path = args.get("filePath", "")
-                    return f"{symbol} cat {file_path}" if file_path else f"{symbol} cat"
-                elif self.tool_name == "ls":
-                    directory = args.get("directory", ".")
-                    return f"{symbol} ls {directory}"
-                elif self.tool_name == "glob":
-                    pattern = args.get("pattern", "")
-                    return f"{symbol} glob '{pattern}'" if pattern else f"{symbol} glob"
-                elif self.tool_name == "grep":
-                    pattern = args.get("pattern", "")
-                    return f"{symbol} grep '{pattern}'" if pattern else f"{symbol} grep"
-                elif self.tool_name == "run_in_container":
-                    command = args.get("command", "")
-                    if len(command) > 30:
-                        command = command[:27] + "..."
-                    return f"run '{command}'" if command else "run"
-                elif self.tool_name == "todo_write":
-                    return f"{symbol} writing todos"
-                elif self.tool_name == "todo_read":
-                    return f"{symbol} reading todos"
-        except json.JSONDecodeError:
-            # JSON not complete yet, fall through to partial parsing
-            pass
-
-        # Handle partial/incomplete JSON by extracting what we can
-        if self.arguments:
-            import re
-
-            # Try to extract common patterns from incomplete JSON
-            if self.tool_name == "cat" and '"filePath"' in self.arguments:
-                # Extract filePath value if possible - handle both complete and incomplete strings
-                match = re.search(
-                    r'"filePath":\s*"([^"]*)', self.arguments
-                )  # Remove closing quote requirement
-                if match:
-                    file_path = match.group(1)
-                    if file_path:  # Only show if we have some path content
-                        return f"{symbol} cat {file_path}"
-            elif self.tool_name == "ls" and '"directory"' in self.arguments:
-                # Extract directory value if possible
-                match = re.search(
-                    r'"directory":\s*"([^"]*)', self.arguments
-                )  # Remove closing quote requirement
-                if match:
-                    directory = match.group(1)
-                    return f"{symbol} ls {directory}" if directory else f"{symbol} ls ."
-                elif self.arguments == "{}":
-                    return f"{symbol} ls ."
-            elif self.tool_name == "glob" and '"pattern"' in self.arguments:
-                # Extract pattern value if possible
-                match = re.search(
-                    r'"pattern":\s*"([^"]*)', self.arguments
-                )  # Remove closing quote requirement
-                if match:
-                    pattern = match.group(1)
-                    if pattern:  # Only show if we have some pattern content
-                        return f"{symbol} glob '{pattern}'"
-            elif self.tool_name == "grep" and '"pattern"' in self.arguments:
-                # Extract pattern value if possible
-                match = re.search(
-                    r'"pattern":\s*"([^"]*)', self.arguments
-                )  # Remove closing quote requirement
-                if match:
-                    pattern = match.group(1)
-                    if pattern:  # Only show if we have some pattern content
-                        return f"{symbol} grep '{pattern}'"
-
-        # Fallback to tool name with symbol
-        if self.tool_name == "todo_write":
+        # Create descriptive text based on tool name and arguments
+        if self.tool_name == "cat":
+            file_path = args.get("filePath", "")
+            return f"{symbol} cat {file_path}" if file_path else f"{symbol} cat"
+        elif self.tool_name == "ls":
+            directory = args.get("path", args.get("directory", "."))
+            return f"{symbol} ls {directory}"
+        elif self.tool_name == "glob":
+            pattern = args.get("pattern", "")
+            return f"{symbol} glob '{pattern}'" if pattern else f"{symbol} glob"
+        elif self.tool_name == "grep":
+            pattern = args.get("pattern", "")
+            return f"{symbol} grep '{pattern}'" if pattern else f"{symbol} grep"
+        elif self.tool_name == "run_in_container":
+            command = args.get("command", "")
+            if len(command) > 30:
+                command = command[:27] + "..."
+            return f"run '{command}'" if command else "run"
+        elif self.tool_name == "todo_write":
             return f"{symbol} writing todos"
         elif self.tool_name == "todo_read":
             return f"{symbol} reading todos"
-        else:
-            return f"{symbol} {self.tool_name}" if symbol else self.tool_name
+
+        # Fallback to tool name with symbol
+        return f"{symbol} {self.tool_name}" if symbol else self.tool_name
 
     def render(self) -> Text:
         """Render a compact tool indicator."""

@@ -4,41 +4,28 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from rich.console import RenderableType
-from rich.text import Text
-from textual.widget import Widget
+from textual.app import ComposeResult
+from textual.widgets import Label, Static
+
+from .current_todo_list import CurrentTodoList
 
 
-class TodoMessageWidget(Widget):
-    """Widget for displaying todo state inline in the chat flow."""
+class TodoMessageWidget(Static):
+    """Widget for displaying todo state with a tool header, matching other tool messages."""
 
-    def __init__(self, todos_data: List[Dict[str, Any]], **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, todos_data: List[Dict[str, Any]], tool_name: str, **kwargs):
+        super().__init__("", classes="agent-tool-message", **kwargs)
         self.todos_data = todos_data
+        self.tool_name = tool_name
 
-    def render(self) -> RenderableType:
-        """Render the todo list as an inline message."""
-        if not self.todos_data:
-            return Text("No todos", style="dim")
+    def compose(self) -> ComposeResult:
+        # Title reflects read vs write
+        if self.tool_name == "todo_write":
+            yield Label("✎ Todo Write", classes="tool-title")
+        else:
+            yield Label("⚯ Todo Read", classes="tool-title")
 
-        content = Text()
-        content.append("Todo List\n", style="bold")
-
-        for todo in self.todos_data:
-            # Checkbox indicator
-            status = todo.get("status", "incomplete")
-            if status == "complete":
-                checkbox = "●"  # Filled circle
-                style = ""
-            else:
-                checkbox = "○"  # Empty circle
-                style = ""
-
-            todo_content = todo.get("content", "")
-            # Truncate todo content to fit on one line (max 80 chars)
-            max_length = 35
-            if len(todo_content) > max_length:
-                todo_content = todo_content[: max_length - 3] + "..."
-            content.append(f"   {checkbox} {todo_content}\n", style=style)
-
-        return content
+        if self.todos_data:
+            yield CurrentTodoList(self.todos_data)
+        else:
+            yield Label("No todos", classes="tool-content")

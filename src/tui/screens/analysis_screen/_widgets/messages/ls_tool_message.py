@@ -1,11 +1,11 @@
 """Ls tool message widget"""
 
-import json
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
-from textual.widgets import Label, Static
+from textual.widgets import Label, Markdown, Static
 
 from agent.messaging import ToolExecutionMessage
+from tui.utils.args import get_arg
 
 
 class LsToolMessage(Static):
@@ -33,30 +33,27 @@ class LsToolMessage(Static):
     def __init__(self, tool_message: ToolExecutionMessage, directory_output=None):
         super().__init__("", classes="agent-tool-message")
         self.tool_message = tool_message
-        if directory_output is not None:
-            self.directory_output = directory_output
-        elif tool_message.result and tool_message.success:
-            # Parse the ls result into the expected format
-            self.directory_output = self._parse_ls_output(tool_message.result)
+        # Prepare parsed entries from tool result; fallback to examples
+        if tool_message.result and tool_message.success:
+            self.entries = self._parse_ls_output(tool_message.result)
         else:
-            self.directory_output = self.example_output
+            # Use example entries
+            self.entries = [p for p, _ in self.example_output]
 
     def compose(self) -> ComposeResult:
-        tree_lines = []
-        for path, item_type in self.directory_output:
-            depth = path.count("/") - (1 if path.endswith("/") else 0)
-            indent = "  " * depth
-
-            if item_type == "directory":
-                icon = "🗀"
-                name = path.rstrip("/").split("/")[-1] + "/"
-            else:
-                icon = "🖹"
-                name = path.split("/")[-1]
-
-            tree_lines.append(f"{indent}{icon} {name}")
-
-        tree_content = "\n".join(tree_lines)
+        # Group entries by directory and render a nested Markdown list
+        groups = self._group_entries_by_dir(self.entries)
+        md_lines = []
+        if not groups:
+            markdown_content = "(no files)"
+        else:
+            for directory, files in groups.items():
+                # Top-level bullet: directory
+                md_lines.append(f"- **{directory}**")
+                # Nested bullets: files
+                for file_name in files:
+                    md_lines.append(f"  - {file_name}")
+            markdown_content = "\n".join(md_lines)
 
         yield Vertical(
             Horizontal(
@@ -64,37 +61,66 @@ class LsToolMessage(Static):
                 Label(f" {self._get_path()}", classes="tool-content"),
                 classes="tool-horizontal",
             ),
-            Static(tree_content, classes="file-tree"),
+            self._markdown(markdown_content),
         )
-    
+
     def _get_path(self) -> str:
         """Extract path from tool message arguments."""
-        try:
-            # Handle dict arguments directly
-            if isinstance(self.tool_message.arguments, dict):
-                args = self.tool_message.arguments
-            else:
-                args = json.loads(self.tool_message.arguments)
-            path = args.get("path", args.get("directory", args.get("dir", ".")))
-            return path if path else "."
-        except (json.JSONDecodeError, AttributeError, TypeError):
-            # Try to extract path from arguments string
-            if hasattr(self.tool_message, 'arguments'):
-                args_str = str(self.tool_message.arguments)
-                if args_str and args_str != "{}":
-                    return args_str[:30] + "..." if len(args_str) > 30 else args_str
-            return "."
-    
-    def _parse_ls_output(self, ls_output: str) -> list:
-        """Parse ls output into (path, type) tuples."""
-        output = []
-        for line in ls_output.strip().split('\n'):
+        path = get_arg(self.tool_message.arguments, ["path", "directory", "dir"], ".")
+        return path if path else "."
+
+    def _parse_ls_output(self, ls_output: str) -> list[str]:
+        entries: list[str] = []
+        for line in ls_output.split("\n"):
             line = line.strip()
             if not line:
                 continue
-            # Simple heuristic: directories end with /, files don't
-            if line.endswith('/'):
-                output.append((line, "directory"))
+            entries.append(line)
+        return entries
+
+    def _markdown(self, content: str) -> Markdown:
+        md = Markdown(content, classes="search-markdown")
+        md.code_dark_theme = "catppuccin-mocha"
+        # Set bullet icons: top-level (folders) and second-level (files)
+        try:
+            md.BULLETS = ["🗀 ", "🖹 ", "‣ ", "⭑ ", "⭑ "]
+        except Exception:
+            pass
+        return md
+
+    def _group_entries_by_dir(self, entries: list[str]) -> dict[str, list[str]]:
+        """Group files under their immediate parent directory.
+
+        - Directories are entries ending with '/'.
+        - Files are grouped by their parent directory (or './' for root).
+        - Directory keys include trailing '/' (except root which is './').
+        """
+        from collections import defaultdict
+
+        dir_to_files: dict[str, list[str]] = defaultdict(list)
+
+        # Ensure we include directories observed in the listing
+        observed_dirs: set[str] = set()
+
+        for entry in entries:
+            if entry.endswith("/"):
+                observed_dirs.add(entry)
+                continue
+            # File: group under parent directory
+            if "/" in entry:
+                parent = entry.rsplit("/", 1)[0] + "/"
+                observed_dirs.add(parent)
+                file_name = entry.rsplit("/", 1)[1]
+                dir_to_files[parent].append(file_name)
             else:
-                output.append((line, "file"))
-        return output
+                # Root-level file
+                observed_dirs.add("./")
+                dir_to_files["./"].append(entry)
+
+        # Sort directories and files for stable rendering
+        grouped: dict[str, list[str]] = {}
+        for directory in sorted(observed_dirs):
+            files = sorted(dir_to_files.get(directory, []))
+            grouped[directory] = files
+
+        return grouped
