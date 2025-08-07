@@ -1,10 +1,10 @@
 """Message type definitions for agent-TUI communication."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, ClassVar, Dict, List, Optional
 import json
-from abc import ABC, abstractmethod
+from abc import ABC
 
 
 class MessageType(Enum):
@@ -23,25 +23,13 @@ class AgentMessage(ABC):
     
     message_id: str
     timestamp: float
-    
-    @property
-    @abstractmethod
-    def message_type(self) -> MessageType:
-        """Return the message type."""
-        pass
-    
+    message_type: ClassVar[MessageType]
+
     def to_dict(self) -> Dict[str, Any]:
         """Serialize message to dictionary."""
-        result = {
-            "message_type": self.message_type.value,
-            "message_id": self.message_id,
-            "timestamp": self.timestamp,
-        }
-        # Add all dataclass fields except message_type (handled above)
-        for field_name in self.__dataclass_fields__:
-            if field_name not in ("message_id", "timestamp"):
-                result[field_name] = getattr(self, field_name)
-        return result
+        data = asdict(self)
+        data["message_type"] = self.message_type.value
+        return data
     
     def to_json(self) -> str:
         """Serialize message to JSON string."""
@@ -59,10 +47,8 @@ class ToolExecutionMessage(AgentMessage):
     error: Optional[str] = None
     success: bool = True
     execution_time_ms: Optional[int] = None
-    
-    @property
-    def message_type(self) -> MessageType:
-        return MessageType.TOOL_EXECUTION
+
+    message_type: ClassVar[MessageType] = MessageType.TOOL_EXECUTION
 
 
 @dataclass
@@ -71,10 +57,8 @@ class StreamStartMessage(AgentMessage):
     
     content_type: str = "text"  # "text", "analysis", "report"
     metadata: Optional[Dict[str, Any]] = None
-    
-    @property
-    def message_type(self) -> MessageType:
-        return MessageType.STREAM_START
+
+    message_type: ClassVar[MessageType] = MessageType.STREAM_START
 
 
 @dataclass
@@ -84,10 +68,8 @@ class StreamChunkMessage(AgentMessage):
     content: str
     chunk_index: int = 0
     is_partial: bool = True
-    
-    @property
-    def message_type(self) -> MessageType:
-        return MessageType.STREAM_CHUNK
+
+    message_type: ClassVar[MessageType] = MessageType.STREAM_CHUNK
 
 
 @dataclass
@@ -97,10 +79,8 @@ class StreamEndMessage(AgentMessage):
     total_chunks: int = 0
     final_content: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
-    
-    @property
-    def message_type(self) -> MessageType:
-        return MessageType.STREAM_END
+
+    message_type: ClassVar[MessageType] = MessageType.STREAM_END
 
 
 
@@ -110,10 +90,8 @@ class BugReportStartedMessage(AgentMessage):
     """Indicates that bug report generation has started."""
     
     files_analyzed: int = 0
-    
-    @property
-    def message_type(self) -> MessageType:
-        return MessageType.BUG_REPORT_STARTED
+
+    message_type: ClassVar[MessageType] = MessageType.BUG_REPORT_STARTED
 
 
 @dataclass
@@ -122,10 +100,8 @@ class BugReportMessage(AgentMessage):
     
     report_data: Dict[str, Any]
     files_analyzed: int = 0
-    
-    @property
-    def message_type(self) -> MessageType:
-        return MessageType.BUG_REPORT
+
+    message_type: ClassVar[MessageType] = MessageType.BUG_REPORT
     
     @property
     def summary(self) -> str:
