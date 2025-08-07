@@ -6,7 +6,6 @@ from textual.app import ComposeResult
 from textual.containers import Container, Vertical, Center, Horizontal
 from textual.widgets import Input, Label
 from textual.binding import Binding
-from paths import get_screen_path
 from ...widgets.ascii_art import ASCIIArt
 from ...widgets.instruction_text import InstructionText
 from ._widgets.api_key_input import ApiKeyInput

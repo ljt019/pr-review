@@ -6,7 +6,7 @@ from typing import Iterator, Optional
 
 from agent.agent import create_agent, ModelOptions
 from agent.messaging import AgentMessage, MessageReceiver
-from paths import get_assets_path
+from paths import get_path
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class AgentService:
             enable_logging: Whether to enable conversation logging
         """
         self.model_option = model_option
-        self.zipped_codebase = zipped_codebase or get_assets_path("toy-webserver.zip")
+        self.zipped_codebase = zipped_codebase or get_path("assets", "toy-webserver.zip")
         self.enable_logging = enable_logging
         self._agent = None
         self._receiver: Optional[MessageReceiver] = None

@@ -19,14 +19,29 @@ from agent.messaging import (
 from tui.screens.analysis_screen._widgets.message_box import BotMessage, MessageBox
 from tui.screens.analysis_screen._widgets.tool_indicator import ToolIndicator
 from tui.screens.analysis_screen._widgets.center_screen import CenterWidget
-from tui.screens.analysis_screen._widgets.messages.grep_tool_message import GrepToolMessage
-from tui.screens.analysis_screen._widgets.messages.cat_tool_message import CatToolMessage
-from tui.screens.analysis_screen._widgets.messages.ls_tool_message import LsToolMessage
-from tui.screens.analysis_screen._widgets.messages.glob_tool_message import GlobToolMessage
+from tui.screens.analysis_screen._widgets.messages.grep_tool_message import (
+    GrepToolMessage,
+)
+from tui.screens.analysis_screen._widgets.messages.cat_tool_message import (
+    CatToolMessage,
+)
+from tui.screens.analysis_screen._widgets.messages.ls_tool_message import (
+    LsToolMessage,
+)
+from tui.screens.analysis_screen._widgets.messages.glob_tool_message import (
+    GlobToolMessage,
+)
 from tui.screens.analysis_screen._widgets.messages.agent_write_todo_message import AgentWriteTodoMessage
 from tui.screens.analysis_screen._widgets.messages.agent_read_todo_message import AgentReadTodoMessage
 from tui.screens.analysis_screen._widgets.messages.bug_report_with_loading_message import BugReportWithLoadingMessage
 from tui.screens.analysis_screen._widgets.messages.agent_message import AgentMessage
+
+TOOL_WIDGET_MAP = {
+    "grep": GrepToolMessage,
+    "cat": CatToolMessage,
+    "ls": LsToolMessage,
+    "glob": GlobToolMessage,
+}
 
 logger = logging.getLogger(__name__)
 
@@ -68,14 +83,8 @@ class MessageRenderer:
     def render_tool_execution(self, message: ToolExecutionMessage) -> None:
         """Render a tool execution message."""
         # Create appropriate widget based on tool type
-        if message.tool_name == "grep":
-            widget = CenterWidget(GrepToolMessage(message))
-        elif message.tool_name == "cat":
-            widget = CenterWidget(CatToolMessage(message))
-        elif message.tool_name == "ls":
-            widget = CenterWidget(LsToolMessage(message))
-        elif message.tool_name == "glob":
-            widget = CenterWidget(GlobToolMessage(message))
+        if message.tool_name in TOOL_WIDGET_MAP:
+            widget = CenterWidget(TOOL_WIDGET_MAP[message.tool_name](message))
         elif message.tool_name in ["todo_write", "todo_read"]:
             # Handle todo tools by parsing todo state from result and creating appropriate widget
             todos = self._parse_todo_state_from_result(message.result)

@@ -2,7 +2,12 @@ import difflib
 
 from qwen_agent.tools.base import BaseTool, register_tool
 
-from agent.tools import load_tool_description, run_in_container, normalize_path
+from agent.tools import (
+    load_tool_description,
+    run_in_container,
+    normalize_path,
+    to_workspace_relative,
+)
 from agent.utils.param_parser import ParameterParser
 
 DEFAULT_READ_LIMIT = 2000
@@ -215,18 +220,11 @@ class CatTool(BaseTool):
                 close_matches + substring_matches[: 3 - len(close_matches)]
             )
 
-            # Format with relative paths (removing /workspace/ prefix)
+            # Format with relative paths
             suggestions = []
             for file in all_suggestions[:3]:
                 full_path = f"{directory}/{file}" if directory != "." else file
-                # Convert back to relative path for display
-                if full_path.startswith("/workspace/"):
-                    display_path = full_path[11:]  # Remove "/workspace/"
-                elif full_path == "/workspace":
-                    display_path = "."
-                else:
-                    display_path = full_path
-                suggestions.append(display_path)
+                suggestions.append(to_workspace_relative(full_path))
 
             return "\n".join(suggestions) if suggestions else ""
 

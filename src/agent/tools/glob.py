@@ -1,6 +1,11 @@
 from qwen_agent.tools.base import BaseTool, register_tool
 
-from agent.tools import load_tool_description, run_in_container, normalize_path
+from agent.tools import (
+    load_tool_description,
+    run_in_container,
+    normalize_path,
+    to_workspace_relative,
+)
 from agent.utils.param_parser import ParameterParser
 
 
@@ -51,14 +56,7 @@ class GlobTool(BaseTool):
                 return f"No files found matching pattern '{pattern}' in {original_path}"
             
             # Convert absolute paths back to relative for display
-            display_lines = []
-            for line in lines:
-                if line.startswith("/workspace/"):
-                    display_lines.append(line[11:])  # Remove "/workspace/"
-                elif line == "/workspace":
-                    display_lines.append(".")
-                else:
-                    display_lines.append(line)
+            display_lines = [to_workspace_relative(line) for line in lines]
 
             # Check if we hit the limit
             file_count = len(display_lines)

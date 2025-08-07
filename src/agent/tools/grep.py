@@ -2,7 +2,12 @@ from typing import Optional
 
 from qwen_agent.tools.base import BaseTool, register_tool
 
-from agent.tools import load_tool_description, run_in_container, normalize_path
+from agent.tools import (
+    load_tool_description,
+    run_in_container,
+    normalize_path,
+    to_workspace_relative,
+)
 from agent.utils.param_parser import ParameterParser
 
 
@@ -104,13 +109,6 @@ class GrepTool(BaseTool):
 
         # Convert absolute paths back to relative for display
         lines = result.strip().split("\n")
-        display_lines = []
-        for line in lines:
-            if line.startswith("/workspace/"):
-                display_lines.append(line[11:])  # Remove "/workspace/"
-            elif line == "/workspace":
-                display_lines.append(".")
-            else:
-                display_lines.append(line)
-        
+        display_lines = [to_workspace_relative(line) for line in lines]
+
         return "\n".join(display_lines)
