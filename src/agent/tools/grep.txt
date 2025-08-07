@@ -1,5 +1,12 @@
 Searches file contents using patterns and regex.
-Examples: grep "TODO", grep "function.*login" src, grep "import.*axios" --include="*.js".
-Pattern is optional - if omitted, searches for all files (defaults to ".").
+Parameters:
+- pattern: Search pattern (regex supported, optional)
+- directory: Directory to search (defaults to current directory)
+- include: File patterns to include (e.g., "*.py", "*.js")
+
+Examples: 
+- {"pattern": "TODO"} - find files containing "TODO"
+- {"pattern": "password|secret|key", "include": "*.py"} - find secrets in Python files
+- {"pattern": "function.*login", "directory": "src"} - find login functions in src directory
+
 Returns paths of files containing matches, sorted by modification time.
-Supports full regex syntax and file filtering with include parameter.

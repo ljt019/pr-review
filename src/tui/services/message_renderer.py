@@ -6,13 +6,14 @@ from typing import Dict, Optional
 from textual.app import App
 from textual.widget import Widget
 
-from agent.messages import (
-    MessageEnd,
-    MessageStart,
-    MessageToken,
-    TodoStateMessage,
-    ToolCallMessage,
-    ToolResultMessage,
+from agent.messaging import (
+    AgentMessage as BaseAgentMessage,
+    MessageType,
+    ToolExecutionMessage,
+    StreamStartMessage,
+    StreamChunkMessage,
+    StreamEndMessage,
+    BugReportMessage,
 )
 from tui.utils.json_detector import json_detector
 from tui.screens.analysis_screen._widgets.bug_report_widgets import BugReportContainer
@@ -48,105 +49,107 @@ class MessageRenderer:
         self.report_placeholder: Optional[ToolIndicator] = None
         self.analysis_message_count = 0
         self.analyzed_files: set = set()
-
-    def render_tool_call(self, message: ToolCallMessage) -> None:
-        """Render a tool call message."""
-        indicator_key = message.call_id or f"{message.tool_name}_{len(self.tool_indicators)}"
-        
-        # Only create if we haven't seen this call_id before
-        if indicator_key not in self.tool_indicators:
-            # Create appropriate widget based on tool type
-            if message.tool_name == "grep":
-                widget = CenterWidget(GrepToolMessage(message))
-            elif message.tool_name == "cat":
-                widget = CenterWidget(CatToolMessage(message))
-            elif message.tool_name == "ls":
-                widget = CenterWidget(LsToolMessage(message))
-            elif message.tool_name == "glob":
-                widget = CenterWidget(GlobToolMessage(message))
-            elif message.tool_name in ["todo_write", "todo_read"]:
-                # For todo messages, we'll create a placeholder that gets updated later
-                tool_indicator = ToolIndicator(message.tool_name, message.arguments)
-                self.tool_indicators[indicator_key] = tool_indicator
-                self._add_widget(tool_indicator)
-                return
-            else:
-                # Fallback to original ToolIndicator for other tools
-                tool_indicator = ToolIndicator(message.tool_name, message.arguments)
-                self.tool_indicators[indicator_key] = tool_indicator
-                self._add_widget(tool_indicator)
-                return
-            
-            # For the new widgets, we store them but don't need completion tracking
-            self.tool_indicators[indicator_key] = widget
-            self._add_widget(widget)
-
-    def render_tool_result(self, message: ToolResultMessage) -> None:
-        """Render a tool result message."""
-        # Track files analyzed from successful cat operations
-        if message.tool_name == "cat" and not message.result.startswith("Error:"):
-            self._track_analyzed_file(message)
-        
-        # Find and update the matching tool widget
-        matching_key = self._find_matching_tool_key(message.tool_name)
-        
-        if matching_key:
-            widget = self.tool_indicators[matching_key]
-            
-            # Handle different widget types
-            if hasattr(widget, 'mark_completed'):
-                # Old ToolIndicator style
-                self.app.call_from_thread(widget.mark_completed)
-            elif message.tool_name == "cat" and hasattr(widget, 'children') and len(widget.children) > 0:
-                # Update CatToolMessage with actual file content
-                cat_widget = widget.children[0]  # Get the CatToolMessage from CenterWidget
-                if hasattr(cat_widget, 'file_content'):
-                    cat_widget.file_content = message.result
-                    # Trigger a recompose to show the new content
-                    self.app.call_from_thread(cat_widget.refresh, recompose=True)
-            elif message.tool_name == "grep" and hasattr(widget, 'children') and len(widget.children) > 0:
-                # Update GrepToolMessage with actual search results
-                grep_widget = widget.children[0]  # Get the GrepToolMessage from CenterWidget  
-                if hasattr(grep_widget, 'search_results'):
-                    # Parse grep results - this would need actual parsing logic
-                    grep_widget.search_results = self._parse_grep_results(message.result)
-                    # Trigger a recompose to show the new content
-                    self.app.call_from_thread(grep_widget.refresh, recompose=True)
-
-    def render_todo_state(self, message: TodoStateMessage) -> None:
-        """Render todo state update."""
-        if not message.todos:
-            return
-            
-        # Find the most recent todo tool indicator and replace it with new widget
-        for key in reversed(list(self.tool_indicators.keys())):
-            widget = self.tool_indicators[key]
-            if hasattr(widget, 'tool_name') and widget.tool_name in ["todo_write", "todo_read"]:
-                # Remove the old indicator
-                self.app.call_from_thread(widget.remove)
-                
-                # Create new todo widget based on type
-                if widget.tool_name == "todo_write":
-                    new_widget = CenterWidget(AgentWriteTodoMessage(message.todos))
+    
+    def render_message(self, message: BaseAgentMessage) -> None:
+        """Render any agent message based on its type."""
+        if message.message_type == MessageType.TOOL_EXECUTION:
+            self.render_tool_execution(message)
+        elif message.message_type == MessageType.STREAM_START:
+            self.render_stream_start(message)
+        elif message.message_type == MessageType.STREAM_CHUNK:
+            self.render_stream_chunk(message)
+        elif message.message_type == MessageType.STREAM_END:
+            self.render_stream_end(message)
+        elif message.message_type == MessageType.BUG_REPORT:
+            self.render_bug_report(message)
+    
+    def render_tool_execution(self, message: ToolExecutionMessage) -> None:
+        """Render a tool execution message."""
+        # Create appropriate widget based on tool type
+        if message.tool_name == "grep":
+            widget = CenterWidget(GrepToolMessage(message))
+        elif message.tool_name == "cat":
+            widget = CenterWidget(CatToolMessage(message))
+        elif message.tool_name == "ls":
+            widget = CenterWidget(LsToolMessage(message))
+        elif message.tool_name == "glob":
+            widget = CenterWidget(GlobToolMessage(message))
+        elif message.tool_name in ["todo_write", "todo_read"]:
+            # Handle todo tools by parsing todo state from result and creating appropriate widget
+            todos = self._parse_todo_state_from_result(message.result)
+            if todos:
+                if message.tool_name == "todo_write":
+                    widget = CenterWidget(AgentWriteTodoMessage(todos))
                 else:  # todo_read
-                    new_widget = CenterWidget(AgentReadTodoMessage(message.todos))
-                
-                # Replace in our tracking dict and add to UI
-                self.tool_indicators[key] = new_widget
-                self._add_widget(new_widget)
-                break
+                    widget = CenterWidget(AgentReadTodoMessage(todos))
+                self._add_widget(widget)
+            else:
+                # Fallback to tool indicator if parsing fails
+                tool_indicator = ToolIndicator(message.tool_name, str(message.arguments))
+                if not message.success:
+                    self.app.call_from_thread(tool_indicator.mark_failed, message.error or "Unknown error")
+                else:
+                    self.app.call_from_thread(tool_indicator.mark_completed)
+                self._add_widget(tool_indicator)
+            return
+        else:
+            # Fallback to ToolIndicator for other tools
+            tool_indicator = ToolIndicator(message.tool_name, str(message.arguments))
+            if not message.success:
+                self.app.call_from_thread(tool_indicator.mark_failed, message.error or "Unknown error")
+            else:
+                self.app.call_from_thread(tool_indicator.mark_completed)
+            self._add_widget(tool_indicator)
+            return
+        
+        # Track analyzed files from cat operations
+        if message.tool_name == "cat" and message.success and message.result:
+            self._track_analyzed_file_from_tool(message)
+        
+        self._add_widget(widget)
 
-    def render_message_start(self, message: MessageStart) -> None:
+
+    def _parse_todo_state_from_result(self, result: str) -> list[dict]:
+        """Parse todo state from tool result string."""
+        if not result:
+            return []
+            
+        try:
+            # The todo tools return todo state info - extract it
+            # Example result: "Updated todo list: 6 total, 6 incomplete\n[] - Task 1\n[] - Task 2"
+            # or "[] - Task 1\n[] - Task 2\n[x] - Task 3"
+            
+            lines = result.strip().split('\n')
+            todos = []
+            
+            for line in lines:
+                line = line.strip()
+                if line.startswith('[] - ') or line.startswith('[x] - '):
+                    # Parse todo item
+                    is_complete = line.startswith('[x]')
+                    content = line[5:]  # Remove "[] - " or "[x] - "
+                    
+                    todos.append({
+                        "id": f"todo_{len(todos)}",  # Simple ID
+                        "content": content,
+                        "status": "completed" if is_complete else "pending"
+                    })
+            
+            return todos
+        except Exception:
+            return []
+
+    def render_stream_start(self, message: StreamStartMessage) -> None:
         """Start rendering a streaming message."""
-        if message.message_type == "analysis":
+        if message.content_type == "analysis":
             self.analysis_message_count += 1
             # Use the new AgentMessage widget wrapped in CenterWidget
             self.current_streaming_widget = CenterWidget(AgentMessage(""))
             self.current_streaming_widget.add_class("streaming")
             self._add_widget(self.current_streaming_widget)
 
-    def render_message_token(self, message: MessageToken) -> None:
-        """Render a streaming message token."""
+    def render_stream_chunk(self, message: StreamChunkMessage) -> None:
+        """Render a streaming message chunk."""
         if not self.current_streaming_widget:
             return
         
@@ -156,7 +159,7 @@ class MessageRenderer:
             agent_message._content = ""
         
         # Accumulate content
-        agent_message._content += message.token
+        agent_message._content += message.chunk
         
         # Update the widget's renderable content
         self.app.call_from_thread(
@@ -171,7 +174,7 @@ class MessageRenderer:
         ):
             self._handle_json_detection()
 
-    def render_message_end(self, message: MessageEnd) -> None:
+    def render_stream_end(self, message: StreamEndMessage) -> None:
         """End rendering of a streaming message."""
         if not self.current_streaming_widget:
             return
@@ -188,8 +191,21 @@ class MessageRenderer:
             
         self.current_streaming_widget = None
 
+
+    def render_bug_report(self, message: BugReportMessage) -> None:
+        """Render a bug report message."""
+        # Create bug report widget with the report data
+        bug_report_widget = CenterWidget(BugReportWithLoadingMessage(message.report_data))
+        
+        # Replace placeholder if one exists
+        if self.report_placeholder:
+            self.app.call_from_thread(self.report_placeholder.remove)
+            self.report_placeholder = None
+        
+        self._add_widget(bug_report_widget)
+    
     def render_error(self, error_message: str) -> None:
-        """Render an error message."""
+        """Render a simple error message (legacy method)."""
         error_widget = CenterWidget(AgentMessage(f"❌ Error: {error_message}"))
         self._add_widget(error_widget)
 
@@ -236,30 +252,15 @@ class MessageRenderer:
         
         return results
     
-    def _track_analyzed_file(self, message: ToolResultMessage) -> None:
-        """Extract and track file path from successful cat tool results."""
+    def _track_analyzed_file_from_tool(self, message: ToolExecutionMessage) -> None:
+        """Extract and track file path from successful cat tool execution."""
         try:
-            # Find the corresponding tool call to get the file path
-            matching_key = self._find_matching_tool_key(message.tool_name)
-            if matching_key:
-                tool_indicator = self.tool_indicators[matching_key]
-                # Parse the arguments to extract the file path
-                import json
-                try:
-                    args = json.loads(tool_indicator.arguments)
-                    file_path = args.get("filePath")
+            if message.tool_name == "cat" and message.arguments:
+                # Extract file path from arguments
+                if isinstance(message.arguments, dict):
+                    file_path = message.arguments.get("filePath") or message.arguments.get("file")
                     if file_path:
                         self.analyzed_files.add(file_path)
-                except (json.JSONDecodeError, KeyError):
-                    # Failed to parse arguments - try extracting from display text
-                    display_text = tool_indicator.display_text
-                    if display_text and " cat " in display_text:
-                        # Extract file path from display text like "⚯ cat path/to/file.py"
-                        parts = display_text.split(" cat ", 1)
-                        if len(parts) > 1:
-                            file_path = parts[1].strip()
-                            if file_path:
-                                self.analyzed_files.add(file_path)
         except Exception:
             # Don't let file tracking errors break the UI
             pass
@@ -282,6 +283,10 @@ class MessageRenderer:
         split = json_detector.split_content(content)
         
         if split.has_json:
+            # Hide the original AgentMessage that contains the raw JSON
+            if self.current_streaming_widget:
+                self.app.call_from_thread(self.current_streaming_widget.remove)
+            
             self.app.call_from_thread(
                 self._render_bug_report,
                 split.json_content,

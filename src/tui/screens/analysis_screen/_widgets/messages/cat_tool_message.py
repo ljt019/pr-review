@@ -5,7 +5,7 @@ from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Label, Markdown, Static
 
-from agent.messages import ToolCallMessage
+from agent.messaging import ToolExecutionMessage
 
 
 class CatToolMessage(Static):
@@ -37,17 +37,19 @@ def rotate_logs():
     ts = int(time.time())
     shutil.copy(log, f"/tmp/app.{ts}.log")"""
 
-    def __init__(self, tool_message: ToolCallMessage, file_content=None):
+    def __init__(self, tool_message: ToolExecutionMessage, file_content=None):
         super().__init__("", classes="agent-tool-message")
         self.tool_message = tool_message
         if file_content is not None:
             self.file_content = file_content
+        elif tool_message.result and tool_message.success:
+            self.file_content = tool_message.result
 
     def compose(self) -> ComposeResult:
         try:
-            args = json.loads(self.tool_message.arguments)
+            args = self.tool_message.arguments if isinstance(self.tool_message.arguments, dict) else json.loads(str(self.tool_message.arguments))
             file_path = args.get("filePath", args.get("file_path", args.get("file", args.get("path", ""))))
-        except (json.JSONDecodeError, AttributeError):
+        except (json.JSONDecodeError, AttributeError, TypeError):
             file_path = ""
         
         # If still empty, try to extract from tool_message directly  

@@ -5,7 +5,7 @@ from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Label, Markdown, Static
 
-from agent.messages import ToolCallMessage
+from agent.messaging import ToolExecutionMessage
 
 
 class GrepToolMessage(Static):
@@ -26,16 +26,26 @@ class GrepToolMessage(Static):
         ("src/utils/helpers.py", 23, "def analyze_code_quality():"),
     ]
 
-    def __init__(self, tool_message: ToolCallMessage, search_results=None):
+    def __init__(self, tool_message: ToolExecutionMessage, search_results=None):
         super().__init__("", classes="agent-tool-message")
         self.tool_message = tool_message
-        self.search_results = search_results or self.example_matches
+        if search_results is not None:
+            self.search_results = search_results
+        elif tool_message.result and tool_message.success:
+            # Parse the grep result into the expected format
+            self.search_results = self._parse_grep_output(tool_message.result)
+        else:
+            self.search_results = self.example_matches
 
     def compose(self) -> ComposeResult:
         try:
-            args = json.loads(self.tool_message.arguments)
+            # Handle dict arguments directly
+            if isinstance(self.tool_message.arguments, dict):
+                args = self.tool_message.arguments
+            else:
+                args = json.loads(self.tool_message.arguments)
             pattern = args.get("pattern", args.get("search_pattern", ""))
-        except (json.JSONDecodeError, AttributeError):
+        except (json.JSONDecodeError, AttributeError, TypeError):
             pattern = ""
         
         # If still empty, try to extract from tool_message directly
@@ -74,3 +84,28 @@ class GrepToolMessage(Static):
             ),
             markdown_widget,
         )
+    
+    def _parse_grep_output(self, grep_output: str) -> list:
+        """Parse grep output into (file_path, line_number, content) tuples."""
+        results = []
+        for line in grep_output.strip().split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            
+            # Try to parse grep output format: filename:line_number:content
+            parts = line.split(':', 2)
+            if len(parts) >= 3:
+                try:
+                    file_path = parts[0]
+                    line_number = int(parts[1])
+                    content = parts[2]
+                    results.append((file_path, line_number, content))
+                except ValueError:
+                    # If line number parsing fails, treat as simple match
+                    results.append((line, 0, line))
+            else:
+                # Fallback for non-standard format
+                results.append((line, 0, line))
+        
+        return results

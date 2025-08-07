@@ -40,7 +40,17 @@ class TodoWriteTool(BaseTool):
             todo_manager.update_from_list(todos_list)
 
             summary = todo_manager.get_summary()
-            return f"Updated todo list: {summary}"
+            
+            # Return summary + formatted todo list for UI display
+            result = f"Updated todo list: {summary}\n"
+            
+            # Add formatted todo items
+            todos = todo_manager.get_all_todos()
+            for todo in todos:
+                status_marker = "[x]" if todo.status == "complete" else "[]"
+                result += f"{status_marker} - {todo.content}\n"
+            
+            return result.rstrip()
 
         except Exception as e:
             return f"Error: {str(e)}"

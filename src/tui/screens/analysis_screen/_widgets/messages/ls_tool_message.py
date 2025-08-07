@@ -5,6 +5,8 @@ from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Label, Static
 
+from agent.messaging import ToolExecutionMessage
+
 
 class LsToolMessage(Static):
     """Tool call made by the agent to *ls* files with file tree display"""
@@ -28,10 +30,16 @@ class LsToolMessage(Static):
         ("pyproject.toml", "file"),
     ]
 
-    def __init__(self, tool_message: "ToolCallMessage", directory_output=None):
+    def __init__(self, tool_message: ToolExecutionMessage, directory_output=None):
         super().__init__("", classes="agent-tool-message")
         self.tool_message = tool_message
-        self.directory_output = directory_output or self.example_output
+        if directory_output is not None:
+            self.directory_output = directory_output
+        elif tool_message.result and tool_message.success:
+            # Parse the ls result into the expected format
+            self.directory_output = self._parse_ls_output(tool_message.result)
+        else:
+            self.directory_output = self.example_output
 
     def compose(self) -> ComposeResult:
         tree_lines = []
@@ -62,13 +70,31 @@ class LsToolMessage(Static):
     def _get_path(self) -> str:
         """Extract path from tool message arguments."""
         try:
-            args = json.loads(self.tool_message.arguments)
+            # Handle dict arguments directly
+            if isinstance(self.tool_message.arguments, dict):
+                args = self.tool_message.arguments
+            else:
+                args = json.loads(self.tool_message.arguments)
             path = args.get("path", args.get("directory", args.get("dir", ".")))
             return path if path else "."
-        except (json.JSONDecodeError, AttributeError):
+        except (json.JSONDecodeError, AttributeError, TypeError):
             # Try to extract path from arguments string
             if hasattr(self.tool_message, 'arguments'):
                 args_str = str(self.tool_message.arguments)
                 if args_str and args_str != "{}":
                     return args_str[:30] + "..." if len(args_str) > 30 else args_str
             return "."
+    
+    def _parse_ls_output(self, ls_output: str) -> list:
+        """Parse ls output into (path, type) tuples."""
+        output = []
+        for line in ls_output.strip().split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            # Simple heuristic: directories end with /, files don't
+            if line.endswith('/'):
+                output.append((line, "directory"))
+            else:
+                output.append((line, "file"))
+        return output

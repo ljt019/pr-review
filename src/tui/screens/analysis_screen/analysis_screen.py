@@ -7,18 +7,11 @@ from textual.containers import Center, Container
 from textual.screen import Screen
 from textual.widgets import Static
 
-from ._widgets.analysis_messages_container import AnalysisMessagesContainer
-
 from agent.agent import ModelOptions
-from agent.messages import (
-    MessageEnd,
-    MessageStart,
-    MessageToken,
-    TodoStateMessage,
-    ToolCallMessage,
-    ToolResultMessage,
-)
+from agent.messaging import AgentMessage
 from tui.services.agent_service import AgentService
+
+from ._widgets.analysis_messages_container import AnalysisMessagesContainer
 
 
 class AnalysisScreen(Screen):
@@ -50,7 +43,9 @@ class AnalysisScreen(Screen):
 
     def on_mount(self) -> None:
         """Start the sniff agent analysis when screen mounts"""
-        self.messages_container = self.query_one("#messages-container", AnalysisMessagesContainer)
+        self.messages_container = self.query_one(
+            "#messages-container", AnalysisMessagesContainer
+        )
         self.run_bug_analysis()
 
     @work(thread=True)
@@ -60,10 +55,12 @@ class AnalysisScreen(Screen):
         model_option = AgentService.map_model_name_to_option(self.selected_model)
 
         # Create services
-        agent_service = AgentService(model_option)
-        
+        # Disable markdown conversation logging (use standard debug logging instead)
+        agent_service = AgentService(model_option, enable_logging=False)
+
         # Import MessageRenderer here to avoid circular imports
         from tui.services.message_renderer import MessageRenderer
+
         renderer = MessageRenderer(self.app, self.messages_container)
 
         # Validate codebase
@@ -75,23 +72,7 @@ class AnalysisScreen(Screen):
         try:
             # Run analysis and render messages
             for message in agent_service.run_analysis():
-                if isinstance(message, ToolCallMessage):
-                    renderer.render_tool_call(message)
-
-                elif isinstance(message, ToolResultMessage):
-                    renderer.render_tool_result(message)
-
-                elif isinstance(message, TodoStateMessage):
-                    renderer.render_todo_state(message)
-
-                elif isinstance(message, MessageStart):
-                    renderer.render_message_start(message)
-
-                elif isinstance(message, MessageToken):
-                    renderer.render_message_token(message)
-
-                elif isinstance(message, MessageEnd):
-                    renderer.render_message_end(message)
+                renderer.render_message(message)
 
         except Exception as e:
             renderer.render_error(f"Error during analysis: {str(e)}")

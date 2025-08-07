@@ -5,7 +5,7 @@ from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Label, Markdown, Static
 
-from agent.messages import ToolCallMessage
+from agent.messaging import ToolExecutionMessage
 
 
 class GlobToolMessage(Static):
@@ -26,16 +26,26 @@ class GlobToolMessage(Static):
         "src/tui/widgets/instruction_text.py",
     ]
 
-    def __init__(self, tool_message: ToolCallMessage, matched_files=None):
+    def __init__(self, tool_message: ToolExecutionMessage, matched_files=None):
         super().__init__("", classes="agent-tool-message")
         self.tool_message = tool_message
-        self.matched_files = matched_files or self.example_files
+        if matched_files is not None:
+            self.matched_files = matched_files
+        elif tool_message.result and tool_message.success:
+            # Parse the glob result - simple split by lines
+            self.matched_files = [f.strip() for f in tool_message.result.strip().split('\n') if f.strip()]
+        else:
+            self.matched_files = self.example_files
 
     def compose(self) -> ComposeResult:
         try:
-            args = json.loads(self.tool_message.arguments)
+            # Handle dict arguments directly
+            if isinstance(self.tool_message.arguments, dict):
+                args = self.tool_message.arguments
+            else:
+                args = json.loads(self.tool_message.arguments)
             pattern = args.get("pattern", args.get("glob_pattern", args.get("file_pattern", "")))
-        except (json.JSONDecodeError, AttributeError):
+        except (json.JSONDecodeError, AttributeError, TypeError):
             pattern = ""
         
         # If still empty, try to extract from tool_message directly
