@@ -15,6 +15,7 @@ from agent.messages import (
     ToolCallMessage,
     ToolResultMessage,
 )
+from agent.utils.message_utils import to_message_data
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class StreamingContext:
     last_yielded_count: int = 0
     last_assistant_content: str = ""
     current_message_started: bool = False
-    yielded_tool_calls: Set[int] = None
+    yielded_tool_calls: Set[int] | None = None
 
     def __post_init__(self):
         if self.yielded_tool_calls is None:
@@ -38,7 +39,7 @@ class MessageProcessor:
 
     def __init__(self, get_todo_state_callback=None):
         """Initialize the processor.
-        
+
         Args:
             get_todo_state_callback: Optional callback to get current todo state
         """
@@ -48,10 +49,10 @@ class MessageProcessor:
         self, agent_responses: Iterator[List[Union[Message, dict]]]
     ) -> Iterator[BotMessage]:
         """Process streaming responses from the agent and yield clean message events.
-        
+
         Args:
             agent_responses: Iterator of response lists from the agent
-            
+
         Yields:
             BotMessage events for tool calls, results, and streaming content
         """
@@ -77,26 +78,6 @@ class MessageProcessor:
         # End any remaining streaming message
         if context.current_message_started:
             yield MessageEnd()
-
-    def _extract_message_fields(self, msg: Union[Message, dict]) -> dict:
-        """Extract fields from either Message object or dict."""
-        return {
-            "role": getattr(msg, "role", None) or msg.get("role"),
-            "content": getattr(msg, "content", None) or msg.get("content"),
-            "function_call": getattr(msg, "function_call", None)
-            or msg.get("function_call"),
-            "name": getattr(msg, "name", None) or msg.get("name"),
-        }
-
-    def _extract_function_call_fields(self, function_call) -> dict:
-        """Extract fields from function_call object or dict."""
-        if not function_call:
-            return {"name": None, "arguments": None}
-        return {
-            "name": getattr(function_call, "name", None) or function_call.get("name"),
-            "arguments": getattr(function_call, "arguments", None)
-            or function_call.get("arguments"),
-        }
 
     def _is_args_ready(self, args: str) -> bool:
         """Check if function arguments are ready to be yielded."""
@@ -126,19 +107,19 @@ class MessageProcessor:
     ) -> Iterator[BotMessage]:
         """Process tool calls in the responses."""
         for i, msg in enumerate(responses):
-            fields = self._extract_message_fields(msg)
-            
-            if fields["role"] == "assistant" and fields["function_call"]:
-                fc_fields = self._extract_function_call_fields(fields["function_call"])
-                
+            data = to_message_data(msg)
+
+            if data.role == "assistant" and data.function_call:
+                fc = data.function_call
+
                 logger.debug(
-                    f"Message {i}: Tool={fc_fields['name']}, Args='{fc_fields['arguments']}'"
+                    f"Message {i}: Tool={fc.name}, Args='{fc.arguments}'"
                 )
 
                 # Check if ready to yield
                 if (
                     i not in context.yielded_tool_calls
-                    and self._is_args_ready(fc_fields["arguments"])
+                    and self._is_args_ready(fc.arguments)
                 ):
                     # End current streaming message first
                     if context.current_message_started:
@@ -147,13 +128,13 @@ class MessageProcessor:
                         context.last_assistant_content = ""
 
                     logger.debug(
-                        f"Yielding ToolCallMessage: {fc_fields['name']}({fc_fields['arguments']})"
+                        f"Yielding ToolCallMessage: {fc.name}({fc.arguments})"
                     )
                     yield ToolCallMessage(
-                        tool_name=fc_fields["name"],
-                        arguments=fc_fields["arguments"],
-                        reasoning=fields["content"] if fields["content"] else None,
-                        call_id=f"{fc_fields['name']}_{i}",
+                        tool_name=fc.name,
+                        arguments=fc.arguments,
+                        reasoning=data.content if data.content else None,
+                        call_id=f"{fc.name}_{i}",
                     )
                     context.yielded_tool_calls.add(i)
 
@@ -162,19 +143,23 @@ class MessageProcessor:
     ) -> Iterator[BotMessage]:
         """Process new function result messages."""
         new_messages = responses[context.last_yielded_count :]
-        
+
         for msg in new_messages:
-            fields = self._extract_message_fields(msg)
-            
-            if fields["role"] == "function":
-                logger.debug(f"Function result: {fields['name']}")
+            data = to_message_data(msg)
+
+            if data.role == "function":
+                logger.debug(f"Function result: {data.name}")
                 yield ToolResultMessage(
-                    tool_name=fields["name"] or "unknown", 
-                    result=fields["content"] or ""
+                    tool_name=data.name or "unknown",
+                    result=data.content or "",
                 )
 
                 # Check if this was a todo tool call
-                if fields["name"] and fields["name"].startswith("todo_") and self.get_todo_state:
+                if (
+                    data.name
+                    and data.name.startswith("todo_")
+                    and self.get_todo_state
+                ):
                     todo_state = self.get_todo_state()
                     yield TodoStateMessage(todos=todo_state)
 
@@ -185,13 +170,12 @@ class MessageProcessor:
         if not responses:
             return
 
-        last_msg = responses[-1]
-        fields = self._extract_message_fields(last_msg)
+        last_msg = to_message_data(responses[-1])
 
         if (
-            fields["role"] == "assistant"
-            and not fields["function_call"]
-            and fields["content"]
+            last_msg.role == "assistant"
+            and not last_msg.function_call
+            and last_msg.content
         ):
             if not context.current_message_started:
                 # Start new streaming message
@@ -200,8 +184,9 @@ class MessageProcessor:
                 context.last_assistant_content = ""
 
             # Send new tokens
-            if fields["content"] != context.last_assistant_content:
-                new_content = fields["content"][len(context.last_assistant_content) :]
+            if last_msg.content != context.last_assistant_content:
+                new_content = last_msg.content[len(context.last_assistant_content) :]
                 if new_content:
                     yield MessageToken(token=new_content)
-                    context.last_assistant_content = fields["content"]
+                    context.last_assistant_content = last_msg.content
+

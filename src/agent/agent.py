@@ -25,6 +25,7 @@ from agent.messages import (
     ToolResultMessage,
 )
 from agent.utils.message_processor import MessageProcessor
+from agent.utils.message_utils import to_message_data
 from agent.sandbox import Sandbox
 from agent.utils.response_saver import save_response_with_summary
 
@@ -162,75 +163,43 @@ class SniffAgent:
         finally:
             self.messages = []
 
+
     def _convert_to_bot_message(self, msg: Message | dict) -> BotMessage | None:
         """Convert a qwen_agent Message to our clean message types."""
-        # Get fields - handle both Message objects and dicts
-        role = msg.role if hasattr(msg, "role") else msg.get("role")
-        content = msg.content if hasattr(msg, "content") else msg.get("content")
-        function_call = (
-            msg.function_call
-            if hasattr(msg, "function_call")
-            else msg.get("function_call")
-        )
-        name = msg.name if hasattr(msg, "name") else msg.get("name")
+        data = to_message_data(msg)
 
-        # Assistant role - check for function_call first
-        if role == "assistant":
-            if function_call:
-                # Has function_call = ToolCallMessage
-                fc_name = (
-                    function_call.name
-                    if hasattr(function_call, "name")
-                    else function_call.get("name")
-                )
-                fc_args = (
-                    function_call.arguments
-                    if hasattr(function_call, "arguments")
-                    else function_call.get("arguments")
-                )
+        if data.role == "assistant":
+            if data.function_call:
                 return ToolCallMessage(
-                    tool_name=fc_name,
-                    arguments=fc_args,
-                    reasoning=content if content else None,
+                    tool_name=data.function_call.name,
+                    arguments=data.function_call.arguments,
+                    reasoning=data.content if data.content else None,
                 )
-            elif content:
-                # No function_call but has content = BugReportMessage
-                return BugReportMessage(content=content)
+            elif data.content:
+                return BugReportMessage(content=data.content)
             else:
-                # No function_call and no content = error
                 raise ValueError(
                     f"Assistant message with no function_call or content: {msg}"
                 )
 
-        # Function role = ToolResultMessage
-        elif role == "function":
-            if not content:
+        elif data.role == "function":
+            if not data.content:
                 raise ValueError(f"Function message with no content: {msg}")
-            return ToolResultMessage(tool_name=name or "unknown", result=content)
+            return ToolResultMessage(tool_name=data.name or "unknown", result=data.content)
 
-        # Ignore other roles (system, user)
         return None
+
 
     def _is_final_response(self, responses: List[Message | dict]) -> bool:
         """Check if the last message is the final response (no more tool calls)."""
         if not responses:
             return False
-        last_msg = responses[-1]
-
-        # Handle both Message objects and dicts
-        role = last_msg.role if hasattr(last_msg, "role") else last_msg.get("role")
-        function_call = (
-            last_msg.function_call
-            if hasattr(last_msg, "function_call")
-            else last_msg.get("function_call")
+        last_msg = to_message_data(responses[-1])
+        return (
+            last_msg.role == "assistant"
+            and not last_msg.function_call
+            and bool(last_msg.content)
         )
-        content = (
-            last_msg.content
-            if hasattr(last_msg, "content")
-            else last_msg.get("content")
-        )
-
-        return role == "assistant" and not function_call and bool(content)
 
     def _cleanup(self):
         """Clean up resources, specifically the container"""
