@@ -23,6 +23,7 @@ from agent.tools import (
     load_prompt, cat, ls, grep, glob, todoread, todowrite
 )
 from agent.sandbox import Sandbox
+from tui.utils.json_detector import JSONDetector
 
 load_dotenv()
 
@@ -84,19 +85,18 @@ class SniffAgent:
         
         # Track bug report generation state
         self._bug_report_started = False
-        
+        self._bug_report_sent = False
+
         # Track analyzed files
         self._analyzed_files = set()
-        
+
         # Track streaming state
         self._current_stream = None
         self._stream_buffer = ""
         self._chunk_index = 0
-        
-        # Track JSON detection state
-        self._json_buffer = ""
-        self._json_depth = 0
-        self._in_json_object = False
+
+        # JSON detection
+        self._json_detector = JSONDetector()
         
     
     def start(self):
@@ -178,121 +178,34 @@ class SniffAgent:
             ))
     
     def _handle_streaming_content(self, content):
-        """Handle streaming content with smart JSON detection."""
-        # Check for JSON content first
-        if self._detect_and_handle_json(content):
-            return  # JSON was handled, don't send as regular stream
-        
-        # Handle regular streaming content
+        """Handle streaming content with JSON detection."""
+        split = self._json_detector.split_content(content)
+
+        if split.has_json:
+            if not self._bug_report_started:
+                self.sender.send(BugReportStartedMessage(
+                    message_id=self._gen_msg_id(),
+                    timestamp=time.time(),
+                    files_analyzed=len(self._analyzed_files)
+                ))
+                self._bug_report_started = True
+
+            if split.is_complete_json and not self._bug_report_sent:
+                report_data = self._json_detector.parse_json(split.json_content)
+                if report_data:
+                    self._handle_bug_report_json(report_data)
+                    self._bug_report_sent = True
+            return
+
         if not self._current_stream or not content.startswith(self._stream_buffer):
-            # End previous stream if one was active
             if self._current_stream:
                 self._end_stream()
-            
-            # Start new stream
             self._start_stream(content)
-        
-        # Send new chunk(s)
+
         new_content = content[len(self._stream_buffer):]
         if new_content:
             self._send_stream_chunk(new_content)
             self._stream_buffer = content
-    
-    def _detect_and_handle_json(self, content):
-        """Detect JSON objects and handle them when complete."""
-        # Check if this looks like JSON content
-        is_json_like = (
-            content.strip().startswith('{') or 
-            'summary' in content.lower() or 
-            'bugs' in content.lower() or
-            self._in_json_object
-        )
-        
-        if is_json_like:
-            # We're in a JSON object - start or continue buffering
-            if not self._in_json_object:
-                # Starting JSON object - send BugReportStarted message
-                if not self._bug_report_started:
-                    self.sender.send(BugReportStartedMessage(
-                        message_id=self._gen_msg_id(),
-                        timestamp=time.time(),
-                        files_analyzed=len(self._analyzed_files)
-                    ))
-                    self._bug_report_started = True
-                
-                self._in_json_object = True
-                self._json_buffer = content
-            else:
-                # Continue building JSON buffer
-                self._json_buffer = content
-            
-            # Try to parse complete JSON
-            complete_json = self._extract_complete_json(self._json_buffer)
-            if complete_json:
-                self._handle_bug_report_json(complete_json)
-                # Reset JSON state
-                self._json_buffer = ""
-                self._json_depth = 0
-                self._in_json_object = False
-                return True
-            
-            # JSON detected but not complete yet - don't stream it
-            return True
-        
-        return False
-    
-    def _extract_complete_json(self, text):
-        """Extract complete JSON object from text using ijson-like approach."""
-        import json
-        
-        # Find potential JSON start
-        json_start = -1
-        for i, char in enumerate(text):
-            if char == '{':
-                json_start = i
-                break
-        
-        if json_start == -1:
-            return None
-        
-        # Try to find complete JSON object by tracking braces
-        brace_count = 0
-        in_string = False
-        escape_next = False
-        
-        for i in range(json_start, len(text)):
-            char = text[i]
-            
-            if escape_next:
-                escape_next = False
-                continue
-                
-            if char == '\\':
-                escape_next = True
-                continue
-                
-            if char == '"' and not escape_next:
-                in_string = not in_string
-                continue
-                
-            if not in_string:
-                if char == '{':
-                    brace_count += 1
-                elif char == '}':
-                    brace_count -= 1
-                    
-                    # Found complete JSON object
-                    if brace_count == 0:
-                        json_text = text[json_start:i+1]
-                        try:
-                            parsed = json.loads(json_text)
-                            # Validate it looks like a bug report
-                            if isinstance(parsed, dict) and ('summary' in parsed or 'bugs' in parsed):
-                                return parsed
-                        except json.JSONDecodeError:
-                            continue
-        
-        return None
     
     def _handle_bug_report_json(self, report_data):
         """Handle a complete bug report JSON object."""

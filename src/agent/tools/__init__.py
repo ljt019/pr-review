@@ -6,7 +6,10 @@ from pathlib import Path
 def load_tool_description(tool_name: str) -> str:
     """Load tool description from corresponding .txt file"""
     description_path = Path(__file__).parent / f"{tool_name}.txt"
-    return description_path.read_text().strip()
+    try:
+        return description_path.read_text().strip()
+    except FileNotFoundError:
+        return ""
 
 
 def load_prompt(prompt_name: str) -> str:
@@ -51,6 +54,15 @@ def normalize_path(path: str) -> str:
     
     # Prepend /workspace/ to relative paths
     return f"/workspace/{path}"
+
+
+def to_workspace_relative(path: str) -> str:
+    """Convert an absolute path to be relative to /workspace."""
+    if path.startswith("/workspace/"):
+        return path[11:]
+    if path == "/workspace":
+        return "."
+    return path
 
 
 def run_in_container(command: str) -> str:
