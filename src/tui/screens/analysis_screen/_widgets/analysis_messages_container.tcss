@@ -1,0 +1,27 @@
+.scrollbar_styles {
+    scrollbar-color: #585b70;
+    scrollbar-color-hover: #7f849c;
+    scrollbar-color-active: #9399b2;
+    scrollbar-background: #1e1e2e;
+    scrollbar-background-hover: #313244;
+    scrollbar-background-active: #45475a;
+    scrollbar-size-vertical: 1;
+    margin-right: 3;
+}
+
+#messages-container {
+    width: 90;
+    height: 100%;
+    background: transparent;
+    border-right: solid $background;
+    margin: 0;
+    padding: 0;
+}
+
+ScrollBar {
+    margin-left: 2;
+}
+
+.-textual-system {
+    margin-left: 2;
+}

@@ -1,7 +1,12 @@
-- Fast content search tool that works with any codebase size
-- Searches file contents using regular expressions
-- Supports full regex syntax (eg. "log.*Error", "function\s+\w+", etc.)
-- The directory parameter defaults to "." (workspace root) - use relative paths like "src" or "tests"
-- Filter files by pattern with the include parameter (eg. "*.py", "*.{ts,tsx}")
-- Returns file paths with at least one match sorted by modification time
-- Use this tool when you need to find files containing specific patterns
+Searches file contents using patterns and regex.
+Parameters:
+- pattern: Search pattern (regex supported, optional)
+- directory: Directory to search (defaults to current directory)
+- include: File patterns to include (e.g., "*.py", "*.js")
+
+Examples: 
+- {"pattern": "TODO"} - find files containing "TODO"
+- {"pattern": "password|secret|key", "include": "*.py"} - find secrets in Python files
+- {"pattern": "function.*login", "directory": "src"} - find login functions in src directory
+
+Returns paths of files containing matches, sorted by modification time.

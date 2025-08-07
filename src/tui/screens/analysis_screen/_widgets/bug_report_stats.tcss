@@ -1,0 +1,14 @@
+.bug-report-stats-container {
+    height: auto;
+    background: transparent;
+    margin: 0;
+}
+
+.bug-report-stats {
+    color: #a6adc8;
+    text-align: center;
+    background: transparent;
+    height: auto;
+    margin: 0;
+    padding: 0;
+}

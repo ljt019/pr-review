@@ -11,13 +11,13 @@ class GlobTool(BaseTool):
         {
             "name": "pattern",
             "type": "string",
-            "description": 'Glob pattern to match files (e.g., "**/*.py", "test_*.js", "*.{json,yml}")',
+            "description": "Pattern to match files (e.g., **/*.py, *.js, test_*)",
             "required": True,
         },
         {
             "name": "path",
             "type": "string",
-            "description": "Directory to search in (defaults to current directory)",
+            "description": "Directory to search (defaults to current directory)",
             "required": False,
         },
     ]

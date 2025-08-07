@@ -1,0 +1,29 @@
+.sniff-main-title-container {
+    margin: 1 0 2 0;
+    height: auto;
+    width: 100%;
+}
+
+.sniff-title-horizontal {
+    height: auto;
+    width: 100%;
+}
+
+.sniff-main-title {
+    color: #cdd6f4;
+    height: auto;
+    width: auto;
+}
+
+.spacer {
+    height: auto;
+    background: transparent;
+}
+
+.spacer:first-child {
+    width: 1.05fr;
+}
+
+.spacer:last-child {
+    width: 1fr;
+}

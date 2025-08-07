@@ -1,0 +1,8 @@
+.current-todo-list {
+    width: auto;
+}
+
+.tool-content {
+    color: #585b70;
+    text-style: italic;
+}
