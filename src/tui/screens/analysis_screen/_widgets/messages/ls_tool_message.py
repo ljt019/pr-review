@@ -63,7 +63,7 @@ class LsToolMessage(Static):
                 Label(f" {self._get_path()}", classes="tool-content"),
                 classes="tool-horizontal",
             ),
-            make_markdown(markdown_content, classes="search-markdown"),
+            self._markdown(markdown_content),
         )
 
     def _get_path(self) -> str:
@@ -81,8 +81,13 @@ class LsToolMessage(Static):
         return entries
 
     def _markdown(self, content: str):
-        # Deprecated; retained for backward compatibility
-        return make_markdown(content, classes="search-markdown")
+        md = make_markdown(content, classes="search-markdown")
+        # Set bullet icons: top-level (folders) and second-level (files)
+        try:
+            md.BULLETS = ["🗀 ", "🖹 ", "‣ ", "⭑ ", "⭑ "]
+        except Exception:
+            pass
+        return md
 
     def _group_entries_by_dir(self, entries: list[str]) -> dict[str, list[str]]:
         """Group files under their immediate parent directory.
