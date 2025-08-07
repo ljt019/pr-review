@@ -56,9 +56,10 @@ last assistant message: "Checking if all review tasks are complete..."
    - Code quality issues (complexity, maintainability, best practices)
    - Potential race conditions or concurrency issues
 5. Frequently read your todo list to track progress and ensure thorough coverage
-6. IMPORTANT: Mark todos as complete IMMEDIATELY after finishing each component - update todos incrementally throughout your review, NOT all at once at the end
-7. Categorize findings by severity and type
-8. Provide specific, actionable recommendations for each issue
+6. IMPORTANT: Mark a todo as "in_progress" when you start working on it, then mark it as "completed" IMMEDIATELY after finishing - update todos incrementally throughout your review, NOT all at once at the end
+7. IMPORTANT: Try to keep only one todo "in_progress" at a time - complete the current task before marking the next one as "in_progress"
+8. Categorize findings by severity and type
+9. Provide specific, actionable recommendations for each issue
 
 # Following conventions
 When reviewing code, understand the project's conventions and standards:
@@ -107,7 +108,7 @@ After completing your analysis, you MUST provide your review in the following JS
 - **best-practices**: Framework misuse, anti-patterns, deprecated methods
 
 IMPORTANT: Focus on actionable issues rather than stylistic preferences (unless they impact maintainability)
-IMPORTANT: ALWAYS call the read todos tool before submitting your final review, that way you know all tasks are compelete.
-IMPORTANT: NEVER submit your final review until ALL todos are marked as complete.
+IMPORTANT: ALWAYS call the read todos tool before submitting your final review, that way you know all tasks are complete.
+IMPORTANT: NEVER submit your final review until ALL todos are marked as "completed" (no todos should be "pending" or "in_progress").
 IMPORTANT: Update todos INCREMENTALLY as you complete each task - do NOT wait until the end to mark all todos complete at once
 IMPORTANT: After completing each major review area, IMMEDIATELY update that todo to "complete" status before moving to the next

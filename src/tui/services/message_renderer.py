@@ -124,15 +124,28 @@ class MessageRenderer:
             
             for line in lines:
                 line = line.strip()
-                if line.startswith('[] - ') or line.startswith('[x] - '):
+                if any(line.startswith(marker) for marker in ['[] - ', '[x] - ', '[>] - ']):
                     # Parse todo item
-                    is_complete = line.startswith('[x]')
-                    content = line[5:]  # Remove "[] - " or "[x] - "
+                    if line.startswith('[x] - '):
+                        status = "completed"
+                        content = line[6:]  # Remove "[x] - "
+                    elif line.startswith('[>] - '):
+                        status = "in_progress" 
+                        content = line[6:]  # Remove "[>] - "
+                    else:  # line.startswith('[] - ')
+                        status = "pending"
+                        content = line[5:]  # Remove "[] - "
+                    
+                    # Check if content has strikethrough (cancelled)
+                    cancelled = content.startswith('~~') and content.endswith('~~')
+                    if cancelled:
+                        content = content[2:-2]  # Remove strikethrough markers
                     
                     todos.append({
                         "id": f"todo_{len(todos)}",  # Simple ID
                         "content": content,
-                        "status": "completed" if is_complete else "pending"
+                        "status": status,
+                        "cancelled": cancelled
                     })
             
             return todos
@@ -141,12 +154,14 @@ class MessageRenderer:
 
     def render_stream_start(self, message: StreamStartMessage) -> None:
         """Start rendering a streaming message."""
+        # Always create a new streaming widget for each stream start
         if message.content_type == "analysis":
             self.analysis_message_count += 1
-            # Use the new AgentMessage widget wrapped in CenterWidget
-            self.current_streaming_widget = CenterWidget(AgentMessage(""))
-            self.current_streaming_widget.add_class("streaming")
-            self._add_widget(self.current_streaming_widget)
+        
+        # Use the new AgentMessage widget wrapped in CenterWidget
+        self.current_streaming_widget = CenterWidget(AgentMessage(""))
+        self.current_streaming_widget.add_class("streaming")
+        self._add_widget(self.current_streaming_widget)
 
     def render_stream_chunk(self, message: StreamChunkMessage) -> None:
         """Render a streaming message chunk."""
@@ -159,7 +174,7 @@ class MessageRenderer:
             agent_message._content = ""
         
         # Accumulate content
-        agent_message._content += message.chunk
+        agent_message._content += message.content
         
         # Update the widget's renderable content
         self.app.call_from_thread(

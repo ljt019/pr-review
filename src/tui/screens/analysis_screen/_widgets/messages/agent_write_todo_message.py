@@ -19,6 +19,5 @@ class AgentWriteTodoMessage(Static):
     def compose(self) -> ComposeResult:
         yield Label("✎ Todo Write", classes="tool-title")
         if self.todos:
-            # Convert todo dict structure to simple strings for display
-            todo_strings = [todo.get('content', 'No content') for todo in self.todos]
-            yield CurrentTodoList(todo_strings)
+            # Pass full todo objects to CurrentTodoList for proper rendering
+            yield CurrentTodoList(self.todos)

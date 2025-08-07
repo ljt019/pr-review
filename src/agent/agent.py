@@ -373,10 +373,10 @@ class SniffAgent:
         arguments = func_call.get('arguments', '')
         result_preview = result['content'][:50] if result and result.get('content') else ''
         
-        # For todo tools, only use tool name to avoid multiple indicators
-        # since todos are state management tools that get updated via TodoStateMessage
+        # For todo tools, include a hash of the result to make each call unique
+        # since each todo update should be displayed in the UI
         if tool_name in ['todo_write', 'todo_read']:
-            signature_str = f"{tool_name}_latest"
+            signature_str = f"{tool_name}|{result_preview}"
         else:
             # For other tools, use full signature for deduplication
             signature_str = f"{tool_name}|{arguments}|{result_preview}"

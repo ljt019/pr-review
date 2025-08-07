@@ -7,11 +7,34 @@ from textual.widgets import Label, Static
 class CurrentTodoList(Static):
     """Current todo list"""
 
-    def __init__(self, todo_list: list[str]):
+    def __init__(self, todos: list[dict]):
         super().__init__("", classes="current-todo-list")
-        self.todo_list = todo_list
+        self.todos = todos
 
     def compose(self) -> ComposeResult:
-        yield Label(f"  └ ○ {self.todo_list[0]}", classes="tool-content")
-        for todo in self.todo_list[1:]:
-            yield Label(f"    ○ {todo}", classes="tool-content")
+        if not self.todos:
+            return
+            
+        for i, todo in enumerate(self.todos):
+            # Extract todo information
+            content = todo.get('content', 'No content')
+            status = todo.get('status', 'pending')
+            cancelled = todo.get('cancelled', False)
+            
+            # Choose symbol based on status
+            if status == "completed":
+                symbol = "●"  # filled circle
+            elif status == "in_progress":
+                symbol = "◐"  # half circle
+            else:  # pending
+                symbol = "○"  # hollow circle
+            
+            # Apply strikethrough if cancelled
+            if cancelled:
+                content = f"~~{content}~~"
+            
+            # Format with proper indentation
+            if i == 0:
+                yield Label(f"  └ {symbol} {content}", classes="tool-content")
+            else:
+                yield Label(f"    {symbol} {content}", classes="tool-content")

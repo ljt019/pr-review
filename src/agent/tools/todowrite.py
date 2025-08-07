@@ -12,7 +12,7 @@ class TodoWriteTool(BaseTool):
         {
             "name": "todos",
             "type": "string",
-            "description": 'JSON array for todo management. For initial creation: ["task 1", "task 2"]. For updates: [{"content": "task 1", "status": "complete"}, {"content": "task 2", "status": "incomplete"}]',
+            "description": 'JSON array for todo management. For initial creation: ["task 1", "task 2"]. For updates: [{"content": "task 1", "status": "completed"}, {"content": "task 2", "status": "in_progress", "cancelled": false}, {"content": "task 3", "status": "pending", "cancelled": true}]. Status options: "pending", "in_progress", "completed". Set "cancelled": true to cancel a todo (keeps status but adds strikethrough).',
             "required": True,
         }
     ]
@@ -47,8 +47,19 @@ class TodoWriteTool(BaseTool):
             # Add formatted todo items
             todos = todo_manager.get_all_todos()
             for todo in todos:
-                status_marker = "[x]" if todo.status == "complete" else "[]"
-                result += f"{status_marker} - {todo.content}\n"
+                # Determine status symbol
+                if todo.status == "completed":
+                    status_marker = "[x]"  # completed
+                elif todo.status == "in_progress":
+                    status_marker = "[>]"  # in progress
+                else:  # pending
+                    status_marker = "[]"   # pending
+                
+                # Apply strikethrough if cancelled
+                if todo.cancelled:
+                    result += f"{status_marker} - ~~{todo.content}~~\n"
+                else:
+                    result += f"{status_marker} - {todo.content}\n"
             
             return result.rstrip()
 
