@@ -242,12 +242,15 @@ class MessageRenderer:
         # Update the widget's renderable content
         self.app.call_from_thread(agent_message.update, agent_message._content)
 
-        # After layout refresh, keep the end in view without animation to reduce jitter
+        # Keep the end in view: do an immediate scroll, and another after layout refresh
+        try:
+            self.app.call_from_thread(self.messages_container.scroll_end)
+        except Exception:
+            pass
         try:
             self.app.call_from_thread(
                 self.messages_container.call_after_refresh,
-                self.messages_container.scroll_end,
-                False,
+                lambda: self.messages_container.scroll_end(),
             )
         except Exception:
             pass
@@ -320,10 +323,10 @@ class MessageRenderer:
         def _scroll_latest() -> None:
             try:
                 # Prefer scrolling the specific widget into view
-                self.messages_container.scroll_visible(widget, animate=True)
+                self.messages_container.scroll_visible(widget)
             except Exception:
                 # Fallback to scrolling to end
-                self.messages_container.scroll_end(animate=True)
+                self.messages_container.scroll_end()
 
         try:
             self.app.call_from_thread(
@@ -331,7 +334,13 @@ class MessageRenderer:
             )
         except Exception:
             # Last resort: immediate scroll to end
-            self.app.call_from_thread(self.messages_container.scroll_end, True)
+            self.app.call_from_thread(self.messages_container.scroll_end)
+
+        # Also do an immediate scroll to end to cover races
+        try:
+            self.app.call_from_thread(self.messages_container.scroll_end)
+        except Exception:
+            pass
 
     # Removed legacy tool indicator tracking
 
