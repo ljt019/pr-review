@@ -242,6 +242,16 @@ class MessageRenderer:
         # Update the widget's renderable content
         self.app.call_from_thread(agent_message.update, agent_message._content)
 
+        # After layout refresh, keep the end in view without animation to reduce jitter
+        try:
+            self.app.call_from_thread(
+                self.messages_container.call_after_refresh,
+                self.messages_container.scroll_end,
+                False,
+            )
+        except Exception:
+            pass
+
     def render_stream_end(self, message: StreamEndMessage) -> None:
         """End rendering of a streaming message."""
         if not self.current_streaming_widget:
@@ -303,8 +313,25 @@ class MessageRenderer:
 
     def _add_widget(self, widget: Widget) -> None:
         """Add a widget to the messages container."""
+        # Mount the widget
         self.app.call_from_thread(self.messages_container.mount, widget)
-        self.app.call_from_thread(self.messages_container.scroll_end, animate=False)
+
+        # After the next layout pass, ensure the full widget is visible and scroll smoothly
+        def _scroll_latest() -> None:
+            try:
+                # Prefer scrolling the specific widget into view
+                self.messages_container.scroll_visible(widget, animate=True)
+            except Exception:
+                # Fallback to scrolling to end
+                self.messages_container.scroll_end(animate=True)
+
+        try:
+            self.app.call_from_thread(
+                self.messages_container.call_after_refresh, _scroll_latest
+            )
+        except Exception:
+            # Last resort: immediate scroll to end
+            self.app.call_from_thread(self.messages_container.scroll_end, True)
 
     # Removed legacy tool indicator tracking
 
