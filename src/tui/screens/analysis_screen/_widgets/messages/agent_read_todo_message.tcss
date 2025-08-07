@@ -1,0 +1,27 @@
+.agent-tool-message {
+    margin: 0;
+    padding: 1;
+    border: wide #313244;
+    background: #181825;
+    color: #cdd6f4;
+    width: auto;
+    height: auto;
+}
+
+.agent-tool-message > Vertical {
+    height: auto;
+}
+
+.tool-title {
+    color: #cdd6f4;
+}
+
+.tool-content {
+    color: #585b70;
+    text-style: italic;
+}
+
+#messages-container .agent-tool-message {
+    width: 85;
+    max-width: 85;
+}

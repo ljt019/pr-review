@@ -45,7 +45,7 @@ The assistant used the todo list because:
 User: (after completing the security vulnerability review)
 Assistant (tool call - todo_write):
 {"todos": [
-  {"id": "todo_XXXXXXX", "content": "Review security vulnerabilities (SQL injection, XSS, authentication issues)", "status": "complete"}
+  {"id": "todo_XXXXXXX", "content": "Review security vulnerabilities (SQL injection, XSS, authentication issues)", "status": "completed"}
 ]}
 Assistant: Updated todo list: 6 total, 5 incomplete.
 <reasoning>
@@ -99,13 +99,16 @@ The assistant did not use the todo list because this is a single verification ta
 ## Task States and Management
 
 1. **Task States**: Use these states to track progress:
-   - complete
-   - incomplete 
+   - pending: Task not yet started
+   - in_progress: Currently working on this task 
+   - completed: Task finished successfully
+   - cancelled: Set cancelled: true to cancel a task (keeps status but adds strikethrough)
 
 2. **Task Management**:
    - Update task status in real-time as you work
-   - Mark tasks complete IMMEDIATELY after finishing (don't batch completions)
-   - Only work on one incomplete task at a time
+   - Mark tasks as "in_progress" when you start working on them
+   - Mark tasks "completed" IMMEDIATELY after finishing (don't batch completions)
+   - Only work on one task at a time (one "in_progress" task)
    - Complete current tasks before starting new ones
 
 3. **Task Breakdown**:

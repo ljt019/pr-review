@@ -123,12 +123,10 @@ class CatTool(BaseTool):
                 # Read from beginning
                 cat_cmd = f'cat -n "{file_path}" | head -{limit}'
             else:
-                # Read specific range - need to handle offset properly
+                # Read specific range - use tail/head approach for better compatibility
                 start_line = offset + 1  # Convert 0-based offset to 1-based line number
                 end_line = offset + limit
-                cat_cmd = f'sed -n "{start_line},{end_line}p" "{file_path}" | cat -n -s'
-                # Adjust line numbers for offset
-                cat_cmd = f'sed -n "{start_line},{end_line}p" "{file_path}" | awk "{{printf "%6d\\t%s\\n", NR + {offset}, \\$0}}"'
+                cat_cmd = f'tail -n +{start_line} "{file_path}" | head -{limit} | nl -v {start_line}'
 
             result = run_in_container(cat_cmd)
 

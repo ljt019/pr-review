@@ -2,11 +2,10 @@
 
 import logging
 from pathlib import Path
-from typing import Callable, Iterator, Optional
+from typing import Iterator, Optional
 
-from agent import SniffAgent
-from agent.agent import ModelOptions
-from agent.messages import BotMessage
+from agent.agent import create_agent, ModelOptions
+from agent.messaging import AgentMessage, MessageReceiver
 from paths import get_assets_path
 
 logger = logging.getLogger(__name__)
@@ -15,21 +14,29 @@ logger = logging.getLogger(__name__)
 class AgentService:
     """Handles all agent-related business logic and execution."""
 
-    def __init__(self, model_option: ModelOptions, zipped_codebase: Optional[str] = None):
+    def __init__(
+        self,
+        model_option: ModelOptions,
+        zipped_codebase: Optional[str] = None,
+        enable_logging: bool = False,
+    ):
         """Initialize the agent service.
-        
+
         Args:
             model_option: The model to use for analysis
-            zipped_codebase: Path to the zipped codebase to analyze, 
+            zipped_codebase: Path to the zipped codebase to analyze,
                            defaults to toy-webserver.zip if not provided
+            enable_logging: Whether to enable conversation logging
         """
         self.model_option = model_option
         self.zipped_codebase = zipped_codebase or get_assets_path("toy-webserver.zip")
-        self._agent: Optional[SniffAgent] = None
+        self.enable_logging = enable_logging
+        self._agent = None
+        self._receiver: Optional[MessageReceiver] = None
 
     def validate_codebase(self) -> tuple[bool, Optional[str]]:
         """Validate that the codebase file exists.
-        
+
         Returns:
             Tuple of (is_valid, error_message)
         """
@@ -37,34 +44,89 @@ class AgentService:
             return False, f"Test file '{self.zipped_codebase}' not found"
         return True, None
 
-    def run_analysis(self) -> Iterator[BotMessage]:
+    def run_analysis(self) -> Iterator[AgentMessage]:
         """Run the bug analysis and yield messages.
-        
+
         Yields:
-            BotMessage events from the agent
-            
+            AgentMessage events from the agent
+
         Raises:
             Exception: If analysis fails
         """
         try:
-            with SniffAgent(
-                zipped_codebase=self.zipped_codebase, 
-                model_option=self.model_option
-            ) as self._agent:
-                yield from self._agent.run_streaming()
+            logger.info(f"Starting analysis with model: {self.model_option.value}")
+            logger.info(f"Using codebase: {self.zipped_codebase}")
+
+            # Validate codebase first
+            is_valid, error = self.validate_codebase()
+            if not is_valid:
+                logger.error(f"Codebase validation failed: {error}")
+                raise ValueError(error)
+
+            logger.info("Codebase validation successful")
+
+            # Create agent and get receiver
+            self._agent, self._receiver = create_agent(
+                codebase_path=self.zipped_codebase,
+                model=self.model_option
+            )
+            
+            logger.info("Agent created successfully, starting analysis...")
+            
+            # Start agent
+            with self._agent:
+                # Start analysis in background and yield messages as they come
+                import threading
+                import queue
+                import time
+                
+                def run_agent_with_sandbox():
+                    """Run agent analysis with proper sandbox startup."""
+                    try:
+                        self._agent.start()  # Start sandbox
+                        self._agent.run_analysis()
+                    except Exception as e:
+                        logger.error(f"Agent analysis failed: {e}")
+                        raise
+                
+                analysis_thread = threading.Thread(target=run_agent_with_sandbox)
+                analysis_thread.start()
+                
+                # Yield messages in real-time using clean message handling
+                while analysis_thread.is_alive() or not self._receiver.empty():
+                    if not self._receiver.empty():
+                        try:
+                            message = self._receiver.get_message_nowait()
+                            yield message
+                        except queue.Empty:
+                            # Race condition - queue became empty between check and get
+                            pass
+                        except Exception as e:
+                            logger.error(f"Error receiving message: {e}")
+                    else:
+                        # No messages, short sleep to avoid busy waiting
+                        time.sleep(0.1)
+                    
+                    # Check if analysis thread is done and no more messages
+                    if not analysis_thread.is_alive() and self._receiver.empty():
+                        break
+                
+                # Wait for analysis to complete
+                analysis_thread.join()
         except Exception as e:
-            logger.error(f"Analysis failed: {e}")
+            logger.error(f"Analysis failed: {e}", exc_info=True)
             raise
         finally:
             self._agent = None
+            self._receiver = None
 
     @staticmethod
     def map_model_name_to_option(model_name: str) -> ModelOptions:
         """Map UI model names to ModelOptions enum.
-        
+
         Args:
             model_name: Display name of the model
-            
+
         Returns:
             Corresponding ModelOptions enum value
         """

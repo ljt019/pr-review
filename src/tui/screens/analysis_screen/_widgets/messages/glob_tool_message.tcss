@@ -1,0 +1,50 @@
+.agent-tool-message {
+    margin: 0;
+    padding: 1;
+    border: wide #313244;
+    background: #181825;
+    color: #cdd6f4;
+    width: auto;
+    height: auto;
+}
+
+.agent-tool-message > Vertical {
+    height: auto;
+}
+
+.tool-horizontal {
+    width: auto;
+    height: auto;
+}
+
+.tool-title {
+    color: #cdd6f4;
+}
+
+.tool-content {
+    color: #585b70;
+    text-style: italic;
+}
+
+.search-markdown {
+    height: auto;
+    overflow-y: hidden;
+    background: transparent;
+    padding: 0 2 0 2;
+}
+
+.search-markdown MarkdownFence {
+    max-height: 100vh;
+    overflow: hidden;
+    background: transparent;
+    margin: 0;
+}
+
+.search-markdown MarkdownFence > Static {
+    height: auto;
+}
+
+#messages-container .agent-tool-message {
+    width: 85;
+    max-width: 85;
+}

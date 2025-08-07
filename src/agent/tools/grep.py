@@ -13,19 +13,19 @@ class GrepTool(BaseTool):
         {
             "name": "pattern",
             "type": "string",
-            "description": "Search pattern (supports full regex syntax)",
-            "required": True,
+            "description": "Search pattern (supports full regex syntax, defaults to '.' to match all)",
+            "required": False,
         },
         {
             "name": "directory",
             "type": "string",
-            "description": "Directory to search (default: .)",
+            "description": "Directory to search (defaults to current directory)",
             "required": False,
         },
         {
             "name": "include",
             "type": "string",
-            "description": 'File patterns to include (e.g., "*.py", "*.{ts,tsx}")',
+            "description": "File patterns to include (e.g., *.py, *.js)",
             "required": False,
         },
     ]
@@ -33,7 +33,7 @@ class GrepTool(BaseTool):
     def call(self, params: str, **kwargs) -> str:
         try:
             parsed_params = ParameterParser.parse_params(params)
-            pattern = ParameterParser.get_required_param(parsed_params, "pattern")
+            pattern = ParameterParser.get_optional_param(parsed_params, "pattern", ".")
 
             original_directory = ParameterParser.get_optional_param(
                 parsed_params, "directory", "."
@@ -87,9 +87,15 @@ class GrepTool(BaseTool):
         if directory != ".":
             cmd.append(directory)
 
-        command = " ".join(
-            f'"{part}"' if " " in str(part) else str(part) for part in cmd
-        )
+        # Properly quote all arguments to handle special characters in patterns
+        quoted_cmd = []
+        for i, part in enumerate(cmd):
+            if i == 0:  # rg command itself
+                quoted_cmd.append(str(part))
+            else:
+                # Quote all other arguments (patterns, paths, etc.)
+                quoted_cmd.append(f'"{part}"')
+        command = " ".join(quoted_cmd)
         result = run_in_container(command)
 
         # If no matches found, provide a helpful message

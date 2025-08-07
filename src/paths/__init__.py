@@ -21,8 +21,6 @@ AGENT_DIR = SRC_DIR / "agent"
 TOOLS_DIR = AGENT_DIR / "tools"
 UTILS_DIR = AGENT_DIR / "utils"
 
-# evaluation
-EVALUATION_DIR = AGENT_DIR / "evaluation"
 
 # paths
 PATHS_DIR = SRC_DIR / "paths"
@@ -43,13 +41,11 @@ _DIRECTORY_MAP = {
     "scripts": SCRIPTS_DIR,
     "tools": TOOLS_DIR,
     "utils": UTILS_DIR,
-    "evals": EVALS_DIR,
     "tui": TUI_DIR,
     "widgets": WIDGETS_DIR,
     "screens": SCREENS_DIR,
     "assets": ASSETS_DIR,
     "agent": AGENT_DIR,
-    "evaluation": EVALUATION_DIR,
     "paths": PATHS_DIR,
 }
 
@@ -74,29 +70,6 @@ def get_path(directory: str, *parts: str) -> Path:
 
 
 # Legacy function wrappers for backwards compatibility
-def get_src_path(*parts: str) -> Path:
-    """Get full path to a file in the src directory."""
-    return SRC_DIR.joinpath(*parts)
-
-
-def get_script_path(filename: str) -> Path:
-    """Get full path to a script file."""
-    return get_path("scripts", filename)
-
-
-def get_tool_path(filename: str) -> Path:
-    """Get full path to a tool file."""
-    return get_path("tools", filename)
-
-
-def get_utils_path(filename: str) -> Path:
-    """Get full path to a utils file."""
-    return get_path("utils", filename)
-
-
-def get_eval_path(filename: str) -> Path:
-    """Get full path to an evaluation file."""
-    return get_path("evals", filename)
 
 
 def get_tui_path(filename: str) -> Path:
