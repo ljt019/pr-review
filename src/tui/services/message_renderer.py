@@ -306,9 +306,11 @@ class MessageRenderer:
                         )
                     )
                     self.messages_container.mount(final_widget)
-                    # Align the report at the top of the viewport
-                    self.messages_container.scroll_to_widget(
-                        final_widget, top=True, animate=False, immediate=False
+                    # Align the report at the top of the viewport after next refresh
+                    self.messages_container.call_after_refresh(
+                        lambda: self.messages_container.scroll_to_widget(
+                            final_widget, top=True, animate=False, immediate=True
+                        )
                     )
                 finally:
                     self._bug_report_widget = None
