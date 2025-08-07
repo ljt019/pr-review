@@ -2,4 +2,5 @@ ASCIIArt {
     height: auto;
     text-align: center;
     background: #11111b;
+    color: #cdd6f4;
 }

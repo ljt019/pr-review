@@ -26,6 +26,7 @@ dependencies = [
     "ijson>=3.2",
     "docker>=7.1.0",
     "gitpython>=3.1.45",
+    "textual-pyfiglet>=1.0.1",
 ]
 
 [project.scripts]

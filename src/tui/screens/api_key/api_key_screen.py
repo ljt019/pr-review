@@ -10,6 +10,7 @@ from paths import get_screen_path
 from ...widgets.ascii_art import ASCIIArt
 from ...widgets.instruction_text import InstructionText
 from ._widgets.api_key_input import ApiKeyInput
+from ...widgets.sniff_main_title import SniffMainTitle
 
 class APIKeyScreen(Screen):
     """Screen for API key input"""
@@ -21,6 +22,7 @@ class APIKeyScreen(Screen):
     def compose(self) -> ComposeResult:
         """Compose screen widgets centered both horizontally and vertically."""
         yield Container(
+            SniffMainTitle(),
             ASCIIArt(),
             ApiKeyInput(),
             InstructionText("Press Enter to continue"),

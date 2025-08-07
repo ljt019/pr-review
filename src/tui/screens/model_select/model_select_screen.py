@@ -9,6 +9,7 @@ from textual.binding import Binding
 from ...widgets.ascii_art import ASCIIArt
 from ._widgets.model_options import ModelOptionsWidget
 from ...widgets.instruction_text import InstructionText
+from ...widgets.sniff_main_title import SniffMainTitle
 
 class ModelSelectScreen(Screen):
     """Screen for model selection"""
@@ -23,6 +24,7 @@ class ModelSelectScreen(Screen):
         yield Container(
             Center(
                 Vertical(
+                    SniffMainTitle(),
                     ASCIIArt(),
                     ModelOptionsWidget(),
                     InstructionText("Press Enter to select"),
