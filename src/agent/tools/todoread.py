@@ -1,3 +1,5 @@
+import json
+
 from qwen_agent.tools.base import BaseTool, register_tool
 
 from agent.tools import load_tool_description
@@ -22,6 +24,20 @@ class TodoReadTool(BaseTool):
 
         # Return empty list if no todos exist
         if not todos:
-            return "No todos currently exist."
+            return (
+                'No todos currently exist.\n\n<!--JSON-->\n{"todos": []}\n<!--/JSON-->'
+            )
 
-        return todo_manager.format_todos()
+        formatted = todo_manager.format_todos()
+        todos_json = [
+            {
+                "id": t.id,
+                "content": t.content,
+                "status": t.status,
+                "cancelled": t.cancelled,
+            }
+            for t in todos
+        ]
+        return (
+            f"{formatted}\n\n<!--JSON-->{json.dumps({'todos': todos_json})}<!--/JSON-->"
+        )

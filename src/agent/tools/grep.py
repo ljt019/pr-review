@@ -56,8 +56,8 @@ class GrepTool(BaseTool):
     def _search_files(
         self, pattern: str, directory: str, include: Optional[str] = None
     ) -> str:
-        """Search for files containing pattern and return file paths sorted by modification time."""
-        cmd = ["rg", "--files-with-matches", "--sort", "modified"]
+        """Search for matches with file, line number, and content."""
+        cmd = ["rg", "-n", "--no-heading", "--no-fixed-strings"]
 
         # Handle file patterns for filtering
         if include:
@@ -71,7 +71,7 @@ class GrepTool(BaseTool):
         result = run_in_container(shlex.join(cmd))
 
         # If no matches found, provide a helpful message
-        if not result.strip():
+        if not result or not result.strip():
             return f"No files found containing pattern: {pattern}"
 
         # Convert absolute paths back to relative for display

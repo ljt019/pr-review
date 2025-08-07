@@ -1,3 +1,5 @@
+import json
+
 from qwen_agent.tools.base import BaseTool, register_tool
 
 from agent.tools import load_tool_description
@@ -40,10 +42,21 @@ class TodoWriteTool(BaseTool):
             todo_manager.update_from_list(todos_list)
 
             summary = todo_manager.get_summary()
-
-            # Return summary + formatted todo list for UI display
             formatted_todos = todo_manager.format_todos()
-            return f"Updated todo list: {summary}\n{formatted_todos}"
+            # Emit machine-readable JSON after the text block for UI consumption
+            todos_json = [
+                {
+                    "id": t.id,
+                    "content": t.content,
+                    "status": t.status,
+                    "cancelled": t.cancelled,
+                }
+                for t in todo_manager.get_all_todos()
+            ]
+            return (
+                f"Updated todo list: {summary}\n{formatted_todos}\n\n"
+                f"<!--JSON-->{json.dumps({'todos': todos_json})}<!--/JSON-->"
+            )
 
         except Exception as e:
             return f"Error: {str(e)}"

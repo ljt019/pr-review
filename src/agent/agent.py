@@ -163,14 +163,7 @@ class SniffAgent:
         if last_content:
             self._handle_streaming_content(last_content)
 
-    def _send_batched_content(self, content_chunks):
-        """Send batched content as a single message."""
-        if not content_chunks:
-            return
-
-        combined_content = "".join(content_chunks)
-        # No-op: batched content flow is superseded by streaming events
-        _ = combined_content
+    # Removed: _send_batched_content (legacy)
 
     def _handle_streaming_content(self, content):
         """Handle streaming content with JSON detection."""
@@ -356,44 +349,7 @@ class SniffAgent:
 
         # Todo state is already included in the tool result - no need for separate message
 
-    def _handle_complete_tool_call(self, tool_call_response, function_results):
-        """Handle a complete tool call with its result."""
-        func_call = tool_call_response["function_call"]
-        tool_name = func_call["name"]
-        arguments = func_call["arguments"]
-
-        try:
-            # Parse arguments
-            import json
-
-            args_dict = (
-                json.loads(arguments) if isinstance(arguments, str) else arguments
-            )
-        except Exception:
-            args_dict = {"raw_args": str(arguments)}
-
-        # Get the actual function result if available
-        function_result = function_results.get(tool_name)
-        if function_result:
-            result = function_result["content"]
-            success = not result.startswith("Error:")
-        else:
-            result = f"Executed {tool_name} with args {args_dict}"
-            success = True
-
-        # Send single tool execution message with complete info
-        self.sender.send(
-            ToolExecutionMessage(
-                message_id=self._gen_msg_id(),
-                timestamp=time.time(),
-                tool_name=tool_name,
-                arguments=args_dict,
-                result=result,
-                success=success,
-            )
-        )
-
-        # Todo state is already included in the tool result - no need for separate message
+    # Removed: _handle_complete_tool_call (legacy)
 
     def _gen_msg_id(self) -> str:
         """Generate unique message ID."""

@@ -2,10 +2,12 @@
 
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
-from textual.widgets import Label, Markdown, Static
+from textual.widgets import Label, Static
 
 from agent.messaging import ToolExecutionMessage
 from tui.utils.args import get_arg
+
+from .common import make_markdown
 
 
 class LsToolMessage(Static):
@@ -61,7 +63,7 @@ class LsToolMessage(Static):
                 Label(f" {self._get_path()}", classes="tool-content"),
                 classes="tool-horizontal",
             ),
-            self._markdown(markdown_content),
+            make_markdown(markdown_content, classes="search-markdown"),
         )
 
     def _get_path(self) -> str:
@@ -78,15 +80,9 @@ class LsToolMessage(Static):
             entries.append(line)
         return entries
 
-    def _markdown(self, content: str) -> Markdown:
-        md = Markdown(content, classes="search-markdown")
-        md.code_dark_theme = "catppuccin-mocha"
-        # Set bullet icons: top-level (folders) and second-level (files)
-        try:
-            md.BULLETS = ["🗀 ", "🖹 ", "‣ ", "⭑ ", "⭑ "]
-        except Exception:
-            pass
-        return md
+    def _markdown(self, content: str):
+        # Deprecated; retained for backward compatibility
+        return make_markdown(content, classes="search-markdown")
 
     def _group_entries_by_dir(self, entries: list[str]) -> dict[str, list[str]]:
         """Group files under their immediate parent directory.

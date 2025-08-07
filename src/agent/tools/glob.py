@@ -8,12 +8,18 @@ from agent.tools import (
     run_in_container,
     to_workspace_relative,
 )
+from agent.tools.rg_utils import (
+    rg_count_files,
+    rg_list_files,
+    to_workspace_relative_lines,
+)
 from agent.utils.param_parser import ParameterParser
 
 
 @register_tool("glob")
 class GlobTool(BaseTool):
     description = load_tool_description("glob")
+    LIMIT = 100
     parameters = [
         {
             "name": "pattern",
@@ -39,46 +45,26 @@ class GlobTool(BaseTool):
             # Normalize the path to handle relative paths
             search_path = normalize_path(original_path)
 
-            # Build ripgrep command to list files with glob filtering
-            # Use --files to list tracked files and --glob for pattern
-            search_path_quoted = shlex.quote(search_path)
-
-            # Special-case patterns that mean "all files"
-            if pattern in ["*", "**", "**/*"]:
-                rg_cmd = f"rg --files {search_path_quoted} | head -50"
-                count_cmd = f"rg --files {search_path_quoted} | wc -l"
-            else:
-                pattern_quoted = shlex.quote(pattern)
-                rg_cmd = f"rg --files --glob {pattern_quoted} {search_path_quoted} | head -50"
-                count_cmd = (
-                    f"rg --files --glob {pattern_quoted} {search_path_quoted} | wc -l"
-                )
-
-            result = run_in_container(rg_cmd)
-
-            if result.startswith("Error:"):
-                return result
-
-            lines = [line.strip() for line in result.split("\n") if line.strip()]
+            # List files via ripgrep helper
+            include_globs = None if pattern in ["*", "**", "**/*"] else [pattern]
+            lines = rg_list_files(
+                search_path, include_globs=include_globs, limit=self.LIMIT
+            )
 
             if not lines:
                 return f"No files found matching pattern '{pattern}' in {original_path}"
 
             # Convert absolute paths back to relative for display
-            display_lines = [to_workspace_relative(line) for line in lines]
+            display_lines = to_workspace_relative_lines(lines)
 
             # Check if we hit the limit
-            if len(display_lines) == 50:
-                total_result = run_in_container(count_cmd)
-                try:
-                    total_count = int(total_result.strip())
-                    if total_count > 50:
-                        display_lines.append("")
-                        display_lines.append(
-                            f"(Showing 50 of {total_count} files. Consider using a more specific pattern.)"
-                        )
-                except Exception:
-                    pass
+            if len(display_lines) == self.LIMIT:
+                total_count = rg_count_files(search_path, include_globs=include_globs)
+                if total_count and total_count > self.LIMIT:
+                    display_lines.append("")
+                    display_lines.append(
+                        f"(Showing {self.LIMIT} of {total_count} files. Consider using a more specific pattern.)"
+                    )
 
             return "\n".join(display_lines)
 

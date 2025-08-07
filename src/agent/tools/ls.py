@@ -8,6 +8,7 @@ from agent.tools import (
     normalize_path,
     run_in_container,
 )
+from agent.tools.rg_utils import rg_count_files, rg_list_files
 from agent.utils.param_parser import ParameterParser
 
 # Common development directories to ignore for cleaner output
@@ -85,29 +86,12 @@ class LsTool(BaseTool):
             # Combine default ignore patterns with user-provided ones
             all_ignore_patterns = IGNORE_PATTERNS + ignore_patterns
 
-            # Use find to get all files recursively, excluding ignored patterns
-            path_quoted = shlex.quote(path)
-            ignore_conditions = []
-            for pattern in all_ignore_patterns:
-                if pattern.endswith("/"):
-                    pattern_quoted = shlex.quote(f"*/{pattern}*")
-                    ignore_conditions.append(f"-path {pattern_quoted} -prune -o")
-                else:
-                    pattern_quoted = shlex.quote(pattern)
-                    ignore_conditions.append(f"-name {pattern_quoted} -prune -o")
-
-            ignore_clause = " ".join(ignore_conditions) if ignore_conditions else ""
-            find_cmd = f"find {path_quoted} {ignore_clause} -type f -print 2>/dev/null | head -{LIMIT}"
-
-            result = run_in_container(find_cmd)
-
-            if result.startswith("Error:"):
-                return f"Error listing path '{original_path}': {result}"
-
-            files = [line.strip() for line in result.split("\n") if line.strip()]
+            # Use ripgrep to list files with excludes
+            files = rg_list_files(path, exclude_globs=all_ignore_patterns, limit=LIMIT)
 
             if not files:
                 # Try a simpler ls command to see if path exists
+                path_quoted = shlex.quote(path)
                 simple_check = run_in_container(
                     f'ls -la {path_quoted} 2>/dev/null || echo "PATH_NOT_FOUND"'
                 )

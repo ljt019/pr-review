@@ -2,10 +2,12 @@
 
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
-from textual.widgets import Label, Markdown, Static
+from textual.widgets import Label, Static
 
 from agent.messaging import ToolExecutionMessage
 from tui.utils.args import get_arg
+
+from .common import make_markdown
 
 
 class CatToolMessage(Static):
@@ -30,8 +32,7 @@ class CatToolMessage(Static):
         # Let Markdown handle the line numbers and syntax highlighting
         markdown_content = f"```{file_ext}\n{self.file_content}\n```"
 
-        markdown_widget = Markdown(markdown_content, classes="code-markdown")
-        markdown_widget.code_dark_theme = "catppuccin-mocha"
+        markdown_widget = make_markdown(markdown_content, classes="code-markdown")
 
         yield Vertical(
             Horizontal(

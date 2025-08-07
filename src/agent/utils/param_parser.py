@@ -25,9 +25,9 @@ class ParameterParser:
         """
         logger.debug(f"Parsing params: {params}")
 
-        # Handle empty params
-        if not params.strip():
-            raise ValueError("Parameters are required")
+        # Handle empty or missing params gracefully
+        if not params or not params.strip():
+            return {}
 
         try:
             parsed_params = json5.loads(params)

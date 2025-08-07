@@ -90,8 +90,11 @@ class MessageRenderer:
         if message.tool_name in TOOL_WIDGET_MAP:
             widget = CenterWidget(TOOL_WIDGET_MAP[message.tool_name](message))
         elif message.tool_name in ["todo_write", "todo_read"]:
-            # Handle todo tools by parsing todo state from result and creating a single unified widget
-            todos = self._parse_todo_state_from_result(message.result)
+            # Prefer machine-readable todos embedded in the result
+            todos = self._parse_todos_json_from_result(message.result)
+            if not todos:
+                # Fallback to text parsing for backward compatibility
+                todos = self._parse_todo_state_from_result(message.result)
             if todos:
                 widget = CenterWidget(
                     TodoMessageWidget(todos, tool_name=message.tool_name)
@@ -173,6 +176,42 @@ class MessageRenderer:
                     )
 
             return todos
+        except Exception:
+            return []
+
+    def _parse_todos_json_from_result(self, result: str) -> list[dict]:
+        """Extract machine-readable todos JSON embedded between markers.
+
+        Expected format: ... \n <!--JSON-->{"todos": [...]}<!--/JSON-->
+        """
+        if not result:
+            return []
+        try:
+            start_token = "<!--JSON-->"
+            end_token = "<!--/JSON-->"
+            start = result.find(start_token)
+            end = result.find(end_token)
+            if start == -1 or end == -1 or end <= start:
+                return []
+            json_str = result[start + len(start_token) : end].strip()
+            import json
+
+            data = json.loads(json_str)
+            todos = data.get("todos", [])
+            if isinstance(todos, list):
+                normalized = []
+                for t in todos:
+                    if isinstance(t, dict) and "content" in t and "status" in t:
+                        normalized.append(
+                            {
+                                "id": t.get("id", ""),
+                                "content": t["content"],
+                                "status": t["status"],
+                                "cancelled": bool(t.get("cancelled", False)),
+                            }
+                        )
+                return normalized
+            return []
         except Exception:
             return []
 
@@ -259,7 +298,7 @@ class MessageRenderer:
 
     def render_error(self, error_message: str) -> None:
         """Render a simple error message (legacy method)."""
-        error_widget = CenterWidget(AgentMessage(f"❌ Error: {error_message}"))
+        error_widget = CenterWidget(AgentMessage(f"Error: {error_message}"))
         self._add_widget(error_widget)
 
     def _add_widget(self, widget: Widget) -> None:

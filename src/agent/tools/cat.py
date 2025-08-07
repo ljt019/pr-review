@@ -60,11 +60,11 @@ class CatTool(BaseTool):
             if self._is_binary_file(file_path):
                 return f"Error: Cannot read binary file: {original_path}\nThis appears to be a binary file based on its MIME type."
 
-            # First check if file exists
-            check_cmd = f'test -f "{file_path}" && echo "exists" || echo "not_found"'
-            exists_result = run_in_container(check_cmd)
+            # Check existence and size in a single call for efficiency
+            check_cmd = f'stat -c "%F %s" "{file_path}" 2>/dev/null || echo "not_found"'
+            stat_result = run_in_container(check_cmd)
 
-            if "not_found" in exists_result:
+            if not stat_result or "not_found" in stat_result:
                 # Try to suggest similar files
                 suggestions = self._get_file_suggestions(file_path, original_path)
                 if suggestions:
@@ -72,15 +72,14 @@ class CatTool(BaseTool):
                 else:
                     return f"Error: File not found: {original_path}"
 
-            # Check if file is empty first
-            size_cmd = f'wc -c < "{file_path}" 2>/dev/null || echo "0"'
-            size_result = run_in_container(size_cmd)
-
+            # Parse file size from stat output
             try:
-                file_size = int(size_result.strip())
+                _type, size_str = stat_result.strip().split(" ", 1)
+                file_size = int(size_str.strip())
                 if file_size == 0:
                     return "File is empty."
-            except (ValueError, AttributeError):
+            except Exception:
+                # Fall through on parsing issues
                 pass
 
             # Read the file with line numbers using cat -n format

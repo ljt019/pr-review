@@ -2,10 +2,12 @@
 
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
-from textual.widgets import Label, Markdown, Static
+from textual.widgets import Label, Static
 
 from agent.messaging import ToolExecutionMessage
 from tui.utils.args import get_arg
+
+from .common import make_markdown
 
 
 class GrepToolMessage(Static):
@@ -62,9 +64,11 @@ class GrepToolMessage(Static):
 
         markdown_content = "\n".join(md_lines)
 
-        markdown_widget = Markdown(markdown_content, classes="search-markdown")
-        markdown_widget.code_dark_theme = "catppuccin-mocha"
-        markdown_widget.BULLETS = ["🖹 ", "• ", "‣ ", "⭑ ", "⭑ "]
+        markdown_widget = make_markdown(markdown_content, classes="search-markdown")
+        try:
+            markdown_widget.BULLETS = ["🖹 ", "• ", "‣ ", "⭑ ", "⭑ "]
+        except Exception:
+            pass
 
         yield Vertical(
             Horizontal(
