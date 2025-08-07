@@ -64,21 +64,22 @@ class MessageRenderer:
         self.analysis_message_count = 0
         self.analyzed_files: set = set()
         self._bug_report_widget = None  # Reference to the bug report widget for updating
+
+        # Map message types to their corresponding render methods
+        self._dispatch_map = {
+            MessageType.TOOL_EXECUTION: self.render_tool_execution,
+            MessageType.STREAM_START: self.render_stream_start,
+            MessageType.STREAM_CHUNK: self.render_stream_chunk,
+            MessageType.STREAM_END: self.render_stream_end,
+            MessageType.BUG_REPORT_STARTED: self.render_bug_report_started,
+            MessageType.BUG_REPORT: self.render_bug_report,
+        }
     
     def render_message(self, message: BaseAgentMessage) -> None:
         """Render any agent message based on its type."""
-        if message.message_type == MessageType.TOOL_EXECUTION:
-            self.render_tool_execution(message)
-        elif message.message_type == MessageType.STREAM_START:
-            self.render_stream_start(message)
-        elif message.message_type == MessageType.STREAM_CHUNK:
-            self.render_stream_chunk(message)
-        elif message.message_type == MessageType.STREAM_END:
-            self.render_stream_end(message)
-        elif message.message_type == MessageType.BUG_REPORT_STARTED:
-            self.render_bug_report_started(message)
-        elif message.message_type == MessageType.BUG_REPORT:
-            self.render_bug_report(message)
+        handler = self._dispatch_map.get(message.message_type)
+        if handler:
+            handler(message)
     
     def render_tool_execution(self, message: ToolExecutionMessage) -> None:
         """Render a tool execution message."""

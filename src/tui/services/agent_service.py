@@ -78,7 +78,6 @@ class AgentService:
                 # Start analysis in background and yield messages as they come
                 import threading
                 import queue
-                import time
                 
                 def run_agent_with_sandbox():
                     """Run agent analysis with proper sandbox startup."""
@@ -92,25 +91,17 @@ class AgentService:
                 analysis_thread = threading.Thread(target=run_agent_with_sandbox)
                 analysis_thread.start()
                 
-                # Yield messages in real-time using clean message handling
+                # Yield messages using blocking queue operations to avoid busy waiting
                 while analysis_thread.is_alive() or not self._receiver.empty():
-                    if not self._receiver.empty():
-                        try:
-                            message = self._receiver.get_message_nowait()
-                            yield message
-                        except queue.Empty:
-                            # Race condition - queue became empty between check and get
-                            pass
-                        except Exception as e:
-                            logger.error(f"Error receiving message: {e}")
-                    else:
-                        # No messages, short sleep to avoid busy waiting
-                        time.sleep(0.1)
-                    
-                    # Check if analysis thread is done and no more messages
-                    if not analysis_thread.is_alive() and self._receiver.empty():
-                        break
-                
+                    try:
+                        message = self._receiver.get_message(timeout=0.1)
+                        yield message
+                    except queue.Empty:
+                        # No message available in this interval
+                        pass
+                    except Exception as e:
+                        logger.error(f"Error receiving message: {e}")
+
                 # Wait for analysis to complete
                 analysis_thread.join()
         except Exception as e:
