@@ -7,6 +7,7 @@ from .types import (
     StreamStartMessage,
     StreamChunkMessage,
     StreamEndMessage,
+    BugReportStartedMessage,
     BugReportMessage,
 )
 from .sender import MessageSender
@@ -21,6 +22,7 @@ __all__ = [
     "StreamStartMessage",
     "StreamChunkMessage",
     "StreamEndMessage",
+    "BugReportStartedMessage",
     "BugReportMessage",
     # Core classes
     "MessageSender",

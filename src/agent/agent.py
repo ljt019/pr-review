@@ -17,7 +17,7 @@ from agent.messaging import (
     MessageReceiver, MessageSender, 
     ToolExecutionMessage,
     StreamStartMessage, StreamChunkMessage, StreamEndMessage,
-    BugReportMessage
+    BugReportStartedMessage, BugReportMessage
 )
 from agent.tools import (
     load_prompt, cat, ls, grep, glob, todoread, todowrite
@@ -81,6 +81,12 @@ class SniffAgent:
         
         # Track sent tool executions to avoid duplicates
         self._sent_tool_executions = set()
+        
+        # Track bug report generation state
+        self._bug_report_started = False
+        
+        # Track analyzed files
+        self._analyzed_files = set()
         
         # Track streaming state
         self._current_stream = None
@@ -205,7 +211,15 @@ class SniffAgent:
         if is_json_like:
             # We're in a JSON object - start or continue buffering
             if not self._in_json_object:
-                # Starting JSON object
+                # Starting JSON object - send BugReportStarted message
+                if not self._bug_report_started:
+                    self.sender.send(BugReportStartedMessage(
+                        message_id=self._gen_msg_id(),
+                        timestamp=time.time(),
+                        files_analyzed=len(self._analyzed_files)
+                    ))
+                    self._bug_report_started = True
+                
                 self._in_json_object = True
                 self._json_buffer = content
             else:
@@ -282,17 +296,11 @@ class SniffAgent:
     
     def _handle_bug_report_json(self, report_data):
         """Handle a complete bug report JSON object."""
-        # Count analyzed files (could be enhanced to track this properly)
-        files_analyzed = len(set(
-            bug.get('file', '') for bug in report_data.get('bugs', [])
-            if bug.get('file')
-        ))
-        
         self.sender.send(BugReportMessage(
             message_id=self._gen_msg_id(),
             timestamp=time.time(),
             report_data=report_data,
-            files_analyzed=files_analyzed
+            files_analyzed=len(self._analyzed_files)
         ))
     
     def _start_stream(self, initial_content):
@@ -403,6 +411,12 @@ class SniffAgent:
         else:
             result_content = f"Executed {tool_name}"
             success = True
+        
+        # Track analyzed files for cat operations
+        if tool_name == "cat" and success and args_dict:
+            file_path = args_dict.get("filePath") or args_dict.get("file")
+            if file_path:
+                self._analyzed_files.add(file_path)
         
         # Send the complete tool execution message
         self.sender.send(ToolExecutionMessage(

@@ -13,6 +13,7 @@ class MessageType(Enum):
     STREAM_START = "stream_start"
     STREAM_CHUNK = "stream_chunk"
     STREAM_END = "stream_end"
+    BUG_REPORT_STARTED = "bug_report_started"
     BUG_REPORT = "bug_report"
 
 
@@ -104,6 +105,15 @@ class StreamEndMessage(AgentMessage):
 
 
 
+@dataclass
+class BugReportStartedMessage(AgentMessage):
+    """Indicates that bug report generation has started."""
+    
+    files_analyzed: int = 0
+    
+    @property
+    def message_type(self) -> MessageType:
+        return MessageType.BUG_REPORT_STARTED
 
 
 @dataclass

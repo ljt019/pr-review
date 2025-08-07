@@ -12,17 +12,14 @@ from ..bug_report_content import BugReportContent
 class BugReportWithLoadingMessage(Static):
     """Combined widget that shows loading state then bug report"""
 
-    def __init__(self, bug_report: dict):
+    def __init__(self, bug_report: dict, is_loading: bool = True):
         super().__init__("", classes="agent-tool-message")
         self.bug_report = bug_report
-        self.is_loading = True
+        self.is_loading = is_loading
 
-    def on_mount(self) -> None:
-        """Start the loading timer when widget mounts"""
-        self.set_timer(10.0, self.show_bug_report)
-
-    def show_bug_report(self) -> None:
-        """Switch from loading to bug report display"""
+    def update_with_report(self, bug_report: dict) -> None:
+        """Update the widget with actual bug report data and switch to display mode"""
+        self.bug_report = bug_report
         self.is_loading = False
         self.refresh(recompose=True)
 

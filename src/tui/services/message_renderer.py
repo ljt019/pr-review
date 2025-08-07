@@ -13,10 +13,9 @@ from agent.messaging import (
     StreamStartMessage,
     StreamChunkMessage,
     StreamEndMessage,
+    BugReportStartedMessage,
     BugReportMessage,
 )
-from tui.utils.json_detector import json_detector
-from tui.screens.analysis_screen._widgets.bug_report_widgets import BugReportContainer
 from tui.screens.analysis_screen._widgets.message_box import BotMessage, MessageBox
 from tui.screens.analysis_screen._widgets.tool_indicator import ToolIndicator
 from tui.screens.analysis_screen._widgets.center_screen import CenterWidget
@@ -49,6 +48,7 @@ class MessageRenderer:
         self.report_placeholder: Optional[ToolIndicator] = None
         self.analysis_message_count = 0
         self.analyzed_files: set = set()
+        self._bug_report_widget = None  # Reference to the bug report widget for updating
     
     def render_message(self, message: BaseAgentMessage) -> None:
         """Render any agent message based on its type."""
@@ -60,6 +60,8 @@ class MessageRenderer:
             self.render_stream_chunk(message)
         elif message.message_type == MessageType.STREAM_END:
             self.render_stream_end(message)
+        elif message.message_type == MessageType.BUG_REPORT_STARTED:
+            self.render_bug_report_started(message)
         elif message.message_type == MessageType.BUG_REPORT:
             self.render_bug_report(message)
     
@@ -180,14 +182,6 @@ class MessageRenderer:
         self.app.call_from_thread(
             agent_message.update, agent_message._content
         )
-        
-        # Check for JSON detection (simplified - just look for opening brace)
-        if (
-            not self.report_placeholder
-            and "{" in agent_message._content
-            and "summary" in agent_message._content.lower()
-        ):
-            self._handle_json_detection()
 
     def render_stream_end(self, message: StreamEndMessage) -> None:
         """End rendering of a streaming message."""
@@ -198,26 +192,45 @@ class MessageRenderer:
             self.current_streaming_widget.remove_class, "streaming"
         )
         
-        # Process final JSON if detected
-        if self.report_placeholder:
-            agent_message = self.current_streaming_widget.children[0]
-            if hasattr(agent_message, '_content'):
-                self._process_final_json(agent_message._content)
-            
         self.current_streaming_widget = None
 
+    def render_bug_report_started(self, message: BugReportStartedMessage) -> None:
+        """Render a bug report started message - show loading placeholder."""
+        # Hide any current streaming widget that might contain partial JSON
+        if self.current_streaming_widget:
+            self.app.call_from_thread(self.current_streaming_widget.remove)
+            self.current_streaming_widget = None
+        
+        # Create a temporary bug report with loading state
+        temp_bug_report = {
+            "summary": "Generating bug report...",
+            "bugs": [],
+            "files_analyzed": message.files_analyzed
+        }
+        loading_bug_report_widget = BugReportWithLoadingMessage(temp_bug_report, is_loading=True)
+        generating_widget = CenterWidget(loading_bug_report_widget)
+        self._add_widget(generating_widget)
+        self.report_placeholder = generating_widget
+        self._bug_report_widget = loading_bug_report_widget  # Keep reference for updating
 
     def render_bug_report(self, message: BugReportMessage) -> None:
         """Render a bug report message."""
-        # Create bug report widget with the report data
-        bug_report_widget = CenterWidget(BugReportWithLoadingMessage(message.report_data))
+        # Inject files_analyzed count into report_data
+        report_data_with_count = message.report_data.copy()
+        report_data_with_count["files_analyzed"] = message.files_analyzed
         
-        # Replace placeholder if one exists
-        if self.report_placeholder:
-            self.app.call_from_thread(self.report_placeholder.remove)
+        # Update the existing loading widget with actual report data
+        if self._bug_report_widget:
+            self.app.call_from_thread(
+                self._bug_report_widget.update_with_report, 
+                report_data_with_count
+            )
+            self._bug_report_widget = None  # Clear reference
             self.report_placeholder = None
-        
-        self._add_widget(bug_report_widget)
+        else:
+            # Fallback: create new widget if no loading widget exists
+            bug_report_widget = CenterWidget(BugReportWithLoadingMessage(report_data_with_count, is_loading=False))
+            self._add_widget(bug_report_widget)
     
     def render_error(self, error_message: str) -> None:
         """Render a simple error message (legacy method)."""
@@ -280,64 +293,3 @@ class MessageRenderer:
             # Don't let file tracking errors break the UI
             pass
 
-    def _handle_json_detection(self) -> None:
-        """Handle when JSON is detected in the streaming content."""
-        # Add generating report indicator using new widget
-        # Create a temporary bug report with loading state
-        temp_bug_report = {
-            "summary": "Generating bug report...",
-            "bugs": [],
-            "files_analyzed": len(self.analyzed_files)
-        }
-        generating_widget = CenterWidget(BugReportWithLoadingMessage(temp_bug_report))
-        self._add_widget(generating_widget)
-        self.report_placeholder = generating_widget
-
-    def _process_final_json(self, content: str) -> None:
-        """Process the final JSON content and render the bug report."""
-        split = json_detector.split_content(content)
-        
-        if split.has_json:
-            # Hide the original AgentMessage that contains the raw JSON
-            if self.current_streaming_widget:
-                self.app.call_from_thread(self.current_streaming_widget.remove)
-            
-            self.app.call_from_thread(
-                self._render_bug_report,
-                split.json_content,
-                self.report_placeholder,
-            )
-
-    def _render_bug_report(self, json_content: str, placeholder_widget: Optional[Widget]) -> None:
-        """Render the bug report from JSON content."""
-        try:
-            json_data = json_detector.parse_json(json_content)
-            
-            if json_data:
-                # Inject files_analyzed count into the JSON data
-                json_data["files_analyzed"] = len(self.analyzed_files)
-                
-                # Create new bug report widget
-                bug_report_widget = CenterWidget(BugReportWithLoadingMessage(json_data))
-                
-                # Replace placeholder
-                if placeholder_widget:
-                    placeholder_widget.remove()
-                    
-                # Add the report
-                self.messages_container.mount(bug_report_widget)
-                self.messages_container.scroll_end(animate=False)
-            else:
-                # JSON parsing failed
-                if placeholder_widget:
-                    placeholder_widget.remove()
-                    
-                error_widget = CenterWidget(AgentMessage("❌ Error parsing bug report JSON"))
-                self.messages_container.mount(error_widget)
-                
-        except Exception as e:
-            if placeholder_widget:
-                placeholder_widget.remove()
-                
-            error_widget = CenterWidget(AgentMessage(f"❌ Error processing bug report: {str(e)}"))
-            self.messages_container.mount(error_widget)
