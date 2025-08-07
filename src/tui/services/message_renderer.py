@@ -242,18 +242,10 @@ class MessageRenderer:
         # Update the widget's renderable content
         self.app.call_from_thread(agent_message.update, agent_message._content)
 
-        # Keep the end in view: do an immediate scroll, and another after layout refresh
-        try:
-            self.app.call_from_thread(self.messages_container.scroll_end)
-        except Exception:
-            pass
-        try:
-            self.app.call_from_thread(
-                self.messages_container.call_after_refresh,
-                lambda: self.messages_container.scroll_end(),
-            )
-        except Exception:
-            pass
+        # Keep the end in view with Textual's built-in deferral
+        self.app.call_from_thread(
+            lambda: self.messages_container.scroll_end(animate=False, immediate=False)
+        )
 
     def render_stream_end(self, message: StreamEndMessage) -> None:
         """End rendering of a streaming message."""
@@ -297,11 +289,32 @@ class MessageRenderer:
 
         # Update the existing loading widget with actual report data
         if self._bug_report_widget:
-            self.app.call_from_thread(
-                self._bug_report_widget.update_with_report, report_data_with_count
-            )
-            self._bug_report_widget = None  # Clear reference
-            self.report_placeholder = None
+            # Replace the loading widget with a fresh, non-loading widget and scroll it into view
+            def _replace_and_scroll() -> None:
+                try:
+                    # Remove the old placeholder wrapper if it exists
+                    if self.report_placeholder:
+                        try:
+                            self.report_placeholder.remove()
+                        except Exception:
+                            pass
+
+                    # Create and mount the final report widget
+                    final_widget = CenterWidget(
+                        BugReportWithLoadingMessage(
+                            report_data_with_count, is_loading=False
+                        )
+                    )
+                    self.messages_container.mount(final_widget)
+                    # Align the report at the top of the viewport
+                    self.messages_container.scroll_to_widget(
+                        final_widget, top=True, animate=False, immediate=False
+                    )
+                finally:
+                    self._bug_report_widget = None
+                    self.report_placeholder = None
+
+            self.app.call_from_thread(_replace_and_scroll)
         else:
             # Fallback: create new widget if no loading widget exists
             bug_report_widget = CenterWidget(
@@ -319,28 +332,10 @@ class MessageRenderer:
         # Mount the widget
         self.app.call_from_thread(self.messages_container.mount, widget)
 
-        # After the next layout pass, ensure the full widget is visible and scroll smoothly
-        def _scroll_latest() -> None:
-            try:
-                # Prefer scrolling the specific widget into view
-                self.messages_container.scroll_visible(widget)
-            except Exception:
-                # Fallback to scrolling to end
-                self.messages_container.scroll_end()
-
-        try:
-            self.app.call_from_thread(
-                self.messages_container.call_after_refresh, _scroll_latest
-            )
-        except Exception:
-            # Last resort: immediate scroll to end
-            self.app.call_from_thread(self.messages_container.scroll_end)
-
-        # Also do an immediate scroll to end to cover races
-        try:
-            self.app.call_from_thread(self.messages_container.scroll_end)
-        except Exception:
-            pass
+        # After mount, keep bottom in view using Textual's deferral
+        self.app.call_from_thread(
+            lambda: self.messages_container.scroll_end(animate=False, immediate=False)
+        )
 
     # Removed legacy tool indicator tracking
 

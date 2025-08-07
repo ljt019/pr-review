@@ -4,9 +4,9 @@ from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.widgets import Static
 
+from ..bug_report_content import BugReportContent
 from ..bug_report_header import BugReportHeader
 from ..bug_report_stats import BugReportStats
-from ..bug_report_content import BugReportContent
 
 
 class BugReportWithLoadingMessage(Static):
@@ -21,7 +21,13 @@ class BugReportWithLoadingMessage(Static):
         """Update the widget with actual bug report data and switch to display mode"""
         self.bug_report = bug_report
         self.is_loading = False
+        # Ensure the widget composes new children before scroll attempts
         self.refresh(recompose=True)
+        # Hint to parent containers that size likely changed
+        try:
+            self.refresh(layout=True)
+        except Exception:
+            pass
 
     def compose(self) -> ComposeResult:
         if self.is_loading:
