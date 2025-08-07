@@ -12,7 +12,7 @@ class TodoReadTool(BaseTool):
     def call(self, params: str, **kwargs) -> str:
         """Read and display current todos. Takes no parameters - input should be blank."""
         # Handle completely empty input as specified in todoread.txt
-        if params and params.strip() and params.strip() not in ["", "{}", "[]", "null"]:
+        if params and params.strip() not in {"", "{}", "[]", "null"}:
             return (
                 "Error: This tool takes no parameters. Leave the input blank or empty."
             )

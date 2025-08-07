@@ -1,11 +1,12 @@
+import shlex
 from typing import Optional
 
 from qwen_agent.tools.base import BaseTool, register_tool
 
 from agent.tools import (
     load_tool_description,
-    run_in_container,
     normalize_path,
+    run_in_container,
     to_workspace_relative,
 )
 from agent.utils.param_parser import ParameterParser
@@ -47,61 +48,27 @@ class GrepTool(BaseTool):
             directory = normalize_path(original_directory)
             include = ParameterParser.get_optional_param(parsed_params, "include")
 
-            return self._search_files(pattern, directory, original_directory, include)
+            return self._search_files(pattern, directory, include)
 
         except Exception as e:
             return f"Error: {str(e)}"
 
     def _search_files(
-        self, pattern: str, directory: str, original_directory: str, include: Optional[str] = None
+        self, pattern: str, directory: str, include: Optional[str] = None
     ) -> str:
         """Search for files containing pattern and return file paths sorted by modification time."""
         cmd = ["rg", "--files-with-matches", "--sort", "modified"]
 
         # Handle file patterns for filtering
         if include:
-            if include.startswith("*."):
-                # Simple extension like *.py
-                ext = include[2:]
-                if ext in [
-                    "py",
-                    "js",
-                    "ts",
-                    "tsx",
-                    "jsx",
-                    "java",
-                    "cpp",
-                    "c",
-                    "go",
-                    "rs",
-                    "rb",
-                    "php",
-                    "sh",
-                    "html",
-                    "css",
-                    "md",
-                ]:
-                    cmd.extend(["--type", ext])
-                else:
-                    cmd.extend(["--glob", include])
-            else:
-                cmd.extend(["--glob", include])
+            cmd.extend(["--glob", include])
 
         # Add pattern and directory
         cmd.append(pattern)
         if directory != ".":
             cmd.append(directory)
 
-        # Properly quote all arguments to handle special characters in patterns
-        quoted_cmd = []
-        for i, part in enumerate(cmd):
-            if i == 0:  # rg command itself
-                quoted_cmd.append(str(part))
-            else:
-                # Quote all other arguments (patterns, paths, etc.)
-                quoted_cmd.append(f'"{part}"')
-        command = " ".join(quoted_cmd)
-        result = run_in_container(command)
+        result = run_in_container(shlex.join(cmd))
 
         # If no matches found, provide a helpful message
         if not result.strip():

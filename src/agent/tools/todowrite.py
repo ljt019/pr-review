@@ -40,35 +40,10 @@ class TodoWriteTool(BaseTool):
             todo_manager.update_from_list(todos_list)
 
             summary = todo_manager.get_summary()
-            
+
             # Return summary + formatted todo list for UI display
-            result = f"Updated todo list: {summary}\n"
-            
-            # Add formatted todo items
-            todos = todo_manager.get_all_todos()
-            for todo in todos:
-                # Determine status symbol
-                if todo.status == "completed":
-                    status_marker = "[x]"  # completed
-                elif todo.status == "in_progress":
-                    status_marker = "[>]"  # in progress
-                else:  # pending
-                    status_marker = "[]"   # pending
-                
-                # Apply strikethrough if cancelled
-                if todo.cancelled:
-                    result += f"{status_marker} - ~~{todo.content}~~\n"
-                else:
-                    result += f"{status_marker} - {todo.content}\n"
-            
-            return result.rstrip()
+            formatted_todos = todo_manager.format_todos()
+            return f"Updated todo list: {summary}\n{formatted_todos}"
 
         except Exception as e:
             return f"Error: {str(e)}"
-
-    def _pretty_print_todos(self):
-        """Pretty print todos for debugging"""
-        todo_manager = get_todo_manager()
-        todos = todo_manager.get_all_todos()
-        # Debug prints removed
-        pass

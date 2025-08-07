@@ -1,61 +1,19 @@
 import difflib
+import mimetypes
+from pathlib import Path
 
 from qwen_agent.tools.base import BaseTool, register_tool
 
 from agent.tools import (
     load_tool_description,
-    run_in_container,
     normalize_path,
+    run_in_container,
     to_workspace_relative,
 )
 from agent.utils.param_parser import ParameterParser
 
 DEFAULT_READ_LIMIT = 2000
 MAX_LINE_LENGTH = 2000
-
-# Common binary file extensions to detect
-BINARY_EXTENSIONS = {
-    ".exe",
-    ".dll",
-    ".so",
-    ".dylib",
-    ".a",
-    ".o",
-    ".pyc",
-    ".pyo",
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".gif",
-    ".bmp",
-    ".svg",
-    ".webp",
-    ".ico",
-    ".pdf",
-    ".doc",
-    ".docx",
-    ".xls",
-    ".xlsx",
-    ".ppt",
-    ".pptx",
-    ".zip",
-    ".tar",
-    ".gz",
-    ".rar",
-    ".7z",
-    ".bz2",
-    ".mp3",
-    ".mp4",
-    ".avi",
-    ".mov",
-    ".wmv",
-    ".flv",
-    ".bin",
-    ".dat",
-    ".db",
-    ".sqlite",
-    ".sqlite3",
-}
 
 
 @register_tool("cat")
@@ -86,8 +44,10 @@ class CatTool(BaseTool):
         try:
             parsed_params = ParameterParser.parse_params(params)
 
-            original_path = ParameterParser.get_required_param(parsed_params, "filePath")
-            
+            original_path = ParameterParser.get_required_param(
+                parsed_params, "filePath"
+            )
+
             # Normalize the path to handle relative paths
             file_path = normalize_path(original_path)
 
@@ -96,9 +56,9 @@ class CatTool(BaseTool):
                 parsed_params, "limit", DEFAULT_READ_LIMIT
             )
 
-            # Check if file is likely binary by extension
+            # Check if file is likely binary
             if self._is_binary_file(file_path):
-                return f"Error: Cannot read binary file: {original_path}\nThis appears to be a binary file based on its extension."
+                return f"Error: Cannot read binary file: {original_path}\nThis appears to be a binary file based on its MIME type."
 
             # First check if file exists
             check_cmd = f'test -f "{file_path}" && echo "exists" || echo "not_found"'
@@ -180,20 +140,16 @@ class CatTool(BaseTool):
             return f"Error: {str(e)}"
 
     def _is_binary_file(self, file_path: str) -> bool:
-        """Check if file is likely binary based on extension"""
-        file_path_lower = file_path.lower()
-        return any(file_path_lower.endswith(ext) for ext in BINARY_EXTENSIONS)
+        """Check if file is likely binary based on its MIME type"""
+        mime_type, _ = mimetypes.guess_type(file_path)
+        return mime_type is not None and not mime_type.startswith("text/")
 
     def _get_file_suggestions(self, file_path: str, original_path: str) -> str:
         """Get suggestions for similar file names when file not found"""
         try:
-            # Extract directory and filename
-            if "/" in file_path:
-                directory = "/".join(file_path.split("/")[:-1])
-                filename = file_path.split("/")[-1]
-            else:
-                directory = "."
-                filename = file_path
+            path = Path(file_path)
+            directory = str(path.parent) if str(path.parent) else "."
+            filename = path.name
 
             # List files in directory
             ls_cmd = f'ls "{directory}" 2>/dev/null'

@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 
 class EventType(Enum):
     """Types of events that can be published."""
+
     TOOL_CALL_STARTED = "tool_call_started"
     TOOL_CALL_COMPLETED = "tool_call_completed"
     MESSAGE_STREAM_STARTED = "message_stream_started"
@@ -21,6 +22,7 @@ class EventType(Enum):
 @dataclass
 class Event:
     """Base event class."""
+
     type: EventType
     data: Dict[str, Any] = field(init=False)
 
@@ -28,10 +30,11 @@ class Event:
 @dataclass
 class ToolCallEvent(Event):
     """Event for tool call operations."""
-    tool_name: str
-    arguments: str
-    call_id: str
-    type: EventType
+
+    tool_name: str = ""
+    arguments: str = ""
+    call_id: str = ""
+    type: EventType = EventType.TOOL_CALL_STARTED
 
     def __post_init__(self):
         self.data = {
@@ -44,9 +47,10 @@ class ToolCallEvent(Event):
 @dataclass
 class MessageStreamEvent(Event):
     """Event for message streaming operations."""
-    content: str
+
+    content: str = ""
     message_type: Optional[str] = None
-    type: EventType
+    type: EventType = EventType.MESSAGE_STREAM_STARTED
 
     def __post_init__(self):
         self.data = {"content": self.content, "message_type": self.message_type}
@@ -55,7 +59,8 @@ class MessageStreamEvent(Event):
 @dataclass
 class TodoStateEvent(Event):
     """Event for todo state updates."""
-    todos: List[dict]
+
+    todos: List[dict] = field(default_factory=list)
     type: EventType = EventType.TODO_STATE_UPDATED
 
     def __post_init__(self):
@@ -65,7 +70,8 @@ class TodoStateEvent(Event):
 @dataclass
 class BugReportEvent(Event):
     """Event for bug report completion."""
-    json_content: str
+
+    json_content: str = ""
     type: EventType = EventType.BUG_REPORT_READY
 
     def __post_init__(self):
@@ -75,7 +81,8 @@ class BugReportEvent(Event):
 @dataclass
 class ErrorEvent(Event):
     """Event for errors."""
-    error_message: str
+
+    error_message: str = ""
     type: EventType = EventType.ERROR_OCCURRED
 
     def __post_init__(self):

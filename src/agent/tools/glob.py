@@ -1,9 +1,11 @@
+import shlex
+
 from qwen_agent.tools.base import BaseTool, register_tool
 
 from agent.tools import (
     load_tool_description,
-    run_in_container,
     normalize_path,
+    run_in_container,
     to_workspace_relative,
 )
 from agent.utils.param_parser import ParameterParser
@@ -31,19 +33,23 @@ class GlobTool(BaseTool):
         try:
             parsed_params = ParameterParser.parse_params(params)
             pattern = ParameterParser.get_required_param(parsed_params, "pattern")
-            original_path = ParameterParser.get_optional_param(parsed_params, "path", ".")
+            original_path = ParameterParser.get_optional_param(
+                parsed_params, "path", "."
+            )
             # Normalize the path to handle relative paths
             search_path = normalize_path(original_path)
 
             # Build an appropriate find command
+            search_path_quoted = shlex.quote(search_path)
             # Special-case patterns that mean "all files"
             if pattern in ["*", "**", "**/*"]:
-                find_cmd = f'find "{search_path}" -type f 2>/dev/null | head -50'
+                find_cmd = f"find {search_path_quoted} -type f 2>/dev/null | head -50"
             else:
                 # General pattern: use -path so that wildcards match full path components
                 # Replace any leading "**/" with "*/" because find's wildcard traverses directories by default
                 normalized_pattern = pattern.replace("**/", "*/").replace("**", "*")
-                find_cmd = f'find "{search_path}" -type f -path "*{normalized_pattern}*" 2>/dev/null | head -50'
+                pattern_quoted = shlex.quote(f"*{normalized_pattern}*")
+                find_cmd = f"find {search_path_quoted} -type f -path {pattern_quoted} 2>/dev/null | head -50"
 
             result = run_in_container(find_cmd)
 
@@ -54,7 +60,7 @@ class GlobTool(BaseTool):
 
             if not lines:
                 return f"No files found matching pattern '{pattern}' in {original_path}"
-            
+
             # Convert absolute paths back to relative for display
             display_lines = [to_workspace_relative(line) for line in lines]
 
@@ -63,7 +69,7 @@ class GlobTool(BaseTool):
 
             if file_count == 50:
                 # Check if there are more files
-                count_cmd = f'find "{search_path}" -name "{pattern}" -type f 2>/dev/null | wc -l'
+                count_cmd = f"find {search_path_quoted} -name {shlex.quote(pattern)} -type f 2>/dev/null | wc -l"
                 count_result = run_in_container(count_cmd)
                 try:
                     total_count = int(count_result.strip())

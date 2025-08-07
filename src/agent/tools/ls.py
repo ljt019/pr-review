@@ -1,3 +1,4 @@
+import shlex
 from pathlib import Path
 
 from qwen_agent.tools.base import BaseTool, register_tool
@@ -6,8 +7,8 @@ from rich.tree import Tree
 
 from agent.tools import (
     load_tool_description,
-    run_in_container,
     normalize_path,
+    run_in_container,
     to_workspace_relative,
 )
 from agent.utils.param_parser import ParameterParser
@@ -60,7 +61,7 @@ class LsTool(BaseTool):
         {
             "name": "ignore",
             "type": "array",
-            "description": "Patterns to exclude (e.g., [\"*.log\", \"temp\"])",
+            "description": 'Patterns to exclude (e.g., ["*.log", "temp"])',
             "required": False,
         },
     ]
@@ -88,17 +89,18 @@ class LsTool(BaseTool):
             all_ignore_patterns = IGNORE_PATTERNS + ignore_patterns
 
             # Use find to get all files recursively, excluding ignored patterns
+            path_quoted = shlex.quote(path)
             ignore_conditions = []
             for pattern in all_ignore_patterns:
                 if pattern.endswith("/"):
-                    # Directory pattern
-                    ignore_conditions.append(f'-path "*/{pattern}*" -prune -o')
+                    pattern_quoted = shlex.quote(f"*/{pattern}*")
+                    ignore_conditions.append(f"-path {pattern_quoted} -prune -o")
                 else:
-                    # File pattern
-                    ignore_conditions.append(f'-name "{pattern}" -prune -o')
+                    pattern_quoted = shlex.quote(pattern)
+                    ignore_conditions.append(f"-name {pattern_quoted} -prune -o")
 
             ignore_clause = " ".join(ignore_conditions) if ignore_conditions else ""
-            find_cmd = f'find "{path}" {ignore_clause} -type f -print 2>/dev/null | head -{LIMIT}'
+            find_cmd = f"find {path_quoted} {ignore_clause} -type f -print 2>/dev/null | head -{LIMIT}"
 
             result = run_in_container(find_cmd)
 
@@ -110,7 +112,7 @@ class LsTool(BaseTool):
             if not files:
                 # Try a simpler ls command to see if path exists
                 simple_check = run_in_container(
-                    f'ls -la "{path}" 2>/dev/null || echo "PATH_NOT_FOUND"'
+                    f'ls -la {path_quoted} 2>/dev/null || echo "PATH_NOT_FOUND"'
                 )
                 if "PATH_NOT_FOUND" in simple_check:
                     return (
