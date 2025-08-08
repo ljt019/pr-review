@@ -11,38 +11,6 @@ from agent.tools import (
 from agent.tools.rg_utils import rg_count_files, rg_list_files
 from agent.utils.param_parser import ParameterParser
 
-# Common development directories to ignore for cleaner output
-IGNORE_PATTERNS = [
-    "node_modules/",
-    "__pycache__/",
-    ".git/",
-    "dist/",
-    "build/",
-    "target/",
-    "vendor/",
-    "bin/",
-    "obj/",
-    ".idea/",
-    ".vscode/",
-    ".zig-cache/",
-    "zig-out",
-    ".coverage",
-    "coverage/",
-    "tmp/",
-    "temp/",
-    ".cache/",
-    "cache/",
-    "logs/",
-    ".venv/",
-    "venv/",
-    "env/",
-    ".pytest_cache/",
-    ".mypy_cache/",
-    ".tox/",
-    ".DS_Store",
-    "Thumbs.db",
-]
-
 LIMIT = 100
 
 
@@ -83,11 +51,8 @@ class LsTool(BaseTool):
                     parsed_params, "ignore", []
                 )
 
-            # Combine default ignore patterns with user-provided ones
-            all_ignore_patterns = IGNORE_PATTERNS + ignore_patterns
-
-            # Use ripgrep to list files with excludes
-            files = rg_list_files(path, exclude_globs=all_ignore_patterns, limit=LIMIT)
+            # Use ripgrep to list files with only user-provided excludes
+            files = rg_list_files(path, exclude_globs=ignore_patterns, limit=LIMIT)
 
             if not files:
                 # Try a simpler ls command to see if path exists

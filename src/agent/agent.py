@@ -5,8 +5,6 @@ import time
 from enum import Enum
 from typing import Tuple
 
-from dotenv import load_dotenv
-
 # MUST modify settings BEFORE importing Assistant to avoid import-time binding
 from qwen_agent import settings
 
@@ -27,8 +25,6 @@ from agent.messaging import (
 from agent.sandbox import Sandbox
 from agent.tools import cat, glob, grep, load_prompt, ls, todoread, todowrite
 from tui.utils.json_detector import JSONDetector
-
-load_dotenv()
 
 
 class ModelOptions(Enum):

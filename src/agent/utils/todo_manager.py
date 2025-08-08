@@ -1,3 +1,4 @@
+import json
 import uuid
 from dataclasses import dataclass
 from typing import List
@@ -158,3 +159,47 @@ _todo_manager = TodoManager()
 def get_todo_manager() -> TodoManager:
     """Get the global todo manager instance."""
     return _todo_manager
+
+
+def todos_to_json_block(todos: List[TodoItem]) -> str:
+    payload = {
+        "todos": [
+            {
+                "id": t.id,
+                "content": t.content,
+                "status": t.status,
+                "cancelled": t.cancelled,
+            }
+            for t in todos
+        ]
+    }
+    return f"<!--JSON-->{json.dumps(payload)}<!--/JSON-->"
+
+
+def parse_todos_json_block(result: str) -> list[dict]:
+    if not result:
+        return []
+    try:
+        start_token = "<!--JSON-->"
+        end_token = "<!--/JSON-->"
+        start = result.find(start_token)
+        end = result.find(end_token)
+        if start == -1 or end == -1 or end <= start:
+            return []
+        json_str = result[start + len(start_token) : end].strip()
+        data = json.loads(json_str)
+        todos = data.get("todos", [])
+        normalized = []
+        for t in todos:
+            if isinstance(t, dict) and "content" in t and "status" in t:
+                normalized.append(
+                    {
+                        "id": t.get("id", ""),
+                        "content": t["content"],
+                        "status": t["status"],
+                        "cancelled": bool(t.get("cancelled", False)),
+                    }
+                )
+        return normalized
+    except Exception:
+        return []

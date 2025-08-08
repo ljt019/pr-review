@@ -1,5 +1,5 @@
 import shlex
-from typing import Optional
+from typing import List, Optional, Union
 
 from qwen_agent.tools.base import BaseTool, register_tool
 
@@ -54,14 +54,32 @@ class GrepTool(BaseTool):
             return f"Error: {str(e)}"
 
     def _search_files(
-        self, pattern: str, directory: str, include: Optional[str] = None
+        self,
+        pattern: str,
+        directory: str,
+        include: Optional[Union[str, List[str]]] = None,
     ) -> str:
         """Search for matches with file, line number, and content."""
-        cmd = ["rg", "-n", "--no-heading", "--no-fixed-strings"]
+        cmd = [
+            "rg",
+            "-Hn",
+            "--no-heading",
+            "--no-fixed-strings",
+            "--smart-case",
+            "--max-columns=300",
+        ]
 
-        # Handle file patterns for filtering
+        # Handle file patterns for filtering (string or list)
+        includes: Optional[List[str]] = None
         if include:
-            cmd.extend(["--glob", include])
+            if isinstance(include, str):
+                includes = [include]
+            elif isinstance(include, list):
+                includes = [g for g in include if isinstance(g, str) and g.strip()]
+
+        if includes:
+            for g in includes:
+                cmd.extend(["--glob", g])
 
         # Add pattern and directory
         cmd.append(pattern)

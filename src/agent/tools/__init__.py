@@ -2,6 +2,12 @@ import os
 import subprocess
 from pathlib import Path
 
+# Re-export unified path utilities
+from .path_utils import normalize_path, to_workspace_relative
+
+# Configurable timeout for container commands
+RUN_IN_CONTAINER_TIMEOUT_SEC = 60
+
 
 def load_tool_description(tool_name: str) -> str:
     """Load tool description from corresponding .txt file"""
@@ -26,70 +32,50 @@ def load_prompt(prompt_name: str) -> str:
     return content
 
 
-def normalize_path(path: str) -> str:
-    """
-    Normalize a path to be absolute within the container workspace.
-    
-    Converts relative paths to absolute paths rooted at /workspace.
-    Examples:
-        "." -> "/workspace"
-        "src/main.py" -> "/workspace/src/main.py"  
-        "/workspace/src/main.py" -> "/workspace/src/main.py" (unchanged)
-        "/other/path" -> "/other/path" (unchanged - allows absolute paths)
-    """
-    if not path:
-        return "/workspace"
-    
-    # Handle special case of current directory
-    if path == "." or path == "./":
-        return "/workspace"
-    
-    # If it's already an absolute path, return as-is
-    if path.startswith("/"):
-        return path
-    
-    # Remove leading ./ if present
-    if path.startswith("./"):
-        path = path[2:]
-    
-    # Prepend /workspace/ to relative paths
-    return f"/workspace/{path}"
-
-
-def to_workspace_relative(path: str) -> str:
-    """Convert an absolute path to be relative to /workspace."""
-    if path.startswith("/workspace/"):
-        return path[11:]
-    if path == "/workspace":
-        return "."
-    return path
-
-
 def run_in_container(command: str) -> str:
-    """Run a command inside the analysis container."""
+    """Run a command inside the analysis container (Docker SDK first, CLI fallback)."""
     container_id = os.environ.get("SNIFF_CONTAINER_ID")
     if not container_id:
         return "Error: Container not available"
 
     full_command = f"cd /workspace && {command}"
 
+    # Preferred path: Docker SDK
     try:
-        result = subprocess.run(
-            ["docker", "exec", container_id, "sh", "-c", full_command],
-            capture_output=True,
-            text=True,
-            timeout=60,
-            encoding="utf-8",
-            errors="replace",
-        )
+        import docker
 
-        if result.returncode == 0:
-            return result.stdout
-        else:
+        client = docker.from_env()
+        container = client.containers.get(container_id)
+        result = container.exec_run(
+            cmd=["sh", "-c", full_command], stdout=True, stderr=True
+        )
+        output = (
+            result.output.decode("utf-8", errors="replace")
+            if isinstance(result.output, (bytes, bytearray))
+            else str(result.output)
+        )
+        if result.exit_code == 0:
+            return output
+        return f"Error: {output}\nReturn code: {result.exit_code}"
+    except Exception:
+        # Fallback path: docker CLI
+        try:
+            result = subprocess.run(
+                ["docker", "exec", container_id, "sh", "-c", full_command],
+                capture_output=True,
+                text=True,
+                timeout=RUN_IN_CONTAINER_TIMEOUT_SEC,
+                encoding="utf-8",
+                errors="replace",
+            )
+            if result.returncode == 0:
+                return result.stdout
             output = result.stderr if result.stderr else "Command failed"
             output += f"\nReturn code: {result.returncode}"
             return f"Error: {output}"
-    except subprocess.TimeoutExpired:
-        return "Error: Command timed out after 60 seconds"
-    except Exception as e:
-        return f"Error: {str(e)}"
+        except subprocess.TimeoutExpired:
+            return (
+                f"Error: Command timed out after {RUN_IN_CONTAINER_TIMEOUT_SEC} seconds"
+            )
+        except Exception as e:
+            return f"Error: {str(e)}"

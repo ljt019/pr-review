@@ -19,7 +19,7 @@ from .screens import AnalysisScreen, APIKeyScreen, ModelSelectScreen
 load_dotenv()
 
 
-def load_css_path_list(path: str) -> list[str]:
+def load_css_path_list() -> list[str]:
     """Load a list of CSS paths"""
     from pathlib import Path
 
@@ -34,7 +34,7 @@ def load_css_path_list(path: str) -> list[str]:
 class SnifferTUI(App):
     """Sniffer TUI Application"""
 
-    CSS_PATH = load_css_path_list(str(get_path("tui")))
+    CSS_PATH = load_css_path_list()
 
     BINDINGS = [
         Binding("ctrl+c", "quit", "Quit"),

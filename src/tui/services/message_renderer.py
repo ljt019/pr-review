@@ -18,6 +18,7 @@ from agent.messaging import (
     StreamStartMessage,
     ToolExecutionMessage,
 )
+from agent.utils.todo_manager import parse_todos_json_block
 from tui.screens.analysis_screen._widgets.center_screen import CenterWidget
 from tui.screens.analysis_screen._widgets.message_box import BotMessage, MessageBox
 from tui.screens.analysis_screen._widgets.messages.agent_message import AgentMessage
@@ -91,7 +92,7 @@ class MessageRenderer:
             widget = CenterWidget(TOOL_WIDGET_MAP[message.tool_name](message))
         elif message.tool_name in ["todo_write", "todo_read"]:
             # Prefer machine-readable todos embedded in the result
-            todos = self._parse_todos_json_from_result(message.result)
+            todos = parse_todos_json_block(message.result)
             if not todos:
                 # Fallback to text parsing for backward compatibility
                 todos = self._parse_todo_state_from_result(message.result)
@@ -101,29 +102,11 @@ class MessageRenderer:
                 )
                 self._add_widget(widget)
             else:
-                tool_indicator = ToolIndicator(
-                    message.tool_name, str(message.arguments)
-                )
-                if not message.success:
-                    self.app.call_from_thread(
-                        tool_indicator.mark_failed, message.error or "Unknown error"
-                    )
-                else:
-                    self.app.call_from_thread(tool_indicator.mark_completed)
-                self._add_widget(tool_indicator)
+                self._render_tool_indicator(message)
             return
         else:
             # Fallback to ToolIndicator for other tools
-            tool_indicator = ToolIndicator(
-                message.tool_name, message.arguments
-            )  # pass dict where possible
-            if not message.success:
-                self.app.call_from_thread(
-                    tool_indicator.mark_failed, message.error or "Unknown error"
-                )
-            else:
-                self.app.call_from_thread(tool_indicator.mark_completed)
-            self._add_widget(tool_indicator)
+            self._render_tool_indicator(message)
             return
 
         # Track analyzed files from cat operations
@@ -357,3 +340,16 @@ class MessageRenderer:
         except Exception:
             # Don't let file tracking errors break the UI
             pass
+
+    def _render_tool_indicator(self, message: ToolExecutionMessage) -> None:
+        """Render a simple ToolIndicator widget for a tool execution."""
+        tool_indicator = ToolIndicator(
+            message.tool_name, message.arguments
+        )  # pass dict where possible
+        if not message.success:
+            self.app.call_from_thread(
+                tool_indicator.mark_failed, message.error or "Unknown error"
+            )
+        else:
+            self.app.call_from_thread(tool_indicator.mark_completed)
+        self._add_widget(tool_indicator)

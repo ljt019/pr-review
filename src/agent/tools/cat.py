@@ -56,9 +56,9 @@ class CatTool(BaseTool):
                 parsed_params, "limit", DEFAULT_READ_LIMIT
             )
 
-            # Check if file is likely binary
+            # Binary detection (heuristic via null bytes; fallback to mimetypes)
             if self._is_binary_file(file_path):
-                return f"Error: Cannot read binary file: {original_path}\nThis appears to be a binary file based on its MIME type."
+                return f"Error: Cannot read binary file: {original_path}\nThis appears to be a binary file."
 
             # Check existence and size in a single call for efficiency
             check_cmd = f'stat -c "%F %s" "{file_path}" 2>/dev/null || echo "not_found"'
@@ -139,7 +139,15 @@ class CatTool(BaseTool):
             return f"Error: {str(e)}"
 
     def _is_binary_file(self, file_path: str) -> bool:
-        """Check if file is likely binary based on its MIME type"""
+        """Detect binary via null bytes; fallback to mimetypes."""
+        probe_cmd = (
+            f'if [ -f "{file_path}" ]; then '
+            f'od -An -t x1 -N 1024 "{file_path}" 2>/dev/null | grep -qi "00" && echo "BINARY" || echo "TEXT"; '
+            f'else echo "MISSING"; fi'
+        )
+        res = run_in_container(probe_cmd)
+        if isinstance(res, str) and "BINARY" in res:
+            return True
         mime_type, _ = mimetypes.guess_type(file_path)
         return mime_type is not None and not mime_type.startswith("text/")
 
