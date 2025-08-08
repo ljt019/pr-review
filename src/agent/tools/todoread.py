@@ -1,7 +1,9 @@
+import json
+
 from qwen_agent.tools.base import BaseTool, register_tool
 
 from agent.tools import load_tool_description
-from agent.utils.todo_manager import get_todo_manager
+from agent.utils.todo_manager import get_todo_manager, todos_to_json_block
 
 
 @register_tool("todo_read")
@@ -12,7 +14,7 @@ class TodoReadTool(BaseTool):
     def call(self, params: str, **kwargs) -> str:
         """Read and display current todos. Takes no parameters - input should be blank."""
         # Handle completely empty input as specified in todoread.txt
-        if params and params.strip() and params.strip() not in ["", "{}", "[]", "null"]:
+        if params and params.strip() not in {"", "{}", "[]", "null"}:
             return (
                 "Error: This tool takes no parameters. Leave the input blank or empty."
             )
@@ -22,6 +24,7 @@ class TodoReadTool(BaseTool):
 
         # Return empty list if no todos exist
         if not todos:
-            return "No todos currently exist."
+            return f"No todos currently exist.\n\n{todos_to_json_block([])}"
 
-        return todo_manager.format_todos()
+        formatted = todo_manager.format_todos()
+        return f"{formatted}\n\n{todos_to_json_block(todos)}"

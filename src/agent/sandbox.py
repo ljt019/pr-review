@@ -12,6 +12,7 @@ class Sandbox:
         self.client = docker.from_env()
         self.container = None
         self.container_name = None
+        self.UNZIP_TIMEOUT_SEC = 120
 
     def start(self) -> str:
         """Start a fresh Docker container with a copy of the workspace."""
@@ -22,52 +23,62 @@ class Sandbox:
             # Create and start container
             self.container = self.client.containers.run(
                 "sniff-env:air",
-                command="sh -c 'mkdir -p /workspace && cp -r /original_workspace/* /workspace/ 2>/dev/null || true; sleep 3600'",
+                command="sh -c 'mkdir -p /workspace; sleep 3600'",
                 name=self.container_name,
                 detach=True,
                 volumes={
                     str(Path(self.zipped_codebase_path).resolve()): {
-                        'bind': '/original_workspace',
-                        'mode': 'ro'
+                        "bind": "/original_workspace",
+                        "mode": "ro",
                     }
                 },
-                network_mode='none'
+                network_mode="none",
             )
 
             # Check if /original_workspace is a directory or a file
-            exit_code, _ = self.container.exec_run("test -d /original_workspace")
-            
+            exit_code, _ = self.container.exec_run(
+                ["sh", "-c", "test -d /original_workspace"]
+            )
+
             # If /original_workspace is NOT a directory, assume it's the zip file itself
             if exit_code != 0:
                 zip_file_path = "/original_workspace"
             else:
                 # Otherwise, look for zip files in the directory
                 exit_code, output = self.container.exec_run(
-                    "find /original_workspace -name '*.zip' -type f"
+                    ["sh", "-c", "find /original_workspace -name '*.zip' -type f"]
                 )
-                
+
                 if exit_code != 0 or not output.decode().strip():
                     raise Exception("No zip file found in mounted directory")
-                
+
                 zip_file_path = output.decode().strip().split("\n")[0]
 
-            # Unzip the codebase
+            # Unzip the codebase with timeout if available
             exit_code, output = self.container.exec_run(
-                f"unzip -o {zip_file_path} -d /tmp"
+                [
+                    "sh",
+                    "-c",
+                    f"if command -v timeout >/dev/null 2>&1; then timeout {self.UNZIP_TIMEOUT_SEC} unzip -o {zip_file_path} -d /tmp; else unzip -o {zip_file_path} -d /tmp; fi",
+                ]
             )
-            
+
             if exit_code != 0:
                 raise Exception(f"Unzip failed: {output.decode()}")
 
             # Move contents from the extracted subdirectory to workspace root, preserving structure
             self.container.exec_run(
-                "sh -c 'cd /tmp && if [ -d */ ]; then cd */ && cp -r . /workspace/; else cp -r . /workspace/; fi'"
+                [
+                    "sh",
+                    "-c",
+                    "cd /tmp && if [ -d */ ]; then cd */ && cp -r . /workspace/; else cp -r . /workspace/; fi",
+                ]
             )
 
             # Expose container ID to BashTool via environment variable
             os.environ["SNIFF_CONTAINER_ID"] = self.container_name
             return self.container_name
-            
+
         except Exception as e:
             self._cleanup_container()
             raise
@@ -84,10 +95,7 @@ class Sandbox:
         except ImageNotFound:
             # Build the image
             self.client.images.build(
-                path=".",
-                dockerfile="bot.dockerfile",
-                tag="sniff-env:air",
-                rm=True
+                path=".", dockerfile="bot.dockerfile", tag="sniff-env:air", rm=True
             )
         except DockerException as e:
             raise
@@ -96,7 +104,7 @@ class Sandbox:
         """Clean up the container and environment."""
         if not self.container:
             return
-            
+
         # Try to stop and remove using container object
         try:
             self.container.stop(timeout=5)
@@ -111,9 +119,8 @@ class Sandbox:
                 except Exception:
                     # Both methods failed, but we still need to clean up state
                     pass
-        
+
         # Always clean up state, regardless of success
         os.environ.pop("SNIFF_CONTAINER_ID", None)
         self.container = None
         self.container_name = None
-

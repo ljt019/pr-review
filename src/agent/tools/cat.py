@@ -1,56 +1,19 @@
 import difflib
+import mimetypes
+from pathlib import Path
 
 from qwen_agent.tools.base import BaseTool, register_tool
 
-from agent.tools import load_tool_description, run_in_container, normalize_path
+from agent.tools import (
+    load_tool_description,
+    parse_tool_params,
+    run_in_container,
+    to_workspace_relative,
+)
 from agent.utils.param_parser import ParameterParser
 
 DEFAULT_READ_LIMIT = 2000
 MAX_LINE_LENGTH = 2000
-
-# Common binary file extensions to detect
-BINARY_EXTENSIONS = {
-    ".exe",
-    ".dll",
-    ".so",
-    ".dylib",
-    ".a",
-    ".o",
-    ".pyc",
-    ".pyo",
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".gif",
-    ".bmp",
-    ".svg",
-    ".webp",
-    ".ico",
-    ".pdf",
-    ".doc",
-    ".docx",
-    ".xls",
-    ".xlsx",
-    ".ppt",
-    ".pptx",
-    ".zip",
-    ".tar",
-    ".gz",
-    ".rar",
-    ".7z",
-    ".bz2",
-    ".mp3",
-    ".mp4",
-    ".avi",
-    ".mov",
-    ".wmv",
-    ".flv",
-    ".bin",
-    ".dat",
-    ".db",
-    ".sqlite",
-    ".sqlite3",
-}
 
 
 @register_tool("cat")
@@ -79,27 +42,24 @@ class CatTool(BaseTool):
 
     def call(self, params: str, **kwargs) -> str:
         try:
-            parsed_params = ParameterParser.parse_params(params)
-
-            original_path = ParameterParser.get_required_param(parsed_params, "filePath")
-            
-            # Normalize the path to handle relative paths
-            file_path = normalize_path(original_path)
+            parsed_params, file_path, original_path = parse_tool_params(
+                params, path_param="filePath", required_path=True
+            )
 
             offset = ParameterParser.get_optional_param(parsed_params, "offset", 0)
             limit = ParameterParser.get_optional_param(
                 parsed_params, "limit", DEFAULT_READ_LIMIT
             )
 
-            # Check if file is likely binary by extension
+            # Binary detection (heuristic via null bytes; fallback to mimetypes)
             if self._is_binary_file(file_path):
-                return f"Error: Cannot read binary file: {original_path}\nThis appears to be a binary file based on its extension."
+                return f"Error: Cannot read binary file: {original_path}\nThis appears to be a binary file."
 
-            # First check if file exists
-            check_cmd = f'test -f "{file_path}" && echo "exists" || echo "not_found"'
-            exists_result = run_in_container(check_cmd)
+            # Check existence and size in a single call for efficiency
+            check_cmd = f'stat -c "%F %s" "{file_path}" 2>/dev/null || echo "not_found"'
+            stat_result = run_in_container(check_cmd)
 
-            if "not_found" in exists_result:
+            if not stat_result or "not_found" in stat_result:
                 # Try to suggest similar files
                 suggestions = self._get_file_suggestions(file_path, original_path)
                 if suggestions:
@@ -107,15 +67,14 @@ class CatTool(BaseTool):
                 else:
                     return f"Error: File not found: {original_path}"
 
-            # Check if file is empty first
-            size_cmd = f'wc -c < "{file_path}" 2>/dev/null || echo "0"'
-            size_result = run_in_container(size_cmd)
-
+            # Parse file size from stat output
             try:
-                file_size = int(size_result.strip())
+                _type, size_str = stat_result.strip().split(" ", 1)
+                file_size = int(size_str.strip())
                 if file_size == 0:
                     return "File is empty."
-            except (ValueError, AttributeError):
+            except Exception:
+                # Fall through on parsing issues
                 pass
 
             # Read the file with line numbers using cat -n format
@@ -175,20 +134,24 @@ class CatTool(BaseTool):
             return f"Error: {str(e)}"
 
     def _is_binary_file(self, file_path: str) -> bool:
-        """Check if file is likely binary based on extension"""
-        file_path_lower = file_path.lower()
-        return any(file_path_lower.endswith(ext) for ext in BINARY_EXTENSIONS)
+        """Detect binary via null bytes; fallback to mimetypes."""
+        probe_cmd = (
+            f'if [ -f "{file_path}" ]; then '
+            f'od -An -t x1 -N 1024 "{file_path}" 2>/dev/null | grep -qi "00" && echo "BINARY" || echo "TEXT"; '
+            f'else echo "MISSING"; fi'
+        )
+        res = run_in_container(probe_cmd)
+        if isinstance(res, str) and "BINARY" in res:
+            return True
+        mime_type, _ = mimetypes.guess_type(file_path)
+        return mime_type is not None and not mime_type.startswith("text/")
 
     def _get_file_suggestions(self, file_path: str, original_path: str) -> str:
         """Get suggestions for similar file names when file not found"""
         try:
-            # Extract directory and filename
-            if "/" in file_path:
-                directory = "/".join(file_path.split("/")[:-1])
-                filename = file_path.split("/")[-1]
-            else:
-                directory = "."
-                filename = file_path
+            path = Path(file_path)
+            directory = str(path.parent) if str(path.parent) else "."
+            filename = path.name
 
             # List files in directory
             ls_cmd = f'ls "{directory}" 2>/dev/null'
@@ -215,18 +178,11 @@ class CatTool(BaseTool):
                 close_matches + substring_matches[: 3 - len(close_matches)]
             )
 
-            # Format with relative paths (removing /workspace/ prefix)
+            # Format with relative paths
             suggestions = []
             for file in all_suggestions[:3]:
                 full_path = f"{directory}/{file}" if directory != "." else file
-                # Convert back to relative path for display
-                if full_path.startswith("/workspace/"):
-                    display_path = full_path[11:]  # Remove "/workspace/"
-                elif full_path == "/workspace":
-                    display_path = "."
-                else:
-                    display_path = full_path
-                suggestions.append(display_path)
+                suggestions.append(to_workspace_relative(full_path))
 
             return "\n".join(suggestions) if suggestions else ""
 

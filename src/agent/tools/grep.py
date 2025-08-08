@@ -1,8 +1,15 @@
-from typing import Optional
+import json
+import shlex
+from typing import List, Optional, Union
 
 from qwen_agent.tools.base import BaseTool, register_tool
 
-from agent.tools import load_tool_description, run_in_container, normalize_path
+from agent.tools import (
+    load_tool_description,
+    parse_tool_params,
+    run_in_container,
+    to_workspace_relative,
+)
 from agent.utils.param_parser import ParameterParser
 
 
@@ -32,85 +39,77 @@ class GrepTool(BaseTool):
 
     def call(self, params: str, **kwargs) -> str:
         try:
-            parsed_params = ParameterParser.parse_params(params)
-            pattern = ParameterParser.get_optional_param(parsed_params, "pattern", ".")
-
-            original_directory = ParameterParser.get_optional_param(
-                parsed_params, "directory", "."
+            parsed_params, directory, original_directory = parse_tool_params(
+                params, path_param="directory"
             )
-            # Normalize the directory path
-            directory = normalize_path(original_directory)
+            pattern = ParameterParser.get_optional_param(parsed_params, "pattern", ".")
             include = ParameterParser.get_optional_param(parsed_params, "include")
 
-            return self._search_files(pattern, directory, original_directory, include)
+            return self._search_files(pattern, directory, include)
 
         except Exception as e:
             return f"Error: {str(e)}"
 
     def _search_files(
-        self, pattern: str, directory: str, original_directory: str, include: Optional[str] = None
+        self,
+        pattern: str,
+        directory: str,
+        include: Optional[Union[str, List[str]]] = None,
     ) -> str:
-        """Search for files containing pattern and return file paths sorted by modification time."""
-        cmd = ["rg", "--files-with-matches", "--sort", "modified"]
+        """Search for matches with file, line number, and content."""
+        cmd = [
+            "rg",
+            "-Hn",
+            "--no-heading",
+            "--no-fixed-strings",
+            "--smart-case",
+            "--max-columns=300",
+        ]
 
-        # Handle file patterns for filtering
+        # Handle file patterns for filtering (string or list)
+        includes: Optional[List[str]] = None
         if include:
-            if include.startswith("*."):
-                # Simple extension like *.py
-                ext = include[2:]
-                if ext in [
-                    "py",
-                    "js",
-                    "ts",
-                    "tsx",
-                    "jsx",
-                    "java",
-                    "cpp",
-                    "c",
-                    "go",
-                    "rs",
-                    "rb",
-                    "php",
-                    "sh",
-                    "html",
-                    "css",
-                    "md",
-                ]:
-                    cmd.extend(["--type", ext])
-                else:
-                    cmd.extend(["--glob", include])
-            else:
-                cmd.extend(["--glob", include])
+            if isinstance(include, str):
+                includes = [include]
+            elif isinstance(include, list):
+                includes = [g for g in include if isinstance(g, str) and g.strip()]
+
+        if includes:
+            for g in includes:
+                cmd.extend(["--glob", g])
 
         # Add pattern and directory
         cmd.append(pattern)
         if directory != ".":
             cmd.append(directory)
 
-        # Properly quote all arguments to handle special characters in patterns
-        quoted_cmd = []
-        for i, part in enumerate(cmd):
-            if i == 0:  # rg command itself
-                quoted_cmd.append(str(part))
-            else:
-                # Quote all other arguments (patterns, paths, etc.)
-                quoted_cmd.append(f'"{part}"')
-        command = " ".join(quoted_cmd)
-        result = run_in_container(command)
-
-        # If no matches found, provide a helpful message
-        if not result.strip():
-            return f"No files found containing pattern: {pattern}"
+        result = run_in_container(shlex.join(cmd))
 
         # Convert absolute paths back to relative for display
+        if not result or not result.strip():
+            text = f"No files found containing pattern: {pattern}"
+            payload = {"matches": []}
+            return f"{text}\n\n<!--JSON-->" + json.dumps(payload) + "<!--/JSON-->"
+
         lines = result.strip().split("\n")
-        display_lines = []
-        for line in lines:
-            if line.startswith("/workspace/"):
-                display_lines.append(line[11:])  # Remove "/workspace/"
-            elif line == "/workspace":
-                display_lines.append(".")
+        display_lines = [to_workspace_relative(line) for line in lines]
+
+        # Build structured matches
+        matches = []
+        for line in display_lines:
+            parts = line.split(":", 2)
+            if len(parts) >= 3:
+                file_path, line_str, content = parts[0], parts[1], parts[2]
+                try:
+                    line_num = int(line_str)
+                except ValueError:
+                    line_num = 0
+                matches.append(
+                    {"file": file_path, "line": line_num, "content": content}
+                )
             else:
-                display_lines.append(line)
-        
-        return "\n".join(display_lines)
+                matches.append({"file": line, "line": 0, "content": line})
+
+        text = "\n".join(display_lines)
+        payload = {"matches": matches}
+        return f"{text}\n\n<!--JSON-->" + json.dumps(payload) + "<!--/JSON-->"

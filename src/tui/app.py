@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from textual.app import App
 from textual.binding import Binding
 
-from paths import get_tui_path
+from paths import get_path
 
 from .screens import AnalysisScreen, APIKeyScreen, ModelSelectScreen
 
@@ -19,11 +19,11 @@ from .screens import AnalysisScreen, APIKeyScreen, ModelSelectScreen
 load_dotenv()
 
 
-def load_css_path_list(path: str) -> list[str]:
+def load_css_path_list() -> list[str]:
     """Load a list of CSS paths"""
     from pathlib import Path
 
-    tui_path = Path(get_tui_path(""))
+    tui_path = get_path("tui")
 
     # Use rglob to recursively find all .tcss files
     css_path_list = [str(p) for p in tui_path.rglob("*.tcss")]
@@ -34,7 +34,7 @@ def load_css_path_list(path: str) -> list[str]:
 class SnifferTUI(App):
     """Sniffer TUI Application"""
 
-    CSS_PATH = load_css_path_list(str(get_tui_path("")))
+    CSS_PATH = load_css_path_list()
 
     BINDINGS = [
         Binding("ctrl+c", "quit", "Quit"),

@@ -1,75 +1,54 @@
 """Cat tool message widget"""
 
-import json
+from rich.syntax import Syntax
 from textual.app import ComposeResult
-from textual.containers import Horizontal, Vertical
-from textual.widgets import Label, Markdown, Static
+from textual.widgets import Static
 
 from agent.messaging import ToolExecutionMessage
+from tui.utils.args import get_arg
+
+from .base_tool_message import BaseToolMessage
 
 
-class CatToolMessage(Static):
-    """Tool call made by the agent to *cat* files using Markdown code fencing"""
+class CatToolMessage(BaseToolMessage):
+    """Tool call made by the agent to cat files using Rich Syntax"""
 
-    file_content: str = """import os
-import shutil
-import time
-
-def cleanup_tmp():
-    # Bug: Deletes entire /tmp subdirs without filtering (security/resource_management)
-    base = "/tmp"
-    for name in os.listdir(base):
-        path = os.path.join(base, name)
-        try:
-            if os.path.isdir(path):
-                shutil.rmtree(path)
-            else:
-                os.remove(path)
-        except Exception:
-            # Bug: Swallowing exceptions hides failures (error_handling)
-            pass
-
-def rotate_logs():
-    # Bug: Inefficient rotation copies entire file repeatedly (performance)
-    log = "/tmp/app.log"
-    if not os.path.exists(log):
-        return
-    ts = int(time.time())
-    shutil.copy(log, f"/tmp/app.{ts}.log")"""
+    file_content: str = ""
 
     def __init__(self, tool_message: ToolExecutionMessage, file_content=None):
-        super().__init__("", classes="agent-tool-message")
-        self.tool_message = tool_message
+        super().__init__(tool_message, extra_classes="cat-tool-message")
         if file_content is not None:
             self.file_content = file_content
         elif tool_message.result and tool_message.success:
             self.file_content = tool_message.result
 
-    def compose(self) -> ComposeResult:
-        try:
-            args = self.tool_message.arguments if isinstance(self.tool_message.arguments, dict) else json.loads(str(self.tool_message.arguments))
-            file_path = args.get("filePath", args.get("file_path", args.get("file", args.get("path", ""))))
-        except (json.JSONDecodeError, AttributeError, TypeError):
-            file_path = ""
-        
-        # If still empty, try to extract from tool_message directly  
-        if not file_path and hasattr(self.tool_message, 'arguments'):
-            file_path = str(self.tool_message.arguments)[:50] + "..." if len(str(self.tool_message.arguments)) > 50 else str(self.tool_message.arguments)
-        file_ext = file_path.split(".")[-1] if "." in file_path else "text"
+    def get_title(self) -> str:
+        return "⚯ Cat"
 
-        # Let Markdown handle the line numbers and syntax highlighting
-        markdown_content = f"```{file_ext}\n{self.file_content}\n```"
-
-        markdown_widget = Markdown(markdown_content, classes="code-markdown")
-        markdown_widget.code_dark_theme = "catppuccin-mocha"
-
-        yield Vertical(
-            Horizontal(
-                Label("⚯ Cat", classes="tool-title"),
-                Label(
-                    f" {file_path or 'unknown'}", classes="tool-content"
-                ),
-                classes="tool-horizontal",
-            ),
-            markdown_widget,
+    def get_subtitle(self) -> str:
+        file_path = get_arg(
+            self.tool_message.arguments, ["filePath", "file_path", "file", "path"], ""
         )
+        return f" {file_path or 'unknown'}"
+
+    def create_body(self) -> Static:
+        # Detect lexer from file extension; content already includes line numbers
+        file_path = get_arg(
+            self.tool_message.arguments, ["filePath", "file_path", "file", "path"], ""
+        )
+        file_ext = file_path.split(".")[-1] if "." in file_path else "text"
+        lexer = file_ext if file_ext else "text"
+        syntax = Syntax(
+            self.file_content,
+            lexer,
+            theme="catppuccin-mocha",
+            line_numbers=False,
+            word_wrap=False,
+        )
+        try:
+            theme_obj = getattr(syntax, "_theme", None)
+            if theme_obj is not None and hasattr(theme_obj, "background_color"):
+                theme_obj.background_color = None
+        except Exception:
+            pass
+        return Static(syntax, classes="code-syntax")

@@ -1,8 +1,10 @@
+import json
+
 from qwen_agent.tools.base import BaseTool, register_tool
 
 from agent.tools import load_tool_description
 from agent.utils.param_parser import ParameterParser
-from agent.utils.todo_manager import get_todo_manager
+from agent.utils.todo_manager import get_todo_manager, todos_to_json_block
 
 
 @register_tool("todo_write")
@@ -40,35 +42,12 @@ class TodoWriteTool(BaseTool):
             todo_manager.update_from_list(todos_list)
 
             summary = todo_manager.get_summary()
-            
-            # Return summary + formatted todo list for UI display
-            result = f"Updated todo list: {summary}\n"
-            
-            # Add formatted todo items
-            todos = todo_manager.get_all_todos()
-            for todo in todos:
-                # Determine status symbol
-                if todo.status == "completed":
-                    status_marker = "[x]"  # completed
-                elif todo.status == "in_progress":
-                    status_marker = "[>]"  # in progress
-                else:  # pending
-                    status_marker = "[]"   # pending
-                
-                # Apply strikethrough if cancelled
-                if todo.cancelled:
-                    result += f"{status_marker} - ~~{todo.content}~~\n"
-                else:
-                    result += f"{status_marker} - {todo.content}\n"
-            
-            return result.rstrip()
+            formatted_todos = todo_manager.format_todos()
+            # Emit machine-readable JSON after the text block for UI consumption
+            return (
+                f"Updated todo list: {summary}\n{formatted_todos}\n\n"
+                f"{todos_to_json_block(todo_manager.get_all_todos())}"
+            )
 
         except Exception as e:
             return f"Error: {str(e)}"
-
-    def _pretty_print_todos(self):
-        """Pretty print todos for debugging"""
-        todo_manager = get_todo_manager()
-        todos = todo_manager.get_all_todos()
-        # Debug prints removed
-        pass

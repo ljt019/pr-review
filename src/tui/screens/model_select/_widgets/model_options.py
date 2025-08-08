@@ -2,13 +2,13 @@ from textual.widgets import OptionList
 from textual.widgets.option_list import Option
 
 from agent.agent import ModelOptions
-from paths import get_widget_path
+from paths import get_path
 
 
 class ModelOptionsWidget(OptionList):
     """A widget that displays model options for selection."""
 
-    CSS_PATH = str(get_widget_path("model_options.tcss"))
+    CSS_PATH = str(get_path("widgets", "model_options.tcss"))
 
     def __init__(self):
         super().__init__(

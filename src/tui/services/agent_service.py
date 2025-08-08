@@ -4,9 +4,9 @@ import logging
 from pathlib import Path
 from typing import Iterator, Optional
 
-from agent.agent import create_agent, ModelOptions
+from agent.agent import ModelOptions, create_agent
 from agent.messaging import AgentMessage, MessageReceiver
-from paths import get_assets_path
+from paths import get_path
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,9 @@ class AgentService:
             enable_logging: Whether to enable conversation logging
         """
         self.model_option = model_option
-        self.zipped_codebase = zipped_codebase or get_assets_path("toy-webserver.zip")
+        self.zipped_codebase = zipped_codebase or get_path(
+            "assets", "toy-webserver.zip"
+        )
         self.enable_logging = enable_logging
         self._agent = None
         self._receiver: Optional[MessageReceiver] = None
@@ -67,50 +69,45 @@ class AgentService:
 
             # Create agent and get receiver
             self._agent, self._receiver = create_agent(
-                codebase_path=self.zipped_codebase,
-                model=self.model_option
+                codebase_path=self.zipped_codebase, model=self.model_option
             )
-            
+
             logger.info("Agent created successfully, starting analysis...")
-            
+
             # Start agent
             with self._agent:
                 # Start analysis in background and yield messages as they come
-                import threading
                 import queue
+                import threading
                 import time
-                
+
                 def run_agent_with_sandbox():
                     """Run agent analysis with proper sandbox startup."""
                     try:
-                        self._agent.start()  # Start sandbox
+                        # Context manager starts the sandbox; avoid double start
                         self._agent.run_analysis()
                     except Exception as e:
                         logger.error(f"Agent analysis failed: {e}")
                         raise
-                
+
                 analysis_thread = threading.Thread(target=run_agent_with_sandbox)
                 analysis_thread.start()
-                
-                # Yield messages in real-time using clean message handling
-                while analysis_thread.is_alive() or not self._receiver.empty():
-                    if not self._receiver.empty():
-                        try:
-                            message = self._receiver.get_message_nowait()
-                            yield message
-                        except queue.Empty:
-                            # Race condition - queue became empty between check and get
-                            pass
-                        except Exception as e:
-                            logger.error(f"Error receiving message: {e}")
-                    else:
-                        # No messages, short sleep to avoid busy waiting
-                        time.sleep(0.1)
-                    
-                    # Check if analysis thread is done and no more messages
-                    if not analysis_thread.is_alive() and self._receiver.empty():
-                        break
-                
+
+                # Yield messages in real-time without busy-waiting
+                while True:
+                    try:
+                        # Block briefly for a message; timeout avoids deadlock at end
+                        message = self._receiver.get_message(timeout=0.5)
+                        yield message
+                    except queue.Empty:
+                        # No message within timeout; check for termination condition
+                        if not analysis_thread.is_alive() and self._receiver.empty():
+                            break
+                    except Exception as e:
+                        logger.error(f"Error receiving message: {e}")
+                        if not analysis_thread.is_alive() and self._receiver.empty():
+                            break
+
                 # Wait for analysis to complete
                 analysis_thread.join()
         except Exception as e:

@@ -2,7 +2,6 @@
     width: auto;
 }
 
-.tool-content {
-    color: #585b70;
-    text-style: italic;
+.todo-entry {
+    color: $text; /* match regular message text color */
 }

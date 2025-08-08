@@ -1,17 +1,16 @@
 """Clean messaging system for agent communication."""
 
+from .receiver import MessageReceiver
 from .types import (
     AgentMessage,
+    BugReportMessage,
+    BugReportStartedMessage,
     MessageType,
-    ToolExecutionMessage,
-    StreamStartMessage,
     StreamChunkMessage,
     StreamEndMessage,
-    BugReportStartedMessage,
-    BugReportMessage,
+    StreamStartMessage,
+    ToolExecutionMessage,
 )
-from .sender import MessageSender
-from .receiver import MessageReceiver
 
 __all__ = [
     # Base types
@@ -25,6 +24,5 @@ __all__ = [
     "BugReportStartedMessage",
     "BugReportMessage",
     # Core classes
-    "MessageSender",
     "MessageReceiver",
 ]

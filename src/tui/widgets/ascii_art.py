@@ -3,7 +3,7 @@
 from textual.widgets import Static
 from PIL import Image
 import shutil
-from paths import get_widget_path, PROJECT_ROOT
+from paths import PROJECT_ROOT
 
 
 class ASCIIArt(Static):
