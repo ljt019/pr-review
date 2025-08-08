@@ -7,6 +7,14 @@ from .glob_tool_message import GlobToolMessage
 from .grep_tool_message import GrepToolMessage
 from .ls_tool_message import LsToolMessage
 
+# Centralized registry of tool-name to widget class
+TOOL_WIDGET_MAP = {
+    "grep": GrepToolMessage,
+    "cat": CatToolMessage,
+    "ls": LsToolMessage,
+    "glob": GlobToolMessage,
+}
+
 __all__ = [
     "AgentMessage",
     "GrepToolMessage",
@@ -14,4 +22,5 @@ __all__ = [
     "LsToolMessage",
     "CatToolMessage",
     "TodoMessageWidget",
+    "TOOL_WIDGET_MAP",
 ]

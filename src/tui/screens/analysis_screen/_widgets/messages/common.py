@@ -1,3 +1,6 @@
+import json
+from typing import Any, Dict, Iterable, Optional, Union
+
 from textual.widgets import Markdown
 
 
@@ -29,3 +32,41 @@ def make_markdown(
     except Exception:
         pass
     return md
+
+
+def subtitle_from_args(
+    arguments: Union[str, Dict[str, Any], None],
+    keys: Iterable[str],
+    quote: bool = False,
+    default: str = "",
+) -> str:
+    """Extract a subtitle value from arguments by first-present key.
+
+    If quote=True and a value is present, wrap it in double quotes.
+    """
+    try:
+        from tui.utils.args import get_arg
+    except Exception:
+        return default
+
+    value = get_arg(arguments, keys, default)
+    if value is None or value == "":
+        return default
+    return f' "{value}"' if quote else f" {value}"
+
+
+def parse_json_block(result: Optional[str]) -> Optional[Dict[str, Any]]:
+    """Parse an embedded JSON block delimited by <!--JSON-->...<!--/JSON-->."""
+    if not result:
+        return None
+    try:
+        start_token = "<!--JSON-->"
+        end_token = "<!--/JSON-->"
+        start = result.find(start_token)
+        end = result.find(end_token)
+        if start == -1 or end == -1 or end <= start:
+            return None
+        json_str = result[start + len(start_token) : end].strip()
+        return json.loads(json_str)
+    except Exception:
+        return None

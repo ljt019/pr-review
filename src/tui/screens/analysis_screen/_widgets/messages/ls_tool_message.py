@@ -7,58 +7,48 @@ from agent.messaging import ToolExecutionMessage
 from tui.utils.args import get_arg
 
 from .base_tool_message import BaseToolMessage
-from .common import make_markdown
+from .common import make_markdown, parse_json_block, subtitle_from_args
 
 
 class LsToolMessage(BaseToolMessage):
     """Tool call made by the agent to ls files with file tree display"""
 
-    example_output = [
-        ("src/", "directory"),
-        ("src/agent/", "directory"),
-        ("src/agent/__init__.py", "file"),
-        ("src/agent/agent.py", "file"),
-        ("src/agent/messages.py", "file"),
-        ("src/tui/", "directory"),
-        ("src/tui/screens/", "directory"),
-        ("src/tui/screens/analysis_screen/", "directory"),
-        ("src/tui/screens/analysis_screen/analysis_screen.py", "file"),
-        ("src/tui/screens/test/", "directory"),
-        ("src/tui/screens/test/test_screen.py", "file"),
-        ("src/tui/widgets/", "directory"),
-        ("src/tui/widgets/ascii_art.py", "file"),
-        ("src/tui/widgets/instruction_text.py", "file"),
-        ("README.md", "file"),
-        ("pyproject.toml", "file"),
-    ]
-
     def __init__(self, tool_message: ToolExecutionMessage, directory_output=None):
         super().__init__(tool_message)
-        # Prepare parsed entries from tool result; fallback to examples
         if tool_message.result and tool_message.success:
             self.entries = self._parse_ls_output(tool_message.result)
         else:
-            # Use example entries
-            self.entries = [p for p, _ in self.example_output]
+            self.entries = []
 
     def get_title(self) -> str:
         return "☰ Ls"
 
     def get_subtitle(self) -> str:
-        return f" {self._get_path()}"
+        return subtitle_from_args(
+            self.tool_message.arguments,
+            ["path", "directory", "dir"],
+            quote=False,
+            default=" .",
+        )
 
     def create_body(self) -> Static:
         # Group entries by directory and render a nested Markdown list
-        groups = self._group_entries_by_dir(self.entries)
-        md_lines = []
-        if not groups:
-            markdown_content = "(no files)"
+        # Prefer JSON block if available
+        payload = parse_json_block(self.tool_message.result)
+        if payload and isinstance(payload, dict) and "entries" in payload:
+            entries = payload.get("entries", [])
+            groups = self._group_entries_by_dir(entries)
         else:
+            groups = self._group_entries_by_dir(self.entries)
+        md_lines = []
+        if groups:
             for directory, files in groups.items():
                 md_lines.append(f"- **{directory}**")
                 for file_name in files:
                     md_lines.append(f"  - {file_name}")
             markdown_content = "\n".join(md_lines)
+        else:
+            markdown_content = "(no files)"
         return self._markdown(markdown_content)
 
     def _get_path(self) -> str:

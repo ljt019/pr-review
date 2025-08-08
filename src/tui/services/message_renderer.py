@@ -20,31 +20,15 @@ from agent.messaging import (
 )
 from agent.utils.todo_manager import parse_todos_json_block
 from tui.screens.analysis_screen._widgets.center_screen import CenterWidget
+from tui.screens.analysis_screen._widgets.messages import TOOL_WIDGET_MAP
 from tui.screens.analysis_screen._widgets.messages.agent_message import AgentMessage
 from tui.screens.analysis_screen._widgets.messages.bug_report_with_loading_message import (
     BugReportWithLoadingMessage,
 )
-from tui.screens.analysis_screen._widgets.messages.cat_tool_message import (
-    CatToolMessage,
-)
-from tui.screens.analysis_screen._widgets.messages.glob_tool_message import (
-    GlobToolMessage,
-)
-from tui.screens.analysis_screen._widgets.messages.grep_tool_message import (
-    GrepToolMessage,
-)
-from tui.screens.analysis_screen._widgets.messages.ls_tool_message import (
-    LsToolMessage,
-)
 from tui.screens.analysis_screen._widgets.todo_message_widget import TodoMessageWidget
 from tui.screens.analysis_screen._widgets.tool_indicator import ToolIndicator
 
-TOOL_WIDGET_MAP = {
-    "grep": GrepToolMessage,
-    "cat": CatToolMessage,
-    "ls": LsToolMessage,
-    "glob": GlobToolMessage,
-}
+# TOOL_WIDGET_MAP now imported from messages package
 
 logger = logging.getLogger(__name__)
 
@@ -93,11 +77,8 @@ class MessageRenderer:
         if message.tool_name in TOOL_WIDGET_MAP:
             widget = CenterWidget(TOOL_WIDGET_MAP[message.tool_name](message))
         elif message.tool_name in ["todo_write", "todo_read"]:
-            # Prefer machine-readable todos embedded in the result
+            # Prefer machine-readable todos embedded in the result (always present from our tools)
             todos = parse_todos_json_block(message.result)
-            if not todos:
-                # Fallback to text parsing for backward compatibility
-                todos = self._parse_todo_state_from_result(message.result)
             if todos:
                 widget = CenterWidget(
                     TodoMessageWidget(todos, tool_name=message.tool_name)
@@ -117,52 +98,7 @@ class MessageRenderer:
 
         self._add_widget(widget)
 
-    def _parse_todo_state_from_result(self, result: str) -> list[dict]:
-        """Parse todo state from tool result string."""
-        if not result:
-            return []
-
-        try:
-            # The todo tools return todo state info - extract it
-            # Example result: "Updated todo list: 6 total, 6 incomplete\n[] - Task 1\n[] - Task 2"
-            # or "[] - Task 1\n[] - Task 2\n[x] - Task 3"
-
-            lines = result.strip().split("\n")
-            todos = []
-
-            for line in lines:
-                line = line.strip()
-                if any(
-                    line.startswith(marker) for marker in ["[] - ", "[x] - ", "[>] - "]
-                ):
-                    # Parse todo item
-                    if line.startswith("[x] - "):
-                        status = "completed"
-                        content = line[6:]  # Remove "[x] - "
-                    elif line.startswith("[>] - "):
-                        status = "in_progress"
-                        content = line[6:]  # Remove "[>] - "
-                    else:  # line.startswith('[] - ')
-                        status = "pending"
-                        content = line[5:]  # Remove "[] - "
-
-                    # Check if content has strikethrough (cancelled)
-                    cancelled = content.startswith("~~") and content.endswith("~~")
-                    if cancelled:
-                        content = content[2:-2]  # Remove strikethrough markers
-
-                    todos.append(
-                        {
-                            "id": f"todo_{len(todos)}",  # Simple ID
-                            "content": content,
-                            "status": status,
-                            "cancelled": cancelled,
-                        }
-                    )
-
-            return todos
-        except Exception:
-            return []
+    # Removed legacy text-based todo parsing; JSON block is always emitted by todo tools
 
     # Removed unused JSON parsing helper for todos (UI consumes JSON blocks directly)
 

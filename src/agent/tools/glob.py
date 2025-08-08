@@ -1,12 +1,10 @@
-import shlex
+import json
 
 from qwen_agent.tools.base import BaseTool, register_tool
 
 from agent.tools import (
     load_tool_description,
     normalize_path,
-    run_in_container,
-    to_workspace_relative,
 )
 from agent.tools.rg_utils import (
     rg_count_files,
@@ -52,7 +50,9 @@ class GlobTool(BaseTool):
             )
 
             if not lines:
-                return f"No files found matching pattern '{pattern}' in {original_path}"
+                text = f"No files found matching pattern '{pattern}' in {original_path}"
+                payload = {"files": []}
+                return f"{text}\n\n<!--JSON-->" + json.dumps(payload) + "<!--/JSON-->"
 
             # Convert absolute paths back to relative for display
             display_lines = to_workspace_relative_lines(lines)
@@ -66,7 +66,11 @@ class GlobTool(BaseTool):
                         f"(Showing {self.LIMIT} of {total_count} files. Consider using a more specific pattern.)"
                     )
 
-            return "\n".join(display_lines)
+            text = "\n".join(display_lines)
+
+            # Append structured JSON block for UI consumers
+            payload = {"files": display_lines}
+            return f"{text}\n\n<!--JSON-->" + json.dumps(payload) + "<!--/JSON-->"
 
         except Exception as e:
             return f"Error: {str(e)}"

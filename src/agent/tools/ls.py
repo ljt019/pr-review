@@ -1,3 +1,4 @@
+import json
 import shlex
 from pathlib import Path
 
@@ -99,7 +100,9 @@ class LsTool(BaseTool):
                     f"(Results limited to {LIMIT} entries. Use glob for more specific searches.)"
                 )
 
-            return "\n".join(entries)
+            text = "\n".join(entries)
+            payload = {"entries": entries}
+            return f"{text}\n\n<!--JSON-->" + json.dumps(payload) + "<!--/JSON-->"
 
         except Exception as e:
             return f"Error: {str(e)}"

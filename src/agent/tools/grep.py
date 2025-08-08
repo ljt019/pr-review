@@ -1,3 +1,4 @@
+import json
 import shlex
 from typing import List, Optional, Union
 
@@ -88,12 +89,31 @@ class GrepTool(BaseTool):
 
         result = run_in_container(shlex.join(cmd))
 
-        # If no matches found, provide a helpful message
-        if not result or not result.strip():
-            return f"No files found containing pattern: {pattern}"
-
         # Convert absolute paths back to relative for display
+        if not result or not result.strip():
+            text = f"No files found containing pattern: {pattern}"
+            payload = {"matches": []}
+            return f"{text}\n\n<!--JSON-->" + json.dumps(payload) + "<!--/JSON-->"
+
         lines = result.strip().split("\n")
         display_lines = [to_workspace_relative(line) for line in lines]
 
-        return "\n".join(display_lines)
+        # Build structured matches
+        matches = []
+        for line in display_lines:
+            parts = line.split(":", 2)
+            if len(parts) >= 3:
+                file_path, line_str, content = parts[0], parts[1], parts[2]
+                try:
+                    line_num = int(line_str)
+                except ValueError:
+                    line_num = 0
+                matches.append(
+                    {"file": file_path, "line": line_num, "content": content}
+                )
+            else:
+                matches.append({"file": line, "line": 0, "content": line})
+
+        text = "\n".join(display_lines)
+        payload = {"matches": matches}
+        return f"{text}\n\n<!--JSON-->" + json.dumps(payload) + "<!--/JSON-->"
