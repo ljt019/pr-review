@@ -4,7 +4,7 @@ from qwen_agent.tools.base import BaseTool, register_tool
 
 from agent.tools import (
     load_tool_description,
-    normalize_path,
+    parse_tool_params,
 )
 from agent.tools.rg_utils import (
     rg_count_files,
@@ -35,13 +35,8 @@ class GlobTool(BaseTool):
 
     def call(self, params: str, **kwargs) -> str:
         try:
-            parsed_params = ParameterParser.parse_params(params)
+            parsed_params, search_path, original_path = parse_tool_params(params)
             pattern = ParameterParser.get_required_param(parsed_params, "pattern")
-            original_path = ParameterParser.get_optional_param(
-                parsed_params, "path", "."
-            )
-            # Normalize the path to handle relative paths
-            search_path = normalize_path(original_path)
 
             # List files via ripgrep helper
             include_globs = None if pattern in ["*", "**", "**/*"] else [pattern]

@@ -6,7 +6,7 @@ from qwen_agent.tools.base import BaseTool, register_tool
 
 from agent.tools import (
     load_tool_description,
-    normalize_path,
+    parse_tool_params,
     run_in_container,
     to_workspace_relative,
 )
@@ -42,14 +42,9 @@ class CatTool(BaseTool):
 
     def call(self, params: str, **kwargs) -> str:
         try:
-            parsed_params = ParameterParser.parse_params(params)
-
-            original_path = ParameterParser.get_required_param(
-                parsed_params, "filePath"
+            parsed_params, file_path, original_path = parse_tool_params(
+                params, path_param="filePath", required_path=True
             )
-
-            # Normalize the path to handle relative paths
-            file_path = normalize_path(original_path)
 
             offset = ParameterParser.get_optional_param(parsed_params, "offset", 0)
             limit = ParameterParser.get_optional_param(

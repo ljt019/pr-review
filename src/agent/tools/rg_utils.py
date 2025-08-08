@@ -8,24 +8,7 @@ def _quote(value: str) -> str:
     return shlex.quote(value)
 
 
-def _to_exclude_glob(pattern: str) -> str:
-    """Convert a human pattern to an rg exclude glob (with '!').
-
-    - Directories like 'node_modules/' -> '**/node_modules/**'
-    - Files like 'Thumbs.db' -> '**/Thumbs.db'
-    - Raw globs ('*.log') are used as-is but prefixed with '**/' if missing a slash
-    """
-    pat = pattern.strip()
-    if not pat:
-        return pat
-    if pat.endswith("/"):
-        name = pat.strip("/")
-        return f"**/{name}/**"
-    # If it already looks like a nested glob or has a slash, leave as-is
-    if "/" in pat or pat.startswith("**"):
-        return pat
-    # Plain filename or extension glob
-    return f"**/{pat}"
+## Removed unused _to_exclude_glob helper
 
 
 def rg_list_files(

@@ -6,14 +6,13 @@ Clean, simple messaging system using Python's built-in `queue.Queue`.
 
 ```python
 from messaging import (
-    MessageSender, MessageReceiver, MessageType,
-    ToolExecutionMessage, TodoStateMessage
+    MessageReceiver, MessageType,
+    ToolExecutionMessage
 )
 import time
 
 # Setup
 receiver = MessageReceiver()
-sender = MessageSender(receiver=receiver)
 
 # Create and send messages
 tool_msg = ToolExecutionMessage(
@@ -25,7 +24,7 @@ tool_msg = ToolExecutionMessage(
     success=True
 )
 
-sender.send(tool_msg)
+receiver.receive_message(tool_msg)
 
 # Receive messages
 for message in receiver:
@@ -36,7 +35,6 @@ for message in receiver:
 ## Message Types
 
 - `ToolExecutionMessage` - Combined tool call + result
-- `TodoStateMessage` - Todo list updates  
 - `StreamStartMessage` - Start of streaming content
 - `StreamChunkMessage` - Chunk of streaming content
 - `StreamEndMessage` - End of streaming content
@@ -44,7 +42,6 @@ for message in receiver:
 
 ## Architecture
 
-- **MessageSender**: Sends messages using single `send(message)` method
-- **MessageReceiver**: Receives messages, iterable with `for message in receiver:`
+- **MessageReceiver**: Receives messages; call `receiver.receive_message(message)` to enqueue
 - **AgentMessage**: Base class for all message types
 - Uses Python's built-in `queue.Queue` for reliability and simplicity

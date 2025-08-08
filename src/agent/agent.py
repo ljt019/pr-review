@@ -16,7 +16,6 @@ from agent.messaging import (
     BugReportMessage,
     BugReportStartedMessage,
     MessageReceiver,
-    MessageSender,
     StreamChunkMessage,
     StreamEndMessage,
     StreamStartMessage,
@@ -56,7 +55,6 @@ class SniffAgent:
 
         # Setup messaging
         self.receiver = receiver
-        self.sender = MessageSender(receiver)
 
         # Setup LLM
         llm_cfg = {
@@ -167,7 +165,7 @@ class SniffAgent:
 
         if split.has_json:
             if not self._bug_report_started:
-                self.sender.send(
+                self.receiver.receive_message(
                     BugReportStartedMessage(
                         message_id=self._gen_msg_id(),
                         timestamp=time.time(),
@@ -195,7 +193,7 @@ class SniffAgent:
 
     def _handle_bug_report_json(self, report_data):
         """Handle a complete bug report JSON object."""
-        self.sender.send(
+        self.receiver.receive_message(
             BugReportMessage(
                 message_id=self._gen_msg_id(),
                 timestamp=time.time(),
@@ -210,7 +208,7 @@ class SniffAgent:
         self._stream_buffer = initial_content
         self._chunk_index = 0
 
-        self.sender.send(
+        self.receiver.receive_message(
             StreamStartMessage(
                 message_id=self._gen_msg_id(),
                 timestamp=time.time(),
@@ -224,7 +222,7 @@ class SniffAgent:
 
     def _send_stream_chunk(self, chunk_content):
         """Send a chunk of streaming content."""
-        self.sender.send(
+        self.receiver.receive_message(
             StreamChunkMessage(
                 message_id=self._gen_msg_id(),
                 timestamp=time.time(),
@@ -237,7 +235,7 @@ class SniffAgent:
     def _end_stream(self):
         """End the current streaming message."""
         if self._current_stream:
-            self.sender.send(
+            self.receiver.receive_message(
                 StreamEndMessage(
                     message_id=self._gen_msg_id(),
                     timestamp=time.time(),
@@ -332,7 +330,7 @@ class SniffAgent:
                 self._analyzed_files.add(file_path)
 
         # Send the complete tool execution message
-        self.sender.send(
+        self.receiver.receive_message(
             ToolExecutionMessage(
                 message_id=self._gen_msg_id(),
                 timestamp=time.time(),

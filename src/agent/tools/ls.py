@@ -6,7 +6,7 @@ from qwen_agent.tools.base import BaseTool, register_tool
 
 from agent.tools import (
     load_tool_description,
-    normalize_path,
+    parse_tool_params,
     run_in_container,
 )
 from agent.tools.rg_utils import rg_count_files, rg_list_files
@@ -37,17 +37,11 @@ class LsTool(BaseTool):
         try:
             # Handle empty params case
             if not params or params.strip() == "":
-                # Default to workspace root when no path is provided
                 path = "/workspace"
                 original_path = "."
                 ignore_patterns = []
             else:
-                parsed_params = ParameterParser.parse_params(params)
-                original_path = ParameterParser.get_optional_param(
-                    parsed_params, "path", "."
-                )
-                # Normalize the path to handle relative paths
-                path = normalize_path(original_path)
+                parsed_params, path, original_path = parse_tool_params(params)
                 ignore_patterns = ParameterParser.get_optional_param(
                     parsed_params, "ignore", []
                 )
