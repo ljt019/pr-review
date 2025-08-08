@@ -20,7 +20,6 @@ from agent.messaging import (
 )
 from agent.utils.todo_manager import parse_todos_json_block
 from tui.screens.analysis_screen._widgets.center_screen import CenterWidget
-from tui.screens.analysis_screen._widgets.message_box import MessageBox
 from tui.screens.analysis_screen._widgets.messages.agent_message import AgentMessage
 from tui.screens.analysis_screen._widgets.messages.bug_report_with_loading_message import (
     BugReportWithLoadingMessage,
@@ -62,7 +61,8 @@ class MessageRenderer:
         """
         self.app = app
         self.messages_container = messages_container
-        self.current_streaming_widget: Optional[MessageBox] = None
+        self.current_streaming_wrapper: Optional[CenterWidget] = None
+        self.current_agent_message: Optional[AgentMessage] = None
         self.report_placeholder: Optional[ToolIndicator] = None
         self.analysis_message_count = 0
         self.analyzed_files: set = set()
@@ -164,41 +164,7 @@ class MessageRenderer:
         except Exception:
             return []
 
-    def _parse_todos_json_from_result(self, result: str) -> list[dict]:
-        """Extract machine-readable todos JSON embedded between markers.
-
-        Expected format: ... \n <!--JSON-->{"todos": [...]}<!--/JSON-->
-        """
-        if not result:
-            return []
-        try:
-            start_token = "<!--JSON-->"
-            end_token = "<!--/JSON-->"
-            start = result.find(start_token)
-            end = result.find(end_token)
-            if start == -1 or end == -1 or end <= start:
-                return []
-            json_str = result[start + len(start_token) : end].strip()
-            import json
-
-            data = json.loads(json_str)
-            todos = data.get("todos", [])
-            if isinstance(todos, list):
-                normalized = []
-                for t in todos:
-                    if isinstance(t, dict) and "content" in t and "status" in t:
-                        normalized.append(
-                            {
-                                "id": t.get("id", ""),
-                                "content": t["content"],
-                                "status": t["status"],
-                                "cancelled": bool(t.get("cancelled", False)),
-                            }
-                        )
-                return normalized
-            return []
-        except Exception:
-            return []
+    # Removed unused JSON parsing helper for todos (UI consumes JSON blocks directly)
 
     def render_stream_start(self, message: StreamStartMessage) -> None:
         """Start rendering a streaming message."""
@@ -206,26 +172,23 @@ class MessageRenderer:
         if message.content_type == "analysis":
             self.analysis_message_count += 1
 
-        # Use the new AgentMessage widget wrapped in CenterWidget
-        self.current_streaming_widget = CenterWidget(AgentMessage(""))
-        self.current_streaming_widget.add_class("streaming")
-        self._add_widget(self.current_streaming_widget)
+        # Create stream AgentMessage wrapped in CenterWidget and keep references
+        agent_message = AgentMessage("")
+        wrapper = CenterWidget(agent_message)
+        wrapper.add_class("streaming")
+        self.current_streaming_wrapper = wrapper
+        self.current_agent_message = agent_message
+        self._add_widget(wrapper)
 
     def render_stream_chunk(self, message: StreamChunkMessage) -> None:
         """Render a streaming message chunk."""
-        if not self.current_streaming_widget:
+        if not self.current_agent_message:
             return
 
-        # Get the AgentMessage widget from the CenterWidget
-        agent_message = self.current_streaming_widget.children[0]
-        if not hasattr(agent_message, "_content"):
-            agent_message._content = ""
-
-        # Accumulate content
-        agent_message._content += message.content
-
-        # Update the widget's renderable content
-        self.app.call_from_thread(agent_message.update, agent_message._content)
+        # Append content via public API
+        self.app.call_from_thread(
+            self.current_agent_message.append_chunk, message.content
+        )
 
         # Keep the end in view with Textual's built-in deferral
         self.app.call_from_thread(
@@ -234,21 +197,23 @@ class MessageRenderer:
 
     def render_stream_end(self, message: StreamEndMessage) -> None:
         """End rendering of a streaming message."""
-        if not self.current_streaming_widget:
+        if not self.current_streaming_wrapper:
             return
 
         self.app.call_from_thread(
-            self.current_streaming_widget.remove_class, "streaming"
+            self.current_streaming_wrapper.remove_class, "streaming"
         )
 
-        self.current_streaming_widget = None
+        self.current_streaming_wrapper = None
+        self.current_agent_message = None
 
     def render_bug_report_started(self, message: BugReportStartedMessage) -> None:
         """Render a bug report started message - show loading placeholder."""
         # Hide any current streaming widget that might contain partial JSON
-        if self.current_streaming_widget:
-            self.app.call_from_thread(self.current_streaming_widget.remove)
-            self.current_streaming_widget = None
+        if self.current_streaming_wrapper:
+            self.app.call_from_thread(self.current_streaming_wrapper.remove)
+            self.current_streaming_wrapper = None
+            self.current_agent_message = None
 
         # Create a temporary bug report with loading state
         temp_bug_report = {
