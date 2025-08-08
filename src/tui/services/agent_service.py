@@ -93,24 +93,20 @@ class AgentService:
                 analysis_thread = threading.Thread(target=run_agent_with_sandbox)
                 analysis_thread.start()
 
-                # Yield messages in real-time using clean message handling
-                while analysis_thread.is_alive() or not self._receiver.empty():
-                    if not self._receiver.empty():
-                        try:
-                            message = self._receiver.get_message_nowait()
-                            yield message
-                        except queue.Empty:
-                            # Race condition - queue became empty between check and get
-                            pass
-                        except Exception as e:
-                            logger.error(f"Error receiving message: {e}")
-                    else:
-                        # No messages, short sleep to avoid busy waiting
-                        time.sleep(0.1)
-
-                    # Check if analysis thread is done and no more messages
-                    if not analysis_thread.is_alive() and self._receiver.empty():
-                        break
+                # Yield messages in real-time without busy-waiting
+                while True:
+                    try:
+                        # Block briefly for a message; timeout avoids deadlock at end
+                        message = self._receiver.get_message(timeout=0.5)
+                        yield message
+                    except queue.Empty:
+                        # No message within timeout; check for termination condition
+                        if not analysis_thread.is_alive() and self._receiver.empty():
+                            break
+                    except Exception as e:
+                        logger.error(f"Error receiving message: {e}")
+                        if not analysis_thread.is_alive() and self._receiver.empty():
+                            break
 
                 # Wait for analysis to complete
                 analysis_thread.join()

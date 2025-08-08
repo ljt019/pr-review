@@ -1,5 +1,6 @@
 """Cat tool message widget"""
 
+from rich.syntax import Syntax
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Label, Static
@@ -16,7 +17,7 @@ class CatToolMessage(Static):
     file_content: str = ""
 
     def __init__(self, tool_message: ToolExecutionMessage, file_content=None):
-        super().__init__("", classes="agent-tool-message")
+        super().__init__("", classes="agent-tool-message cat-tool-message")
         self.tool_message = tool_message
         if file_content is not None:
             self.file_content = file_content
@@ -29,10 +30,24 @@ class CatToolMessage(Static):
         )
         file_ext = file_path.split(".")[-1] if "." in file_path else "text"
 
-        # Let Markdown handle the line numbers and syntax highlighting
-        markdown_content = f"```{file_ext}\n{self.file_content}\n```"
-
-        markdown_widget = make_markdown(markdown_content, classes="code-markdown")
+        # Render code using Rich Syntax with NO gutter/line-number separator
+        # We already include line numbers in content from cat -n
+        lexer = file_ext if file_ext else "text"
+        syntax = Syntax(
+            self.file_content,
+            lexer,
+            theme="catppuccin-mocha",
+            line_numbers=False,
+            word_wrap=False,
+        )
+        # Remove theme-specified background to preserve transparent UI background
+        try:
+            # Rich 14 exposes background color on the theme object
+            theme_obj = getattr(syntax, "_theme", None)
+            if theme_obj is not None and hasattr(theme_obj, "background_color"):
+                theme_obj.background_color = None
+        except Exception:
+            pass
 
         yield Vertical(
             Horizontal(
@@ -40,5 +55,5 @@ class CatToolMessage(Static):
                 Label(f" {file_path or 'unknown'}", classes="tool-content"),
                 classes="tool-horizontal",
             ),
-            markdown_widget,
+            Static(syntax, classes="code-syntax"),
         )

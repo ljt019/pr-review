@@ -1,7 +1,7 @@
 .agent-tool-message {
     margin: 0;
     padding: 1;
-    border: wide #313244;
+    border: none;
     background: #181825;
     color: #cdd6f4;
     width: auto;
@@ -26,7 +26,7 @@
     text-style: italic;
 }
 
-.code-markdown {
+.code-markdown, .code-syntax {
     height: auto;
     overflow-y: hidden;
     background: transparent;
@@ -38,6 +38,7 @@
     overflow: hidden;
     background: transparent;
     margin: 0;
+    border: none;
 }
 
 .code-markdown MarkdownFence > Static {

@@ -1,7 +1,7 @@
 """Service for rendering messages in the UI, separating rendering logic from business logic."""
 
 import logging
-from typing import Dict, Optional
+from typing import Optional
 
 from textual.app import App
 from textual.widget import Widget
@@ -20,7 +20,7 @@ from agent.messaging import (
 )
 from agent.utils.todo_manager import parse_todos_json_block
 from tui.screens.analysis_screen._widgets.center_screen import CenterWidget
-from tui.screens.analysis_screen._widgets.message_box import BotMessage, MessageBox
+from tui.screens.analysis_screen._widgets.message_box import MessageBox
 from tui.screens.analysis_screen._widgets.messages.agent_message import AgentMessage
 from tui.screens.analysis_screen._widgets.messages.bug_report_with_loading_message import (
     BugReportWithLoadingMessage,
@@ -71,19 +71,21 @@ class MessageRenderer:
         )
 
     def render_message(self, message: BaseAgentMessage) -> None:
-        """Render any agent message based on its type."""
-        if message.message_type == MessageType.TOOL_EXECUTION:
-            self.render_tool_execution(message)
-        elif message.message_type == MessageType.STREAM_START:
-            self.render_stream_start(message)
-        elif message.message_type == MessageType.STREAM_CHUNK:
-            self.render_stream_chunk(message)
-        elif message.message_type == MessageType.STREAM_END:
-            self.render_stream_end(message)
-        elif message.message_type == MessageType.BUG_REPORT_STARTED:
-            self.render_bug_report_started(message)
-        elif message.message_type == MessageType.BUG_REPORT:
-            self.render_bug_report(message)
+        """Render any agent message based on its type using dispatch mapping."""
+        dispatch_map = {
+            MessageType.TOOL_EXECUTION: self.render_tool_execution,
+            MessageType.STREAM_START: self.render_stream_start,
+            MessageType.STREAM_CHUNK: self.render_stream_chunk,
+            MessageType.STREAM_END: self.render_stream_end,
+            MessageType.BUG_REPORT_STARTED: self.render_bug_report_started,
+            MessageType.BUG_REPORT: self.render_bug_report,
+        }
+
+        handler = dispatch_map.get(message.message_type)
+        if handler:
+            handler(message)  # type: ignore[arg-type]
+        else:
+            logger.warning("Unknown message type: %s", message.message_type)
 
     def render_tool_execution(self, message: ToolExecutionMessage) -> None:
         """Render a tool execution message."""
