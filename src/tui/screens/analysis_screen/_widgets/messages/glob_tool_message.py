@@ -1,17 +1,17 @@
 """Glob tool message widget"""
 
 from textual.app import ComposeResult
-from textual.containers import Horizontal, Vertical
-from textual.widgets import Label, Static
+from textual.widgets import Static
 
 from agent.messaging import ToolExecutionMessage
 from tui.utils.args import get_arg
 
+from .base_tool_message import BaseToolMessage
 from .common import make_markdown
 
 
-class GlobToolMessage(Static):
-    """Tool call made by the agent to *glob* files / patterns with polished file matches display"""
+class GlobToolMessage(BaseToolMessage):
+    """Tool call made by the agent to glob files / patterns with polished file matches display"""
 
     example_files = [
         "src/agent/__init__.py",
@@ -29,8 +29,7 @@ class GlobToolMessage(Static):
     ]
 
     def __init__(self, tool_message: ToolExecutionMessage, matched_files=None):
-        super().__init__("", classes="agent-tool-message")
-        self.tool_message = tool_message
+        super().__init__(tool_message)
         if matched_files is not None:
             self.matched_files = matched_files
         elif tool_message.result and tool_message.success:
@@ -41,37 +40,25 @@ class GlobToolMessage(Static):
         else:
             self.matched_files = self.example_files
 
-    def compose(self) -> ComposeResult:
+    def get_title(self) -> str:
+        return "⌕ Glob"
+
+    def get_subtitle(self) -> str:
         pattern = get_arg(
             self.tool_message.arguments, ["pattern", "glob_pattern", "file_pattern"], ""
         )
+        return f' "{pattern}"'
 
+    def create_body(self) -> Static:
         file_count = len(self.matched_files)
-
-        md_lines = [
-            f"**{file_count} files** matched pattern",
-            "",
-        ]
-
+        md_lines = [f"**{file_count} files** matched pattern", ""]
         for file_path in self.matched_files:
             md_lines.append(f"- **{file_path}**")
-
         if not self.matched_files:
             md_lines = ["**No files matched** the pattern"]
-
         markdown_content = "\n".join(md_lines)
-
-        markdown_widget = make_markdown(markdown_content, classes="search-markdown")
-        try:
-            markdown_widget.BULLETS = ["🖹 ", "🖹 ", "🖹 ", "🖹 ", "🖹 "]
-        except Exception:
-            pass
-
-        yield Vertical(
-            Horizontal(
-                Label("⌕ Glob", classes="tool-title"),
-                Label(f' "{pattern}"', classes="tool-content"),
-                classes="tool-horizontal",
-            ),
-            markdown_widget,
+        return make_markdown(
+            markdown_content,
+            classes="search-markdown",
+            bullets=["🖹 ", "🖹 ", "🖹 ", "🖹 ", "🖹 "],
         )

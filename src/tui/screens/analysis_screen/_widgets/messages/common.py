@@ -1,7 +1,9 @@
 from textual.widgets import Markdown
 
 
-def make_markdown(content: str, classes: str = "search-markdown") -> Markdown:
+def make_markdown(
+    content: str, classes: str = "search-markdown", bullets: list[str] | None = None
+) -> Markdown:
     md = Markdown(content, classes=classes)
     try:
         md.code_dark_theme = "catppuccin-mocha"
@@ -19,6 +21,11 @@ def make_markdown(content: str, classes: str = "search-markdown") -> Markdown:
             md.line_numbers = False  # fallback attribute
         except Exception:
             pass
+        if bullets:
+            try:
+                md.BULLETS = bullets
+            except Exception:
+                pass
     except Exception:
         pass
     return md

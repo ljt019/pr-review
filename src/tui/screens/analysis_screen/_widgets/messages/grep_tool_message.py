@@ -1,17 +1,17 @@
 """Grep tool message widget"""
 
 from textual.app import ComposeResult
-from textual.containers import Horizontal, Vertical
-from textual.widgets import Label, Static
+from textual.widgets import Static
 
 from agent.messaging import ToolExecutionMessage
 from tui.utils.args import get_arg
 
+from .base_tool_message import BaseToolMessage
 from .common import make_markdown
 
 
-class GrepToolMessage(Static):
-    """Tool call made by the agent to *grep* files / patterns with polished search results"""
+class GrepToolMessage(BaseToolMessage):
+    """Tool call made by the agent to grep files / patterns with polished search results"""
 
     example_matches = [
         ("src/agent/agent.py", 15, "def run_analysis(self):"),
@@ -29,8 +29,7 @@ class GrepToolMessage(Static):
     ]
 
     def __init__(self, tool_message: ToolExecutionMessage, search_results=None):
-        super().__init__("", classes="agent-tool-message")
-        self.tool_message = tool_message
+        super().__init__(tool_message)
         if search_results is not None:
             self.search_results = search_results
         elif tool_message.result and tool_message.success:
@@ -39,12 +38,17 @@ class GrepToolMessage(Static):
         else:
             self.search_results = self.example_matches
 
-    def compose(self) -> ComposeResult:
+    def get_title(self) -> str:
+        return "⌕ Grep"
+
+    def get_subtitle(self) -> str:
         pattern = get_arg(
             self.tool_message.arguments, ["pattern", "search_pattern"], ""
         )
-        match_count = len(self.search_results)
+        return f' "{pattern}"'
 
+    def create_body(self) -> Static:
+        match_count = len(self.search_results)
         files_dict = {}
         for file_path, line_num, content in self.search_results:
             if file_path not in files_dict:
@@ -55,28 +59,16 @@ class GrepToolMessage(Static):
             f"\n**{match_count} matches** found across **{len(files_dict)} files**",
             "",
         ]
-
         for file_path, matches in files_dict.items():
             md_lines.append(f"- **{file_path}**")
             for line_num, content in matches:
                 md_lines.append(f"  - Line **{line_num}**: `{content}`")
             md_lines.append("")
-
         markdown_content = "\n".join(md_lines)
-
-        markdown_widget = make_markdown(markdown_content, classes="search-markdown")
-        try:
-            markdown_widget.BULLETS = ["🖹 ", "• ", "‣ ", "⭑ ", "⭑ "]
-        except Exception:
-            pass
-
-        yield Vertical(
-            Horizontal(
-                Label("⌕ Grep", classes="tool-title"),
-                Label(f' "{pattern}"', classes="tool-content"),
-                classes="tool-horizontal",
-            ),
-            markdown_widget,
+        return make_markdown(
+            markdown_content,
+            classes="search-markdown",
+            bullets=["🖹 ", "• ", "‣ ", "⭑ ", "⭑ "],
         )
 
     def _parse_grep_output(self, grep_output: str) -> list:

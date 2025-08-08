@@ -1,17 +1,17 @@
 """Ls tool message widget"""
 
 from textual.app import ComposeResult
-from textual.containers import Horizontal, Vertical
-from textual.widgets import Label, Static
+from textual.widgets import Static
 
 from agent.messaging import ToolExecutionMessage
 from tui.utils.args import get_arg
 
+from .base_tool_message import BaseToolMessage
 from .common import make_markdown
 
 
-class LsToolMessage(Static):
-    """Tool call made by the agent to *ls* files with file tree display"""
+class LsToolMessage(BaseToolMessage):
+    """Tool call made by the agent to ls files with file tree display"""
 
     example_output = [
         ("src/", "directory"),
@@ -33,8 +33,7 @@ class LsToolMessage(Static):
     ]
 
     def __init__(self, tool_message: ToolExecutionMessage, directory_output=None):
-        super().__init__("", classes="agent-tool-message")
-        self.tool_message = tool_message
+        super().__init__(tool_message)
         # Prepare parsed entries from tool result; fallback to examples
         if tool_message.result and tool_message.success:
             self.entries = self._parse_ls_output(tool_message.result)
@@ -42,7 +41,13 @@ class LsToolMessage(Static):
             # Use example entries
             self.entries = [p for p, _ in self.example_output]
 
-    def compose(self) -> ComposeResult:
+    def get_title(self) -> str:
+        return "☰ Ls"
+
+    def get_subtitle(self) -> str:
+        return f" {self._get_path()}"
+
+    def create_body(self) -> Static:
         # Group entries by directory and render a nested Markdown list
         groups = self._group_entries_by_dir(self.entries)
         md_lines = []
@@ -50,21 +55,11 @@ class LsToolMessage(Static):
             markdown_content = "(no files)"
         else:
             for directory, files in groups.items():
-                # Top-level bullet: directory
                 md_lines.append(f"- **{directory}**")
-                # Nested bullets: files
                 for file_name in files:
                     md_lines.append(f"  - {file_name}")
             markdown_content = "\n".join(md_lines)
-
-        yield Vertical(
-            Horizontal(
-                Label("☰ Ls", classes="tool-title"),
-                Label(f" {self._get_path()}", classes="tool-content"),
-                classes="tool-horizontal",
-            ),
-            self._markdown(markdown_content),
-        )
+        return self._markdown(markdown_content)
 
     def _get_path(self) -> str:
         """Extract path from tool message arguments."""
